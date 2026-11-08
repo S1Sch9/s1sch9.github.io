@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3d000d">
+<title>Совет Первых школы №9</title>
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--red:#a1001f;--deep:#3d000d;--gold:#f0c869;--ink:#1d1215;--mut:#75686c;--bg:#faf6f6;--card:#fff;--line:#eadfe1;--r:22px}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{font:16px/1.5 Onest,system-ui,sans-serif;color:var(--ink);background:var(--bg);padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 18px 10px;background:rgba(250,246,246,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);font-weight:700}
+.bar i{width:28px;height:28px;border-radius:9px;background:var(--red);color:#fff;display:grid;place-items:center;font-style:normal;font-size:15px}
+main{max-width:640px;margin:0 auto;padding:6px 18px 20px}
+section{display:none}section.on{display:block;animation:in .4s ease both}
+@keyframes in{from{opacity:0;transform:translateY(14px)}}
+.rv{animation:in .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*55ms)}
+h1{font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin:10px 0 18px}
+.hero{position:relative;overflow:hidden;border-radius:30px;padding:28px 22px 26px;color:#fff;background:linear-gradient(150deg,#b3002a,var(--deep));margin-top:6px;isolation:isolate}
+.hero:before,.hero:after{content:"";position:absolute;z-index:-1;border-radius:50%;filter:blur(30px);animation:fl 9s ease-in-out infinite alternate}
+.hero:before{width:220px;height:220px;right:-60px;top:-70px;background:#ff3d63;opacity:.55}
+.hero:after{width:180px;height:180px;left:-50px;bottom:-70px;background:var(--gold);opacity:.35;animation-delay:-4s}
+@keyframes fl{to{transform:translate(-30px,24px) scale(1.15)}}
+.logo{width:76px;height:76px;border-radius:22px;background:#fff;color:var(--red);display:grid;place-items:center;font-size:42px;font-weight:800;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.3);margin-bottom:18px}
+.logo img{width:100%;height:100%;object-fit:contain}
+.hero h1{margin:0 0 6px;font-size:36px}.hero p{opacity:.85;font-size:15px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.tile{display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:var(--r);background:var(--card);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:700;transition:transform .15s}
+.tile span{font-size:26px}
+.tile.red{grid-column:1/-1;flex-direction:row;align-items:center;gap:12px;background:var(--red);border-color:var(--red);color:#fff;font-size:18px}
+.tile:active,.card:active,.btn:active,.row:active{transform:scale(.97)}
+.card,.row{font:inherit;color:inherit;text-align:left;cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:var(--r);transition:transform .15s;display:block;width:100%;text-decoration:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{overflow:hidden;padding:0}
+.ph{aspect-ratio:1;background:linear-gradient(160deg,#c10030,var(--deep));display:grid;place-items:end center;color:#fff;font-weight:800;font-size:38px;overflow:hidden;position:relative}
+.ph span{align-self:center}.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.card div.t{padding:12px 14px 14px}.card small{display:block;color:var(--mut);font-size:12.5px;line-height:1.3;margin-bottom:4px}
+.card b{display:block;line-height:1.25;font-size:15px}
+.row{padding:16px 18px;margin-bottom:12px}.row small{color:var(--red);font-weight:700}.row b{display:block;font-size:17px;line-height:1.25;margin:2px 0}.row em{font-style:normal;color:var(--mut);font-size:14px}
+.chip{display:inline-block;background:#f6e4e8;color:var(--red);font-weight:700;font-size:13px;padding:4px 12px;border-radius:99px}
+input,select,textarea{font:inherit;width:100%;padding:15px;border:1.5px solid var(--line);border-radius:16px;background:#fff;margin:6px 0 16px;transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--red);box-shadow:0 0 0 4px #a1001f1f}
+textarea{min-height:160px;resize:vertical}label{font-weight:700;font-size:14px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:18px;padding:16px 28px;background:var(--red);color:#fff;cursor:pointer;transition:transform .15s,opacity .2s}
+.btn.full{width:100%}.btn.ghost{background:#efe6e8;color:var(--ink)}.btn:disabled{opacity:.6}
+details.rules{margin-top:22px;padding:16px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--mut);font-size:14px}
+details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.rules p{margin-top:10px}
+.ok{text-align:center;padding:40px 10px;animation:in .5s both}
+.ok svg{width:84px;height:84px;stroke:var(--red);fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.ok circle{stroke-dasharray:260;stroke-dashoffset:260;animation:dr .7s .1s forwards}.ok path{stroke-dasharray:60;stroke-dashoffset:60;animation:dr .4s .7s forwards}
+@keyframes dr{to{stroke-dashoffset:0}}
+.game{position:relative;overflow:hidden;border-radius:30px;padding:34px 22px;text-align:center;color:var(--gold);background:linear-gradient(160deg,#4f0012,#1b0207);box-shadow:inset 0 0 0 1.5px #f0c86955}
+.game h2{font-size:34px;line-height:1.05;color:#fff;letter-spacing:.02em;margin-bottom:8px;text-shadow:0 0 28px #f0c86966}
+.game p{opacity:.9;margin-bottom:22px}.game .btn{background:var(--gold);color:#3d000d;animation:pu 2.4s ease-in-out infinite}
+@keyframes pu{50%{transform:scale(1.04);box-shadow:0 0 30px #f0c86966}}
+.link{display:flex;align-items:center;gap:14px;padding:18px;margin-bottom:12px;font-weight:700}
+.link i{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-style:normal;font-size:22px;color:#fff;flex:none}
+nav{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:6;max-width:616px;margin:auto;display:flex;gap:2px;padding:6px;border-radius:26px;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 10px 40px rgba(61,0,13,.2)}
+nav a{flex:1;text-align:center;padding:7px 0 6px;font-size:10.5px;color:var(--mut);text-decoration:none;font-weight:600;border-radius:20px;transition:background .25s,color .25s}
+nav a i{display:block;font-style:normal;font-size:19px;line-height:1.25;transition:transform .25s}
+nav a.on{background:var(--red);color:#fff}nav a.on i{transform:scale(1.14)}
+.sh{position:fixed;inset:0;z-index:20;display:none}.sh.on{display:block}
+.sh .bg{position:absolute;inset:0;background:rgba(30,0,8,.5);animation:fd .25s}
+.sh .pn{position:absolute;left:0;right:0;bottom:0;max-width:640px;margin:auto;max-height:88vh;overflow:auto;background:#fff;border-radius:28px 28px 0 0;padding:14px 22px calc(30px + env(safe-area-inset-bottom));animation:sl .38s cubic-bezier(.2,.9,.25,1)}
+@keyframes sl{from{transform:translateY(100%)}}@keyframes fd{from{opacity:0}}
+.grip{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 18px}
+.big{width:130px;height:130px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(160deg,#c10030,var(--deep));overflow:hidden;position:relative;display:grid;place-items:center;color:#fff;font-weight:800;font-size:40px}
+.big img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.pn h3{font-size:24px;line-height:1.2;margin-bottom:8px}.pn p{white-space:pre-line;margin-top:12px}.pn .c{text-align:center}
+#gm{position:fixed;inset:0;z-index:30;background:#000;display:none}#gm.on{display:block}
+#gm iframe{width:100%;height:100%;border:0}#gm button{position:absolute;bottom:calc(10px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:2;padding:10px 22px;border-radius:99px;border:1px solid #f0c86988;background:#2a0710;color:var(--gold);font:700 15px Onest,sans-serif}
+.note{color:var(--mut);font-size:14px}
+a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="bar"><i>9</i>Совет Первых школы №9</div>
+<main>
+
+<section id="home">
+  <div class="hero rv"><div class="logo" id="logo">9</div><h1>Совет Первых</h1><p>школы №9 · Ново-Савиновский район</p></div>
+  <div class="tiles">
+    <a class="tile red rv" href="#appeal"><span>✍️</span>Написать обращение</a>
+    <a class="tile rv" href="#team"><span>👥</span>Состав</a>
+    <a class="tile rv" href="#news"><span>📰</span>Новости</a>
+    <a class="tile rv" href="#games"><span>🎮</span>Мини-игры</a>
+    <a class="tile rv" href="#links"><span>🔗</span>Наши каналы</a>
+  </div>
+  <div id="latest"></div>
+  <button class="btn ghost full rv" id="share" style="margin-top:6px">Поделиться сайтом</button>
+</section>
+
+<section id="team"><h1 class="rv">Состав</h1><div class="grid" id="teamList"></div></section>
+
+<section id="news"><h1 class="rv">Новости</h1>
+  <input id="q" class="rv" type="search" placeholder="Искать новости" aria-label="Поиск по новостям">
+  <div id="newsList"></div>
+</section>
+
+<section id="appeal"><img class="rv" src="appeal.jpg" alt="Приём обращений" style="display:block;width:100%;max-width:200px;margin:14px auto 4px;border-radius:30px"><h1 class="rv">Обращение</h1>
+  <p class="rv">Друзья, поделитесь идеями и предложениями, как сделать школьную жизнь интереснее. Или новостями нашей школы, о которых вы хотите рассказать!</p>
+  <form id="form" style="margin-top:22px" class="rv">
+    <label for="who">Кто вы</label>
+    <select id="who" name="Кто"><option>Ученик</option><option>Родитель</option><option>Учитель</option></select>
+    <label for="kind">Тип обращения</label>
+    <select id="kind" name="Тип"><option>Идея или предложение</option><option>Новость школы</option><option>Обратная связь</option></select>
+    <label for="msg">Ваша идея или предложение *</label>
+    <textarea id="msg" name="Сообщение" required></textarea>
+    <button class="btn full" id="send" type="submit">Отправить</button>
+    <p id="status" class="note" role="status" style="margin-top:12px;text-align:center"></p>
+  </form>
+  <details class="rules rv"><summary>Правила пользования</summary>
+    <p><b>Разрешены:</b> идеи по улучшению школы, предложения мероприятий, конструктивная обратная связь.</p>
+    <p><b>Запрещены:</b> нецензурная лексика, оскорбления, спам, сообщения не по теме проекта.</p>
+    <p><b>Цель проекта:</b> дать каждому ученику возможность внести свой вклад в развитие нашей школы.</p>
+    <p><b>Как это работает:</b><br>1. Вы отправляете обращение.<br>2. Оно проходит модерацию на соответствие правилам.<br>3. Если нарушений нет, предложение выносится на обсуждение Совета Первых. Лучшие предложения выкладываются в канал «Совет Первых школы №9!»</p>
+    <p>Проект создан: Михеев Д.А. 9А</p>
+  </details>
+</section>
+
+<section id="games"><h1 class="rv">Мини-игры</h1>
+  <div class="game rv"><img src="gerb.png" alt="" style="height:86px;margin-bottom:12px"><h2>БАШНЯ ПЕРВЫХ</h2><p>Покоряй вершины! Строй свою башню к небесам с помощью достижений и проектов Движения.</p>
+  <button class="btn" id="play">Открыть игру</button></div>
+</section>
+
+<section id="links"><h1 class="rv">Наши каналы</h1>
+  <a class="row link rv" id="tg" href="#"><i style="background:#2aa3e0">✈️</i>Телеграм-канал «Совет Первых школы №9!»</a>
+  <a class="row link rv" id="mx" href="#"><i style="background:#7a3df0">💬</i>Макс-канал «Совет Первых школы №9!»</a>
+</section>
+
+</main>
+<nav>
+  <a href="#home"><i>🏠</i>Главная</a><a href="#team"><i>👥</i>Состав</a><a href="#news"><i>📰</i>Новости</a>
+  <a href="#appeal"><i>✍️</i>Обращение</a><a href="#games"><i>🎮</i>Игры</a><a href="#links"><i>🔗</i>Каналы</a>
+</nav>
+<div class="sh" id="sh"><div class="bg" onclick="closeSh()"></div><div class="pn" id="pn"></div></div>
+<div id="gm"><button onclick="closeGame()" >← На сайт</button><iframe id="gf" title="Башня Первых" allowfullscreen></iframe></div>
+
+<script>
+/* ===== НАСТРОЙКИ ===== */
+const C = {
+  formKey: "5ff1064b-f892-4210-acbc-0cb3f04f6c5b",  // ключ Web3Forms
+  tg: "https://t.me/dvizhenieschool9",       // ссылка на Телеграм-канал
+  max: "https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI",      // ссылка на Макс-канал
+  game: "game.html",     // ссылка на игру (Netlify)
+  newsCsv: "",  // Google Таблица (новости), опубликованная как CSV
+  teamCsv: "",  // Google Таблица (состав), опубликованная как CSV
+  logo: "logo.jpg"      // например img/logo.png
+};
+/* Запасной состав (если таблица не подключена): роль, ФИО, класс, о себе, имя файла фото */
+let TEAM = [
+  ["Наставник","Мубаракшина Гульнур Минфатыховна","Классный руководитель 9А","","mentor.jpg"],
+  ["Председатель","Енейкина Таисия Андреевна","9Б","","chair.jpg"],
+  ["Заместитель председателя","Михеев Даниил Александрович","9А","Создатель сайта и всех проектов на сайте.","dep1.jpg"],
+  ["Заместитель председателя","Валиев Амир Ирекович","9А","","dep2.jpg"],
+  ["Лидер направления «Волонтёрство и добровольчество»","","","",""],
+  ["Лидер направления «Спорт»","Мубаракова Асия Ильнуровна","6А","","sport.jpg"],
+  ["Лидер направления «ЗОЖ»","Мосиенко Ярослав Владиславович","10Б","","zozh.jpg"],
+  ["Лидер направления «Медиа и коммуникации»","Антоненко Таисия Андреевна","9В","","media.jpg"],
+  ["Лидер направления «Экология»","","","",""],
+  ["Лидер направления «Туризм и путешествия»","Шептур Софья Игоревна","9А","","tour.jpg"],
+  ["Лидер направления «Культура и искусства»","Хамзин Камиль Ильдарович","9В","","art.jpg"],
+  ["Лидер направления «Образование и знания»","Пудова Елизавета Юрьевна","6А","",""]
+];
+let NEWS = [{d:"2026-11-06",t:"САЙТ СОВЕТА ПЕРВЫХ НАШЕЙ ШКОЛЫ!",x:"Друзья! Теперь у нашего Совета есть свой сайт.\nМы постарались сделать его максимально удобным для вас. На портале доступны: новости, состав совета, приём обращений, мини-игры и многое другое."}];
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const src = p => p;
+const ini = s => s.split(/\s+/).filter(w => /^[А-ЯЁA-Z]/.test(w)).slice(0,2).map(w => w[0]).join("");
+const photo = (p, i) => '<span>' + esc(i) + '</span>' + (p ? '<img src="' + esc(src(p)) + '" alt="" loading="lazy" onerror="this.remove()">' : "");
+
+function route(){
+  const id = (location.hash || "#home").slice(1);
+  const page = document.getElementById(id) && id !== "sh" ? id : "home";
+  document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === page));
+  document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.hash === "#" + page));
+  document.querySelectorAll("#" + page + " .rv").forEach((e, i) => e.style.setProperty("--i", Math.min(i, 9)));
+  scrollTo(0, 0);
+}
+addEventListener("hashchange", route);
+
+function openSh(h){ $("#pn").innerHTML = '<div class="grip"></div>' + h; $("#sh").classList.add("on"); document.body.style.overflow = "hidden"; }
+function closeSh(){ $("#sh").classList.remove("on"); document.body.style.overflow = ""; }
+addEventListener("keydown", e => e.key === "Escape" && (closeSh(), closeGame()));
+
+function csv(t){const r=[];let a=[],c="",q=false;for(let i=0;i<t.length;i++){const h=t[i];
+  if(q){if(h=='"'&&t[i+1]=='"'){c+='"';i++}else if(h=='"')q=false;else c+=h}
+  else if(h=='"')q=true;else if(h==","){a.push(c);c=""}else if(h=="\n"){a.push(c);r.push(a);a=[];c=""}else if(h!="\r")c+=h}
+  if(c||a.length){a.push(c);r.push(a)}return r}
+const load = u => fetch(u).then(r => r.text()).then(t => csv(t).slice(1).filter(r => r[0] || r[1]));
+
+if (C.logo) $("#logo").innerHTML = '<img src="' + esc(C.logo) + '" alt="Логотип">';
+$("#tg").href = C.tg || "#"; $("#mx").href = C.max || "#";
+
+function drawTeam(){
+  $("#teamList").innerHTML = TEAM.map((m, k) => '<button class="card rv" data-k="' + k + '"><div class="ph">' + photo(m[4], ini(m[1] || m[0])) +
+    '</div><div class="t"><small>' + esc(m[0]) + '</small><b>' + esc(m[1] || "Скоро появится") + '</b></div></button>').join("");
+  document.querySelectorAll("#teamList .card").forEach((b, i) => { b.style.setProperty("--i", Math.min(i, 9)); b.onclick = () => {
+    const m = TEAM[b.dataset.k];
+    openSh('<div class="c"><div class="big">' + photo(m[4], ini(m[1] || m[0])) + '</div><h3>' + esc(m[1] || m[0]) + '</h3><span class="chip">' + esc(m[0]) + '</span>' +
+      (m[2] ? '<p>Класс: <b>' + esc(m[2]) + '</b></p>' : "") + (m[3] ? '<p>' + esc(m[3]) + '</p>' : "") + '</div>'); }; });
+}
+function drawNews(){
+  const q = $("#q").value.toLowerCase(), list = NEWS.filter(n => (n.t + n.x).toLowerCase().includes(q));
+  $("#newsList").innerHTML = list.length ? list.map((n, k) => '<button class="row rv" data-k="' + NEWS.indexOf(n) + '"><small>' + esc(n.d) + '</small><b>' + esc(n.t) + '</b><em>Читать →</em></button>').join("") : '<p class="note">Ничего не найдено.</p>';
+  const L = NEWS[0];
+  $("#latest").innerHTML = L ? '<button class="row rv" data-k="0"><small>Последняя новость</small><b>' + esc(L.t) + '</b><em>Читать →</em></button>' : "";
+  document.querySelectorAll("#newsList .row,#latest .row").forEach((b, i) => { b.style.setProperty("--i", Math.min(i, 9)); b.onclick = () => {
+    const n = NEWS[b.dataset.k]; openSh('<span class="chip">' + esc(n.d) + '</span><h3 style="margin-top:12px">' + esc(n.t) + '</h3><p>' + esc(n.x) + '</p>'); }; });
+}
+$("#q").addEventListener("input", drawNews);
+drawTeam(); drawNews();
+if (C.newsCsv) load(C.newsCsv).then(r => { if (r.length) { NEWS = r.map(x => ({d:x[0], t:x[1], x:x[2] || ""})).reverse(); drawNews(); } }).catch(() => {});
+if (C.teamCsv) load(C.teamCsv).then(r => { if (r.length) { TEAM = r.map(x => [x[0]||"", x[1]||"", x[2]||"", x[3]||"", x[4]||""]); drawTeam(); } }).catch(() => {});
+
+$("#form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const st = $("#status"), b = $("#send");
+  if (!C.formKey) { st.textContent = "Форма пока не подключена."; return; }
+  b.disabled = true; b.textContent = "Отправляем…"; st.textContent = "";
+  const fd = new FormData(e.target); fd.append("access_key", C.formKey); fd.append("subject", "Новое обращение с сайта Совета Первых");
+  try {
+    const r = await (await fetch("https://api.web3forms.com/submit", {method:"POST", body:fd})).json();
+    if (!r.success) throw 0;
+    e.target.outerHTML = '<div class="ok"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/><path d="M30 52l14 14 27-30"/></svg><h3 style="margin-top:14px">Спасибо!</h3><p class="note">Обращение отправлено на модерацию.</p></div>';
+  } catch { st.textContent = "Не получилось отправить. Проверьте интернет и попробуйте ещё раз."; b.disabled = false; b.textContent = "Отправить"; }
+});
+
+function closeGame(){ $("#gm").classList.remove("on"); $("#gf").src = "about:blank"; }
+$("#play").onclick = () => { if (!C.game) return alert("Игра скоро появится"); $("#gf").src = C.game; $("#gm").classList.add("on"); };
+$("#share").onclick = () => { const u = location.href.split("#")[0];
+  navigator.share ? navigator.share({title: document.title, url: u}).catch(() => {}) : navigator.clipboard?.writeText(u).then(() => alert("Ссылка скопирована")); };
+route();
+</script>
+</body>
+</html>
