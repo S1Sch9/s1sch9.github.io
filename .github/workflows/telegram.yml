@@ -1,3 +1,4 @@
+
 name: Telegram News
 
 on:
@@ -63,10 +64,19 @@ jobs:
                   continue
 
               text = post.get("text") or post.get("caption") or ""
+
+              delete_match = re.fullmatch(r"\s*#удалить\s+(\d+)\s*", text, flags=re.I)
+              if delete_match:
+                  delete_id = int(delete_match.group(1))
+                  news = [n for n in news if int(n.get("id", -1)) != delete_id]
+                  continue
+
               if "#на_сайт" not in text.lower():
                   continue
 
               text = re.sub(r"#на_сайт", "", text, flags=re.I).strip()
+
+              news = [n for n in news if int(n.get("id", -1)) != int(post["message_id"])]
               news.insert(0, {
                   "id": post["message_id"],
                   "date": post.get("date"),
