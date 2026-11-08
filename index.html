@@ -217,12 +217,12 @@ fetch("./news.json?v=" + Date.now())
     if (!Array.isArray(items) || !items.length) return;
     const added = items.map(n => {
       const raw = String(n.text || "").trim();
-      const lines = raw.split(/\\r?\\n/);
+      const lines = raw.split(/\r?\n/);
       const first = lines.shift() || "";
       return {
         d: n.date ? (typeof n.date === "number" ? new Date(n.date * 1000) : new Date(n.date)).toLocaleDateString("ru-RU") : "",
         t: n.title || first || "Новость",
-        x: n.description || lines.join("\\n").trim()
+        x: n.description || lines.join("\n").trim()
       };
     }).filter(n => n.t.trim());
     const existing = new Set(NEWS.map(n => n.t.trim()));
