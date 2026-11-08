@@ -1,0 +1,92 @@
+name: Telegram News
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Get Telegram posts
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          python - <<'PY'
+          import os, json, urllib.request, re
+
+          token = os.environ["TELEGRAM_BOT_TOKEN"]
+          base = "https://api.telegram.org/bot" + token
+
+          def api(method, data=None):
+              req = urllib.request.Request(
+                  base + "/" + method,
+                  data=json.dumps(data or {}).encode(),
+                  headers={"Content-Type": "application/json"}
+              )
+              return json.load(urllib.request.urlopen(req))
+
+          offset_file = "telegram_offset.txt"
+          try:
+              offset = int(open(offset_file).read())
+          except:
+              offset = 0
+
+          news = json.load(open("news.json", encoding="utf-8")) if os.path.exists("news.json") else []
+
+          result = api("getUpdates", {
+              "offset": offset,
+              "timeout": 0,
+              "allowed_updates": ["channel_post"]
+          })
+
+          for update in result.get("result", []):
+              offset = max(offset, update["update_id"] + 1)
+              post = update.get("channel_post")
+              if not post:
+                  continue
+
+              chat = post.get("chat", {}).get("username", "")
+              if chat.lower() != "dvizhenieschool9":
+                  continue
+
+              text = post.get("text") or post.get("caption") or ""
+              if "#на_сайт" not in text.lower():
+                  continue
+
+              text = re.sub(r"#на_сайт", "", text, flags=re.I).strip()
+              news.insert(0, {
+                  "id": post["message_id"],
+                  "date": post.get("date"),
+                  "text": text
+              })
+
+          news = news[:30]
+
+          with open("news.json", "w", encoding="utf-8") as f:
+              json.dump(news, f, ensure_ascii=False, indent=2)
+
+          open(offset_file, "w").write(str(offset))
+          PY
+
+      - name: Save news
+        run: |
+          git config user.name "Telegram News Bot"
+          git config user.email "actions@github.com"
+          git add news.json telegram_offset.txt
+          git diff --cached --quiet || (
+            git commit -m "Update Telegram news" &&
+            git push
+          )
