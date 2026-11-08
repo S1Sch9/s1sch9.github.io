@@ -217,6 +217,22 @@ function drawNews(){
 }
 $("#q").addEventListener("input", drawNews);
 drawTeam(); drawNews();
+  fetch("./news.json?v=" + Date.now())
+  .then(r => r.ok ? r.json() : [])
+  .then(items => {
+    if (!Array.isArray(items) || !items.length) return;
+
+    const added = items.map(n => ({
+      d: n.date ? new Date(n.date * 1000).toLocaleDateString("ru-RU") : "",
+      t: n.text || "",
+      x: ""
+    })).filter(n => n.t.trim());
+
+    const existing = new Set(NEWS.map(n => n.t.trim()));
+    NEWS.unshift(...added.filter(n => !existing.has(n.t.trim())));
+    drawNews();
+  })
+  .catch(err => console.log("Ошибка загрузки новостей:", err));
 if (C.newsCsv) load(C.newsCsv).then(r => { if (r.length) { NEWS = r.map(x => ({d:x[0], t:x[1], x:x[2] || ""})).reverse(); drawNews(); } }).catch(() => {});
 if (C.teamCsv) load(C.teamCsv).then(r => { if (r.length) { TEAM = r.map(x => [x[0]||"", x[1]||"", x[2]||"", x[3]||"", x[4]||""]); drawTeam(); } }).catch(() => {});
 
