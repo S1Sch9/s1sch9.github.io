@@ -1,4 +1,4 @@
-name: Telegram News
+name: Telegram News Bot
 
 on:
   workflow_dispatch:
@@ -8,26 +8,30 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: telegram-news
+  cancel-in-progress: false
+
 jobs:
   update-news:
     runs-on: ubuntu-latest
     steps:
-      - name: Get repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
-      - name: Get Telegram posts
+      - name: Process Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_ID: ${{ secrets.TELEGRAM_ADMIN_ID }}
         run: |
           python - <<'PY'
-          import os, json, urllib.request, re
+          import os, json, urllib.request, re, datetime
 
           token = os.environ["TELEGRAM_BOT_TOKEN"]
+          admin = os.environ.get("TELEGRAM_ADMIN_ID", "").strip()
           base = "https://api.telegram.org/bot" + token
 
           def api(method, data=None):
@@ -36,50 +40,144 @@ jobs:
                   data=json.dumps(data or {}).encode(),
                   headers={"Content-Type": "application/json"}
               )
-              return json.load(urllib.request.urlopen(req))
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  result = json.load(r)
+              if not result.get("ok"):
+                  raise RuntimeError(str(result))
+              return result["result"]
 
-          offset_file = "telegram_offset.txt"
           try:
-              offset = int(open(offset_file).read())
+              offset = int(open("telegram_offset.txt").read())
           except:
               offset = 0
 
-          news = json.load(open("news.json", encoding="utf-8")) if os.path.exists("news.json") else []
+          try:
+              news = json.load(open("news.json", encoding="utf-8"))
+          except:
+              news = []
 
-          result = api("getUpdates", {
+          updates = api("getUpdates", {
               "offset": offset,
               "timeout": 0,
-              "allowed_updates": ["channel_post"]
+              "allowed_updates": ["message", "channel_post"]
           })
 
-          for update in result.get("result", []):
+          for update in updates:
               offset = max(offset, update["update_id"] + 1)
+
               post = update.get("channel_post")
-              if not post:
+              if post:
+                  channel = post.get("chat", {}).get("username", "")
+                  if channel.lower() == "dvizhenieschool9":
+                      text = post.get("text") or post.get("caption") or ""
+
+                      delete = re.fullmatch(
+                          r"\s*#удалить\s+(\d+)\s*", text, re.I
+                      )
+                      if delete:
+                          ident = delete.group(1)
+                          news = [
+                              n for n in news
+                              if str(n.get("id")) != ident
+                          ]
+                      elif "#на_сайт" in text.lower():
+                          text = re.sub(
+                              r"#на_сайт", "", text, flags=re.I
+                          ).strip()
+                          news = [
+                              n for n in news
+                              if str(n.get("id")) != str(post["message_id"])
+                          ]
+                          news.insert(0, {
+                              "id": post["message_id"],
+                              "date": post.get("date"),
+                              "text": text
+                          })
                   continue
 
-              chat = post.get("chat", {}).get("username", "")
-              if chat.lower() != "dvizhenieschool9":
+              msg = update.get("message")
+              if not msg:
                   continue
 
-              text = post.get("text") or post.get("caption") or ""
-
-              delete_match = re.fullmatch(r"\s*#удалить\s+(\d+)\s*", text, flags=re.I)
-              if delete_match:
-                  delete_id = int(delete_match.group(1))
-                  news = [n for n in news if int(n.get("id", -1)) != delete_id]
+              chat = msg.get("chat", {})
+              if chat.get("type") != "private":
                   continue
 
-              if "#на_сайт" not in text.lower():
+              chat_id = str(chat.get("id"))
+              text = (msg.get("text") or msg.get("caption") or "").strip()
+
+              if not admin:
+                  api("sendMessage", {
+                      "chat_id": chat_id,
+                      "text": "Твой Telegram ID: " + chat_id +
+                      "\nДобавь его в GitHub Secrets под именем TELEGRAM_ADMIN_ID."
+                  })
                   continue
 
-              text = re.sub(r"#на_сайт", "", text, flags=re.I).strip()
+              if chat_id != admin:
+                  continue
 
-              news = [n for n in news if int(n.get("id", -1)) != int(post["message_id"])]
-              news.insert(0, {
-                  "id": post["message_id"],
-                  "date": post.get("date"),
-                  "text": text
+              if text in ["/start", "/help"]:
+                  answer = (
+                      "Привет! Я бот сайта Совета Первых школы №9.\n\n"
+                      "Отправь обычное сообщение — опубликую новость.\n"
+                      "/list — список новостей\n"
+                      "/edit ID новый текст — изменить новость\n"
+                      "/delete ID — удалить новость"
+                  )
+
+              elif text == "/list":
+                  answer = "\n".join(
+                      str(n.get("id")) + " — " +
+                      str(n.get("text", ""))[:100]
+                      for n in news[:15]
+                  ) or "Новостей пока нет."
+
+              elif text.startswith("/delete "):
+                  ident = text.split(maxsplit=1)[1].strip()
+                  old = len(news)
+                  news = [
+                      n for n in news
+                      if str(n.get("id")) != ident
+                  ]
+                  answer = (
+                      "Новость удалена."
+                      if len(news) < old else "Новость не найдена."
+                  )
+
+              elif text.startswith("/edit "):
+                  parts = text.split(maxsplit=2)
+                  if len(parts) < 3:
+                      answer = "Формат: /edit ID новый текст"
+                  else:
+                      item = next(
+                          (n for n in news
+                           if str(n.get("id")) == parts[1]),
+                          None
+                      )
+                      if item:
+                          item["text"] = parts[2]
+                          answer = "Новость изменена."
+                      else:
+                          answer = "Новость не найдена."
+
+              elif text and not text.startswith("/"):
+                  ident = "bot-" + str(update["update_id"])
+                  news.insert(0, {
+                      "id": ident,
+                      "date": datetime.datetime.now(
+                          datetime.timezone.utc
+                      ).strftime("%Y-%m-%d"),
+                      "text": text
+                  })
+                  answer = "Новость опубликована! ID: " + ident
+
+              else:
+                  answer = "Неизвестная команда. Напиши /help"
+
+              api("sendMessage", {
+                  "chat_id": chat_id,
+                  "text": answer
               })
 
           news = news[:30]
@@ -87,7 +185,8 @@ jobs:
           with open("news.json", "w", encoding="utf-8") as f:
               json.dump(news, f, ensure_ascii=False, indent=2)
 
-          open(offset_file, "w").write(str(offset))
+          with open("telegram_offset.txt", "w") as f:
+              f.write(str(offset))
           PY
 
       - name: Save news
@@ -96,6 +195,6 @@ jobs:
           git config user.email "actions@github.com"
           git add news.json telegram_offset.txt
           git diff --cached --quiet || (
-            git commit -m "Update Telegram news" &&
+            git commit -m "Update website news" &&
             git push
           )
