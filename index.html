@@ -38,7 +38,7 @@ h1{font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin:1
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .card{overflow:hidden;padding:0}
 .ph{aspect-ratio:1;background:linear-gradient(160deg,#c10030,var(--deep));display:grid;place-items:end center;color:#fff;font-weight:800;font-size:38px;overflow:hidden;position:relative}
-.ph span{align-self:center}.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.ph img{position:absolute;inset:5px;width:calc(100% - 10px);height:calc(100% - 10px);object-fit:cover;object-position:top;border:3px solid #fff;border-radius:18px}
 .card div.t{padding:12px 14px 14px}.card small{display:block;color:var(--mut);font-size:12.5px;line-height:1.3;margin-bottom:4px}
 .card b{display:block;line-height:1.25;font-size:15px}
 .row{padding:16px 18px;margin-bottom:12px}.row small{color:var(--red);font-weight:700}.row b{display:block;font-size:17px;line-height:1.25;margin:2px 0}.row em{font-style:normal;color:var(--mut);font-size:14px}
@@ -70,7 +70,7 @@ nav a.on{background:var(--red);color:#fff}nav a.on i{transform:scale(1.14)}
 @keyframes sl{from{transform:translateY(100%)}}@keyframes fd{from{opacity:0}}
 .grip{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 18px}
 .big{width:130px;height:130px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(160deg,#c10030,var(--deep));overflow:hidden;position:relative;display:grid;place-items:center;color:#fff;font-weight:800;font-size:40px}
-.big img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.big img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;border:3px solid #fff;border-radius:50%}
 .pn h3{font-size:24px;line-height:1.2;margin-bottom:8px}.pn p{white-space:pre-line;margin-top:12px}.pn .c{text-align:center}
 #gm{position:fixed;inset:0;z-index:30;background:#000;display:none}#gm.on{display:block}
 #gm iframe{width:100%;height:100%;border:0}#gm button{position:absolute;bottom:calc(10px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:2;padding:10px 22px;border-radius:99px;border:1px solid #f0c86988;background:#2a0710;color:var(--gold);font:700 15px Onest,sans-serif}
@@ -82,7 +82,6 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 <body>
 <div class="bar"><i>9</i>Совет Первых школы №9</div>
 <main>
-
 <section id="home">
   <div class="hero rv"><div class="logo" id="logo">9</div><h1>Совет Первых</h1><p>школы №9 · Ново-Савиновский район</p></div>
   <div class="tiles">
@@ -95,14 +94,11 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   <div id="latest"></div>
   <button class="btn ghost full rv" id="share" style="margin-top:6px">Поделиться сайтом</button>
 </section>
-
 <section id="team"><h1 class="rv">Состав</h1><div class="grid" id="teamList"></div></section>
-
 <section id="news"><h1 class="rv">Новости</h1>
   <input id="q" class="rv" type="search" placeholder="Искать новости" aria-label="Поиск по новостям">
   <div id="newsList"></div>
 </section>
-
 <section id="appeal"><img class="rv" src="appeal.jpg" alt="Приём обращений" style="display:block;width:100%;max-width:200px;margin:14px auto 4px;border-radius:30px"><h1 class="rv">Обращение</h1>
   <p class="rv">Друзья, поделитесь идеями и предложениями, как сделать школьную жизнь интереснее. Или новостями нашей школы, о которых вы хотите рассказать!</p>
   <form id="form" style="margin-top:22px" class="rv">
@@ -123,37 +119,32 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
     <p>Проект создан: Михеев Д.А. 9А</p>
   </details>
 </section>
-
 <section id="games"><h1 class="rv">Мини-игры</h1>
   <div class="game rv"><img src="gerb.png" alt="" style="height:86px;margin-bottom:12px"><h2>БАШНЯ ПЕРВЫХ</h2><p>Покоряй вершины! Строй свою башню к небесам с помощью достижений и проектов Движения.</p>
   <button class="btn" id="play">Открыть игру</button></div>
 </section>
-
 <section id="links"><h1 class="rv">Наши каналы</h1>
   <a class="row link rv" id="tg" href="#"><i style="background:#2aa3e0">✈️</i>Телеграм-канал «Совет Первых школы №9!»</a>
   <a class="row link rv" id="mx" href="#"><i style="background:#7a3df0">💬</i>Макс-канал «Совет Первых школы №9!»</a>
 </section>
-
 </main>
 <nav>
   <a href="#home"><i>🏠</i>Главная</a><a href="#team"><i>👥</i>Состав</a><a href="#news"><i>📰</i>Новости</a>
   <a href="#appeal"><i>✍️</i>Обращение</a><a href="#games"><i>🎮</i>Игры</a><a href="#links"><i>🔗</i>Каналы</a>
 </nav>
 <div class="sh" id="sh"><div class="bg" onclick="closeSh()"></div><div class="pn" id="pn"></div></div>
-<div id="gm"><button onclick="closeGame()" >← На сайт</button><iframe id="gf" title="Башня Первых" allowfullscreen></iframe></div>
-
+<div id="gm"><button onclick="closeGame()">← На сайт</button><iframe id="gf" title="Башня Первых" allowfullscreen></iframe></div>
 <script>
 /* ===== НАСТРОЙКИ ===== */
 const C = {
-  formKey: "5ff1064b-f892-4210-acbc-0cb3f04f6c5b",  // ключ Web3Forms
-  tg: "https://t.me/dvizhenieschool9",       // ссылка на Телеграм-канал
-  max: "https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI",      // ссылка на Макс-канал
-  game: "game.html",     // ссылка на игру (Netlify)
-  newsCsv: "",  // Google Таблица (новости), опубликованная как CSV
-  teamCsv: "",  // Google Таблица (состав), опубликованная как CSV
-  logo: "logo.jpg"      // например img/logo.png
+  formKey: "5ff1064b-f892-4210-acbc-0cb3f04f6c5b",
+  tg: "https://t.me/dvizhenieschool9",
+  max: "https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI",
+  game: "game.html",
+  newsCsv: "",
+  teamCsv: "",
+  logo: "logo.jpg"
 };
-/* Запасной состав (если таблица не подключена): роль, ФИО, класс, о себе, имя файла фото */
 let TEAM = [
   ["Наставник","Мубаракшина Гульнур Минфатыховна","Классный руководитель 9А","","mentor.jpg"],
   ["Председатель","Енейкина Таисия Андреевна","9Б","",""],
@@ -169,12 +160,14 @@ let TEAM = [
   ["Лидер направления «Образование и знания»","Пудова Елизавета Юрьевна","6А","",""]
 ];
 let NEWS = [];
-
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const src = p => p;
 const ini = s => s.split(/\s+/).filter(w => /^[А-ЯЁA-Z]/.test(w)).slice(0,2).map(w => w[0]).join("");
-const photo = (p, i) => '<span>' + esc(i) + '</span>' + (p ? '<img src="' + esc(src(p)) + '" alt="" loading="lazy" onerror="this.remove()">' : "");
+/* Если фото есть — показываем только фото; если нет — инициалы */
+const photo = (p, i) => p
+  ? '<img src="' + esc(src(p)) + '" alt="" loading="lazy" onerror="this.remove()">'
+  : '<span>' + esc(i) + '</span>';
 
 function route(){
   const id = (location.hash || "#home").slice(1);
@@ -185,20 +178,16 @@ function route(){
   scrollTo(0, 0);
 }
 addEventListener("hashchange", route);
-
 function openSh(h){ $("#pn").innerHTML = '<div class="grip"></div>' + h; $("#sh").classList.add("on"); document.body.style.overflow = "hidden"; }
 function closeSh(){ $("#sh").classList.remove("on"); document.body.style.overflow = ""; }
 addEventListener("keydown", e => e.key === "Escape" && (closeSh(), closeGame()));
-
 function csv(t){const r=[];let a=[],c="",q=false;for(let i=0;i<t.length;i++){const h=t[i];
   if(q){if(h=='"'&&t[i+1]=='"'){c+='"';i++}else if(h=='"')q=false;else c+=h}
   else if(h=='"')q=true;else if(h==","){a.push(c);c=""}else if(h=="\n"){a.push(c);r.push(a);a=[];c=""}else if(h!="\r")c+=h}
   if(c||a.length){a.push(c);r.push(a)}return r}
 const load = u => fetch(u).then(r => r.text()).then(t => csv(t).slice(1).filter(r => r[0] || r[1]));
-
 if (C.logo) $("#logo").innerHTML = '<img src="' + esc(C.logo) + '" alt="Логотип">';
 $("#tg").href = C.tg || "#"; $("#mx").href = C.max || "#";
-
 function drawTeam(){
   $("#teamList").innerHTML = TEAM.map((m, k) => '<button class="card rv" data-k="' + k + '"><div class="ph">' + photo(m[4], ini(m[1] || m[0])) +
     '</div><div class="t"><small>' + esc(m[0]) + '</small><b>' + esc(m[1] || "Скоро появится") + '</b></div></button>').join("");
@@ -217,17 +206,15 @@ function drawNews(){
 }
 $("#q").addEventListener("input", drawNews);
 drawTeam(); drawNews();
-  fetch("./news.json?v=" + Date.now())
+fetch("./news.json?v=" + Date.now())
   .then(r => r.ok ? r.json() : [])
   .then(items => {
     if (!Array.isArray(items) || !items.length) return;
-
     const added = items.map(n => ({
       d: n.date ? new Date(n.date * 1000).toLocaleDateString("ru-RU") : "",
       t: n.text || "",
       x: ""
     })).filter(n => n.t.trim());
-
     const existing = new Set(NEWS.map(n => n.t.trim()));
     NEWS.unshift(...added.filter(n => !existing.has(n.t.trim())));
     drawNews();
@@ -235,7 +222,6 @@ drawTeam(); drawNews();
   .catch(err => console.log("Ошибка загрузки новостей:", err));
 if (C.newsCsv) load(C.newsCsv).then(r => { if (r.length) { NEWS = r.map(x => ({d:x[0], t:x[1], x:x[2] || ""})).reverse(); drawNews(); } }).catch(() => {});
 if (C.teamCsv) load(C.teamCsv).then(r => { if (r.length) { TEAM = r.map(x => [x[0]||"", x[1]||"", x[2]||"", x[3]||"", x[4]||""]); drawTeam(); } }).catch(() => {});
-
 $("#form").addEventListener("submit", async e => {
   e.preventDefault();
   const st = $("#status"), b = $("#send");
@@ -248,7 +234,6 @@ $("#form").addEventListener("submit", async e => {
     e.target.outerHTML = '<div class="ok"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/><path d="M30 52l14 14 27-30"/></svg><h3 style="margin-top:14px">Спасибо!</h3><p class="note">Обращение отправлено на модерацию.</p></div>';
   } catch { st.textContent = "Не получилось отправить. Проверьте интернет и попробуйте ещё раз."; b.disabled = false; b.textContent = "Отправить"; }
 });
-
 function closeGame(){ $("#gm").classList.remove("on"); $("#gf").src = "about:blank"; }
 $("#play").onclick = () => { if (!C.game) return alert("Игра скоро появится"); $("#gf").src = C.game; $("#gm").classList.add("on"); };
 $("#share").onclick = () => { const u = location.href.split("#")[0];
