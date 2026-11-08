@@ -178,8 +178,8 @@
     let fallingPieces = [];
     let currentBlock = null;
     let score = 0;
-    let gameSpeed = 4.5;
-    let gameSpeedIncrease = 0.25;
+    let gameSpeed = 5.8;
+    let gameSpeedIncrease = 0.35;
     let isGameOver = true;
     let isPaused = false;
     let animationId;
@@ -248,7 +248,7 @@
             isGameOver = false;
             isPaused = false;
             score = 0;
-            gameSpeed = 4.5;
+            gameSpeed = 5.8;
             blocks = [];
             fallingPieces = [];
             scoreEl.innerText = score;
@@ -315,7 +315,7 @@
         blocks.push(currentBlock);
         score++;
         scoreEl.innerText = score;
-        if (gameSpeed < 15) gameSpeed += gameSpeedIncrease;
+        if (gameSpeed < 18) gameSpeed = Math.min(18, gameSpeed + gameSpeedIncrease);
 
         if (currentBlock.width < 8) {
             currentBlock = null;
@@ -330,8 +330,8 @@
         const pushDirection = x > centerX ? 1 : -1;
         fallingPieces.push({
             type: 'block', x: x, y: y, width: width, height: blockHeight, style: style,
-            vy: -3, vx: pushDirection * (Math.random() * 3 + 2),
-            rotation: 0, vr: pushDirection * (Math.random() * 0.1 + 0.05), alpha: 1
+            vy: -2.2, vx: pushDirection * (Math.random() * 4 + 3),
+            rotation: 0, vr: pushDirection * (Math.random() * 0.16 + 0.08), alpha: 1
         });
     }
 
@@ -340,7 +340,7 @@
             fallingPieces.push({
                 type: 'crumb', x: x, y: y + blockHeight / 2,
                 size: Math.random() * 4 + 2,
-                vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8 - 2,
+                vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 9 - 2,
                 color: '#D4AF37', alpha: 1, life: 1
             });
         }
@@ -369,9 +369,9 @@
 
         fallingPieces.forEach(p => {
             if (p.type === 'block') {
-                p.vy += 0.8; p.y += p.vy; p.x += p.vx; p.rotation += p.vr; p.alpha -= 0.015;
+                p.vy += 1.15; p.y += p.vy; p.x += p.vx; p.rotation += p.vr; p.alpha -= 0.025;
             } else if (p.type === 'crumb') {
-                p.vy += 0.5; p.y += p.vy; p.x += p.vx; p.vx *= 0.95; p.life -= 0.03; p.alpha = p.life;
+                p.vy += 0.8; p.y += p.vy; p.x += p.vx; p.vx *= 0.94; p.life -= 0.05; p.alpha = p.life;
             }
         });
         fallingPieces = fallingPieces.filter(p => p.alpha > 0 && p.y < canvasHeight + 200);
