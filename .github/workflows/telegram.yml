@@ -62,6 +62,8 @@ jobs:
               "allowed_updates": ["message", "channel_post"]
           })
 
+          media_groups = {}
+
           for update in updates:
               offset = max(offset, update["update_id"] + 1)
 
@@ -188,16 +190,26 @@ jobs:
                           answer = "Новость не найдена."
 
               elif (text and not text.startswith("/")) or media_item:
-                  ident = "bot-" + str(update["update_id"])
-                  news.insert(0, {
-                      "id": ident,
-                      "date": datetime.datetime.now(
-                          datetime.timezone.utc
-                      ).strftime("%Y-%m-%d"),
-                      "text": text or "Новость Совета Первых школы №9",
-                      "media": [media_item] if media_item else []
-                  })
-                  answer = "Новость опубликована на сайте! 💙 ID: " + ident
+                  group_id = msg.get("media_group_id")
+                  if group_id and media_item:
+                      group = media_groups.setdefault(group_id, {
+                          "text": "", "media": [], "id": "album-" + str(group_id)
+                      })
+                      if text:
+                          group["text"] = text
+                      group["media"].append(media_item)
+                      answer = "Медиа добавлено в альбом новости. 💙"
+                  else:
+                      ident = "bot-" + str(update["update_id"])
+                      news.insert(0, {
+                          "id": ident,
+                          "date": datetime.datetime.now(
+                              datetime.timezone.utc
+                          ).strftime("%Y-%m-%d"),
+                          "text": text or "Новость Совета Первых школы №9",
+                          "media": [media_item] if media_item else []
+                      })
+                      answer = "Новость опубликована на сайте! 💙 ID: " + ident
 
               else:
                   answer = "Неизвестная команда. Напиши /help"
@@ -205,6 +217,16 @@ jobs:
               api("sendMessage", {
                   "chat_id": chat_id,
                   "text": answer
+              })
+
+          for group in media_groups.values():
+              news.insert(0, {
+                  "id": group["id"],
+                  "date": datetime.datetime.now(
+                      datetime.timezone.utc
+                  ).strftime("%Y-%m-%d"),
+                  "text": group["text"] or "Новость Совета Первых школы №9",
+                  "media": group["media"]
               })
 
           news = news[:30]
