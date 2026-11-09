@@ -80,7 +80,7 @@ jobs:
 
 
               # Everyone can start the bot; only the configured administrator can publish.
-              if text in ["/start", "/help"]
+              if text in ["/start", "/help"]:
                   if admin and chat_id == admin:
                       welcome = (
                           "Привет! Я бот сайта Совета Первых школы №9. 💙\n\n"
