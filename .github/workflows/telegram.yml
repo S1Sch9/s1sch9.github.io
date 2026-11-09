@@ -144,15 +144,23 @@ jobs:
 
               elif text.startswith("/delete "):
                   ident = text.split(maxsplit=1)[1].strip()
-                  old = len(news)
-                  news = [
-                      n for n in news
-                      if str(n.get("id")) != ident
-                  ]
-                  answer = (
-                      "Новость удалена."
-                      if len(news) < old else "Новость не найдена."
+                  item = next(
+                      (n for n in news if str(n.get("id")) == ident),
+                      None
                   )
+                  if item:
+                      for media in item.get("media", []):
+                          media_url = str(media.get("url", ""))
+                          if media_url.startswith("news-media/"):
+                              media_path = os.path.join(
+                                  "news-media", os.path.basename(media_url)
+                              )
+                              if os.path.isfile(media_path):
+                                  os.remove(media_path)
+                      news = [n for n in news if str(n.get("id")) != ident]
+                      answer = "Новость и её медиа удалены."
+                  else:
+                      answer = "Новость не найдена."
 
               elif text.startswith("/edit "):
                   parts = text.split(maxsplit=2)
