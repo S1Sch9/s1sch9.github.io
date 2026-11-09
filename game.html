@@ -44,8 +44,6 @@
         letter-spacing: 2px; margin-bottom: 5px;
     }
     .brand-subtext{text-align:center;font-size:11px;color:#E5C76C;font-weight:800;letter-spacing:1.7px;margin-bottom:15px;text-transform:uppercase}
-    .lore-intro{max-width:310px;margin:0 auto 19px;text-align:center;color:#F1DFBD;font-size:14px;line-height:1.55;text-shadow:0 2px 8px rgba(0,0,0,.45)}
-    .lore-intro b{color:#F4D77F}
     .record-display { text-align: center; font-size: 17px; font-weight: bold; color: #D4AF37; margin-bottom: 18px; text-shadow: 0 0 10px rgba(212, 175, 55, 0.4); }
     .btn {
         background: linear-gradient(135deg, #8A1538 0%, #5B0B22 100%);
@@ -79,10 +77,10 @@
         touch-action: manipulation;
     }
     .canvas-wrapper {
-        position: relative; flex-grow: 1; border-radius: 16px; overflow: hidden;
+        position: relative; flex-grow: 1; min-height:0; border-radius: 16px; overflow: hidden;
         background: #2A0B12;
         box-shadow: inset 0 0 40px rgba(0,0,0,0.8); border: 1px solid rgba(212, 175, 55, 0.3);
-        margin-bottom: 60px;
+        margin-bottom: 12px;
     }
     canvas { display:block;width:100%;height:100%;touch-action:none; }
     .canvas-wrapper{background:linear-gradient(180deg,#E8C987 0%,#B66D54 25%,#6C2636 61%,#260C18 100%);border:1px solid rgba(212,175,55,.25);box-shadow:inset 0 0 45px rgba(35,8,15,.32),0 12px 35px rgba(0,0,0,.38)}
@@ -151,7 +149,7 @@
             </div>
             <div class="rule-item">
                 <div class="rule-icon">⏸️</div>
-                <div class="rule-text">Пауза остановит игру. Из паузы можно продолжить сразу или выйти в меню и вернуться к этой же башне позже. Новая игра сбросит старый прогресс после подтверждения.</div>
+                <div class="rule-text">Пауза остановит игру. Если выйти в меню, башня останется сохранённой на паузе. Её можно продолжить позже или начать новую игру — старая попытка сбросится только после подтверждения.</div>
             </div>
         </div>
         <button class="btn secondary" onclick="showMenu()">Вернуться в меню</button>
@@ -236,7 +234,7 @@
         {main:'#E9DFC7',light:'#FFF4D9',dark:'#B7A98C',text:'ХРАНИТЕЛИ ИСТОРИИ'},
         {main:'#345B79',light:'#6E91A8',dark:'#203D55',text:'ЮННАТЫ ПЕРВЫХ'},
         {main:'#47734B',light:'#83A77A',dark:'#2B4E32',text:'МЕДИАПРИТЯЖЕНИЕ'},
-        {main:'#76506F',light:'#A77D9B',dark:'#4D3450',text:'ШКОЛЬНАЯ КЛАССИКА'},
+        {main:'#76506F',light:'#A77D9B',dark:'#4D3450',text:'ПРЕМИЯ ПЕРВЫХ • РТ'},
         {main:'#B96E43',light:'#D99B6D',dark:'#81462F',text:'КЛАССНЫЕ ВСТРЕЧИ'},
         {main:'#397D7C',light:'#78AAA1',dark:'#245653',text:'БЛАГО ТВОРИ'},
         {main:'#8A1538',light:'#B94A65',dark:'#541126',text:'МЫ — ГРАЖДАНЕ РОССИИ'},
@@ -246,7 +244,7 @@
         {main:'#47734B',light:'#83A77A',dark:'#2B4E32',text:'СОВЕТ ПЕРВЫХ • ШКОЛА №9'},
         {main:'#76506F',light:'#A77D9B',dark:'#4D3450',text:'ЭКО-ОТРЯД • ШКОЛА №9'},
         {main:'#B96E43',light:'#D99B6D',dark:'#81462F',text:'ШКОЛЬНЫЙ СПОРТ • №9'},
-        {main:'#397D7C',light:'#78AAA1',dark:'#245653',text:'БИЛӘР ФОРУМ: ПЕРВЫЕ'}
+        {main:'#397D7C',light:'#78AAA1',dark:'#245653',text:'УРА, АВЫЛГА • РТ'}
     ];
 
     function resizeCanvas() {
