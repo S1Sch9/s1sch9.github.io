@@ -263,10 +263,13 @@ function drawNews(){
 }
 $("#q").addEventListener("input", drawNews);
 drawTeam(); drawNews();
-fetch("./news.json?v=" + Date.now())
-  .then(r => r.ok ? r.json() : [])
-  .then(items => {
-    if (!Array.isArray(items) || !items.length) return;
+Promise.all([
+  fetch("./news.json?v=" + Date.now()).then(r => r.ok ? r.json() : []).catch(() => []),
+  fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news?v=" + Date.now()).then(r => r.ok ? r.json() : []).catch(() => [])
+])
+  .then(([staticItems, liveItems]) => {
+    const items = [...(Array.isArray(liveItems) ? liveItems : []), ...(Array.isArray(staticItems) ? staticItems : [])];
+    if (!items.length) return;
     const added = items.map(n => {
       const raw = String(n.text || "").trim();
       const lines = raw.split(/\r?\n/);
@@ -279,7 +282,7 @@ fetch("./news.json?v=" + Date.now())
       };
     }).filter(n => n.t.trim());
     const existing = new Set(NEWS.map(n => n.t.trim()));
-    NEWS.unshift(...added.filter(n => !existing.has(n.t.trim())));
+    NEWS.unshift(...added.filter(n => !existing.has(n.t)));
     drawNews();
   })
   .catch(err => console.log("Ошибка загрузки новостей:", err));
