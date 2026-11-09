@@ -1,3 +1,4 @@
+// Trigger Cloudflare Workers Builds deployment; no runtime behavior changed.
 const SITE_ORIGIN = "https://s1sch9.github.io";
 const MAX_BODY = 8192;
 const MAX_MESSAGE = 1500;
