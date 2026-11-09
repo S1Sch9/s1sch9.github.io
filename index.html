@@ -142,13 +142,13 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 <section id="appeal"><img class="rv" src="appeal.jpg" alt="Приём обращений" style="display:block;width:100%;max-width:200px;margin:14px auto 4px;border-radius:30px"><h1 class="rv">Обращение</h1>
   <p class="rv">Друзья, поделитесь идеями и предложениями, как сделать школьную жизнь интереснее. Или новостями нашей школы, о которых вы хотите рассказать!</p>
   <form id="form" style="margin-top:22px" class="rv">
-     <input type="checkbox" name="botcheck" aria-hidden="true" tabindex="-1" autocomplete="off" style="display:none">
     <label for="who">Кто вы</label>
     <select id="who" name="Кто"><option>Ученик</option><option>Родитель</option><option>Учитель</option></select>
     <label for="kind">Тип обращения</label>
     <select id="kind" name="Тип"><option>Идея или предложение</option><option>Новость школы</option><option>Обратная связь</option></select>
     <label for="msg">Ваша идея или предложение *</label>
     <textarea id="msg" name="Сообщение" required minlength="5" maxlength="1500"></textarea>
+    <div class="h-captcha" data-captcha="true" data-lang="ru"></div>
     <button class="btn full" id="send" type="submit">Отправить</button>
     <p id="status" class="note" role="status" style="margin-top:12px;text-align:center"></p>
   </form>
@@ -275,11 +275,14 @@ if (C.teamCsv) load(C.teamCsv).then(r => { if (r.length) { TEAM = r.map(x => [x[
 $("#form").addEventListener("submit", async e => {
   e.preventDefault();
   const st = $("#status"), b = $("#send");
-  const trap = e.target.elements.botcheck;
   const message = $("#msg").value.trim();
-  if (trap && trap.checked) return;
   if (message.length < 5 || message.length > 1500) {
     st.textContent = "Сообщение должно содержать от 5 до 1500 символов.";
+    return;
+  }
+  const captcha = e.target.querySelector('[name="h-captcha-response"]');
+  if (!captcha || !captcha.value) {
+    st.textContent = "Пожалуйста, пройдите проверку hCaptcha перед отправкой.";
     return;
   }
   if (!C.formKey) { st.textContent = "Форма пока не подключена."; return; }
@@ -290,9 +293,7 @@ $("#form").addEventListener("submit", async e => {
   fd.set("subject", "Новое обращение с сайта Совета Первых");
   try {
     const response = await fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      body: fd,
-      headers: { Accept: "application/json" }
+      method: "POST", body: fd, headers: { Accept: "application/json" }
     });
     const raw = await response.text();
     let result;
@@ -307,8 +308,7 @@ $("#form").addEventListener("submit", async e => {
     st.textContent = error && error.message
       ? "Не удалось отправить: " + error.message
       : "Не удалось связаться с сервисом. Проверьте интернет и попробуйте ещё раз.";
-    b.disabled = false;
-    b.textContent = "Отправить";
+    b.disabled = false; b.textContent = "Отправить";
   }
 });
 function closeGame(){ $("#gm").classList.remove("on"); $("#gf").src = "about:blank"; }
@@ -317,5 +317,6 @@ $("#share").onclick = () => { const u = location.href.split("#")[0];
   navigator.share ? navigator.share({title: document.title, url: u}).catch(() => {}) : navigator.clipboard?.writeText(u).then(() => alert("Ссылка скопирована")); };
 route();
 </script>
+<script src="https://web3forms.com/client/script.js" async defer></script>
 </body>
 </html>
