@@ -136,15 +136,23 @@
             </div>
             <div class="rule-item">
                 <div class="rule-icon">👆</div>
-                <div class="rule-text">Точно ставь достижения одно на другое — так ты строишь свой <b>путь к вершине</b>.</div>
+                <div class="rule-text">Нажми на игровое поле, когда движущийся блок окажется над башней. Так ты поставишь новую ступень.</div>
             </div>
             <div class="rule-item">
                 <div class="rule-icon">✂️</div>
-                <div class="rule-text">Если блок выступает за края, лишняя часть <b>отрезается</b>.</div>
+                <div class="rule-text">Если блок немного выступает за края предыдущего, лишняя часть <b>отрезается</b>, а башня становится уже.</div>
             </div>
             <div class="rule-item">
-                <div class="rule-icon">💀</div>
-                <div class="rule-text">Чем выше твоя башня, тем ближе ты к <b>небесам</b>. Но не теряй равновесие!</div>
+                <div class="rule-icon">✨</div>
+                <div class="rule-text">За точные попадания подряд растёт <b>комбо</b> и начисляются бонусные очки. Ошибка сбрасывает серию.</div>
+            </div>
+            <div class="rule-item">
+                <div class="rule-icon">🏔️</div>
+                <div class="rule-text">Если блок совсем не зацепится за башню, попытка закончится. Чем выше ты поднимешься, тем ближе окажешься к <b>небесам</b>!</div>
+            </div>
+            <div class="rule-item">
+                <div class="rule-icon">⏸️</div>
+                <div class="rule-text">Пауза остановит игру. Из паузы можно продолжить сразу или выйти в меню и вернуться к этой же башне позже. Новая игра сбросит старый прогресс после подтверждения.</div>
             </div>
         </div>
         <button class="btn secondary" onclick="showMenu()">Вернуться в меню</button>
@@ -152,7 +160,7 @@
 
     <div id="game-screen" class="screen">
         <div class="top-bar">
-            <div class="stats"><span>Достижений: <span id="score">0</span><small id="combo" class="combo">Серия: 0</small></span></div>
+            <div class="stats"><span>Очки: <span id="score">0</span><small id="combo" class="combo">Серия: 0</small></span></div>
             <button class="icon-btn" onclick="pauseGame()">⏸️</button>
         </div>
         <div class="canvas-wrapper"><canvas id="gameCanvas"></canvas><div id="feedback" class="feedback" aria-live="polite"></div><div id="bonus-pop" class="bonus-pop" aria-hidden="true"></div></div>
@@ -164,7 +172,7 @@
         </div>
         <div class="overlay" id="game-over">
             <h2>Путь прервался</h2>
-            <p>Собрано достижений: <span id="final-score">0</span></p>
+            <p>Набрано очков: <span id="final-score">0</span></p>
             <div class="new-record" id="new-record-badge">🏆 Новый рекорд!</div>
             <button class="btn" onclick="startGame()">🔄 Новая попытка</button>
             <button class="btn secondary" onclick="exitToMenu(false)">🏠 В главное меню</button>
