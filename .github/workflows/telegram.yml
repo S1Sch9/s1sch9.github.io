@@ -242,7 +242,7 @@ jobs:
         run: |
           git config user.name "Telegram News Bot"
           git config user.email "actions@github.com"
-          git add news.json telegram_offset.txt
+          git add news.json telegram_offset.txt news-media/
           git diff --cached --quiet || (
             git commit -m "Update website news" &&
             git push
