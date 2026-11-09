@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "still-frog-ce4c",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-09",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "s1sch9-appeals",
+      "database_id": "72d0a4f5-b90b-4592-acce-c84e1fa8d427"
+    }
+  ]
+}
