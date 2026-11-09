@@ -48,7 +48,8 @@ function authorized(request, env) {
   return expected.length >= 32 && got.length > 0 && constantTimeEqual(got, expected);
 }
 async function verifyTurnstile(token, request, env) {
-  if (!env.TURNSTILE_SECRET || !token) return false;
+  if (!env.TURNSTILE_SECRET) return { ok: false, reason: "missing-secret" };
+  if (!token) return { ok: false, reason: "missing-token" };
   const data = new FormData();
   data.set("secret", env.TURNSTILE_SECRET);
   data.set("response", token);
@@ -57,9 +58,17 @@ async function verifyTurnstile(token, request, env) {
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
     method: "POST", body: data
   });
-  if (!response.ok) return false;
+  if (!response.ok) return { ok: false, reason: "siteverify-http-" + response.status };
   const result = await response.json().catch(() => null);
-  return !!(result && result.success && (!result.hostname || result.hostname === "s1sch9.github.io"));
+  if (!result) return { ok: false, reason: "invalid-siteverify-response" };
+  if (!result.success) {
+    const codes = Array.isArray(result["error-codes"]) ? result["error-codes"] : [];
+    return { ok: false, reason: codes.join(",") || "verification-failed" };
+  }
+  if (result.hostname && result.hostname !== "s1sch9.github.io") {
+    return { ok: false, reason: "hostname-mismatch" };
+  }
+  return { ok: true };
 }
 async function rateAllowed(request, env) {
   await env.DB.prepare(`
@@ -137,8 +146,12 @@ export default {
         return json({ error: "Проверьте заполнение формы." }, 400, { ...headers, ...cors(origin) });
       }
       try {
-        if (!(await verifyTurnstile(captchaToken, request, env))) {
-          return json({ error: "Не пройдена проверка защиты от автоматических отправок. Обновите страницу и попробуйте снова." }, 400, { ...headers, ...cors(origin) });
+        const captchaCheck = await verifyTurnstile(captchaToken, request, env);
+        if (!captchaCheck.ok) {
+          return json({
+            error: "Не пройдена проверка защиты от автоматических отправок.",
+            diagnostic: captchaCheck.reason
+          }, 400, { ...headers, ...cors(origin) });
         }
         if (!(await rateAllowed(request, env))) {
           return json({ error: "Слишком много обращений. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
