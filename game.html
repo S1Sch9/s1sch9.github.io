@@ -83,7 +83,7 @@
         margin-bottom: 12px;
     }
     canvas { display:block;width:100%;height:100%;touch-action:none; }
-    .canvas-wrapper{background:linear-gradient(180deg,#E8C987 0%,#B66D54 25%,#6C2636 61%,#260C18 100%);border:1px solid rgba(212,175,55,.25);box-shadow:inset 0 0 45px rgba(35,8,15,.32),0 12px 35px rgba(0,0,0,.38)}
+    .canvas-wrapper{flex:0 0 auto;width:100%;aspect-ratio:4/3;max-height:min(62vh,520px);margin:0 auto 12px;background:linear-gradient(180deg,#E8C987 0%,#B66D54 25%,#6C2636 61%,#260C18 100%);border:1px solid rgba(212,175,55,.25);box-shadow:inset 0 0 45px rgba(35,8,15,.32),0 12px 35px rgba(0,0,0,.38)}
     .canvas-wrapper:before,.canvas-wrapper:after{content:"";position:absolute;pointer-events:none;z-index:1}
     .canvas-wrapper:before{inset:10px;border:1px solid rgba(212,175,55,.10);border-radius:11px}
     .canvas-wrapper:after{left:12%;right:12%;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,225,145,.65),transparent);box-shadow:0 0 18px rgba(255,213,112,.5);animation:goldShimmer 3s ease-in-out infinite}
@@ -101,6 +101,14 @@
     .overlay h2 { margin: 0 0 10px 0; font-size: 23px; text-align: center; color: #D4AF37;}
     .overlay p { margin: 0 0 16px 0; font-size: 15px; text-align: center; padding: 0 20px;}
     .overlay .btn { width: 70%; padding: 14px; margin-bottom: 10px; }
+    .exit-confirm{display:none;position:absolute;inset:0;z-index:30;align-items:center;justify-content:center;padding:22px;background:rgba(30,6,10,.68);backdrop-filter:blur(7px);border-radius:16px}
+    .exit-confirm.show{display:flex}
+    .exit-confirm-card{width:min(100%,310px);padding:23px 19px 18px;text-align:center;border-radius:20px;background:linear-gradient(155deg,rgba(112,35,52,.98),rgba(42,10,20,.98));border:1px solid rgba(212,175,55,.62);box-shadow:0 18px 50px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.10);animation:fadeIn .22s ease-out}
+    .exit-confirm-icon{font-size:29px;margin-bottom:7px}
+    .exit-confirm-card h2{margin:0 0 8px;color:#E8C96F;font-size:21px}
+    .exit-confirm-card p{margin:0 0 17px;color:#F1DFBD;font-size:14px;line-height:1.4}
+    .exit-confirm-card .btn{width:100%;margin-bottom:8px;padding:11px;font-size:13px}
+    .exit-confirm-card .btn:last-child{margin-bottom:0}
     .new-record { color: #D4AF37; font-size: 20px; font-weight: bold; animation: pulse 1s infinite; display: none; margin-bottom: 15px; }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 </style>
@@ -147,7 +155,7 @@
             </div>
             <div class="rule-item">
                 <div class="rule-icon">⏸️</div>
-                <div class="rule-text">Пауза остановит игру. Если выйти в меню, башня останется сохранённой на паузе. Её можно продолжить позже или начать новую игру — старая попытка сбросится только после подтверждения.</div>
+                <div class="rule-text">Пауза остановит игру. При выходе в меню текущая башня сбросится — перед этим игра попросит подтвердить выход.</div>
             </div>
         </div>
         <button class="btn secondary" onclick="showMenu()">Вернуться в меню</button>
@@ -161,7 +169,7 @@
         <div class="canvas-wrapper"><canvas id="gameCanvas"></canvas><div id="feedback" class="feedback" aria-live="polite"></div><div id="bonus-pop" class="bonus-pop" aria-hidden="true"></div></div>
         <div class="overlay" id="pause-screen">
             <h2>⏸️ Пауза</h2>
-            <p style="font-size:14px;color:#F1DFBD;margin:0 20px 18px">Прогресс сохранён. Можно продолжить или вернуться в меню — башня останется на паузе.</p>
+            <p style="font-size:14px;color:#F1DFBD;margin:0 20px 18px">Передохни и возвращайся к своей башне!</p>
             <button class="btn" onclick="resumeGame()">▶️ Продолжить</button>
             <button class="btn secondary" onclick="exitToMenu(true)">🏠 В главное меню</button>
         </div>
@@ -171,6 +179,15 @@
             <div class="new-record" id="new-record-badge">🏆 Новый рекорд!</div>
             <button class="btn" onclick="startGame()">🔄 Новая попытка</button>
             <button class="btn secondary" onclick="exitToMenu(false)">🏠 В главное меню</button>
+        </div>
+        <div class="exit-confirm" id="exit-confirm" aria-modal="true" role="dialog" aria-labelledby="exit-confirm-title">
+            <div class="exit-confirm-card">
+                <div class="exit-confirm-icon">🏠</div>
+                <h2 id="exit-confirm-title">Выйти в меню?</h2>
+                <p>Башня сбросится. Начнёшь заново в любой момент!</p>
+                <button class="btn" onclick="confirmExitToMenu()">Выйти в меню</button>
+                <button class="btn secondary" onclick="cancelExitToMenu()">Остаться в игре</button>
+            </div>
         </div>
     </div>
 
@@ -182,6 +199,7 @@
     const gameScreen = document.getElementById('game-screen');
     const pauseScreen = document.getElementById('pause-screen');
     const gameOverScreen = document.getElementById('game-over');
+    const exitConfirm = document.getElementById('exit-confirm');
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const scoreEl = document.getElementById('score');
@@ -624,7 +642,18 @@
     }
 
     function exitToMenu(fromPause = false) {
-        if (fromPause && !window.confirm('Выйти в главное меню? Текущая попытка и построенная башня будут сброшены. Вернуться к ним позже уже не получится.')) return;
+        if (fromPause) { exitConfirm.classList.add('show'); return; }
+        finishExitToMenu();
+    }
+
+    function cancelExitToMenu() { exitConfirm.classList.remove('show'); }
+
+    function confirmExitToMenu() {
+        exitConfirm.classList.remove('show');
+        finishExitToMenu();
+    }
+
+    function finishExitToMenu() {
         isPaused = true;
         isGameOver = true;
         currentBlock = null;
