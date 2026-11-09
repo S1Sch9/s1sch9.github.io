@@ -497,7 +497,7 @@
         edge.addColorStop(0,'rgba(255,255,255,.10)');edge.addColorStop(.35,'rgba(255,255,255,0)');edge.addColorStop(1,'rgba(25,5,12,.12)');
         ctx.fillStyle=edge;ctx.fillRect(x,y,w,h);
         if(w>42){const shine=ctx.createLinearGradient(x,y,x+w*.42,y+h);shine.addColorStop(0,'rgba(255,255,255,.12)');shine.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=shine;ctx.fillRect(x+1,y+bevel,w*.42,h-bevel);}
-        if(w>30){ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=3;ctx.fillStyle=(style.main==='#FFFFFF'||style.main==='#D4AF37')?'#4A0B1D':'#FFFFFF';ctx.textAlign='center';ctx.textBaseline='middle';const label=getFittedText(style.text,w-12);ctx.fillText(label,x+w/2,y+h/2+2);}
+        if(w>30){ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=3;ctx.fillStyle=(style.main==='#E9DFC7'||style.main==='#C99B32')?'#4A0B1D':'#FFFFFF';ctx.textAlign='center';ctx.textBaseline='middle';const label=getFittedText(style.text,w-12);ctx.fillText(label,x+w/2,y+h/2+2);}
         ctx.restore();
     }
     function drawCloud(x,y,scale,alpha){
