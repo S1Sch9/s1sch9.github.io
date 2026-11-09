@@ -62,6 +62,12 @@ jobs:
               "allowed_updates": ["message"]
           })
 
+          bot_info = api("getMe")
+          print("Telegram bot username:", bot_info.get("username", "unknown"))
+          print("Telegram updates received:", len(updates))
+          print("Administrator ID configured:", "yes" if admin else "no")
+          print("Commands received:", [((u.get("message") or {}).get("text") or (u.get("message") or {}).get("caption") or "").split()[0] for u in updates if (u.get("message") or {}).get("text") or (u.get("message") or {}).get("caption")])
+
           media_groups = {}
 
           for update in updates:
