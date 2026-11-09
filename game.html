@@ -121,7 +121,9 @@
         <div class="brand-subtext">ТВОЙ ПУТЬ К ВЕРШИНЕ</div>
         <div class="lore-intro">Каждый блок — <b>достижение</b>, каждый проект — новая ступень. Собери свою башню и проложи путь <b>к самым небесам!</b></div>
         <div class="record-display" id="menu-record">🏆 Рекорд: 0</div>
-        <button class="btn" onclick="startGame()">🚀 Начать игру</button>
+        <div id="saved-game-note" style="display:none;text-align:center;color:#F1DFBD;font-size:13px;line-height:1.45;margin:-12px 0 14px;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(232,195,92,.28);border-radius:12px">⏸️ У тебя есть игра на паузе. Можешь продолжить с того же места или начать заново.</div>
+        <button class="btn" id="continue-game-btn" style="display:none" onclick="resumeFromMenu()">▶️ Продолжить игру</button>
+        <button class="btn" id="new-game-btn" onclick="newGameFromMenu()">🚀 Начать игру</button>
         <button class="btn secondary" onclick="showRules()">📖 Правила игры</button>
     </div>
 
@@ -145,8 +147,7 @@
                 <div class="rule-text">Чем выше твоя башня, тем ближе ты к <b>небесам</b>. Но не теряй равновесие!</div>
             </div>
         </div>
-        <button class="btn" onclick="startGame()">Всё понятно!</button>
-        <button class="btn secondary" onclick="showMenu()">Назад</button>
+        <button class="btn secondary" onclick="showMenu()">Вернуться в меню</button>
     </div>
 
     <div id="game-screen" class="screen">
@@ -157,15 +158,16 @@
         <div class="canvas-wrapper"><canvas id="gameCanvas"></canvas><div id="feedback" class="feedback" aria-live="polite"></div><div id="bonus-pop" class="bonus-pop" aria-hidden="true"></div></div>
         <div class="overlay" id="pause-screen">
             <h2>⏸️ Пауза</h2>
+            <p style="font-size:14px;color:#F1DFBD;margin:0 20px 18px">Прогресс сохранён. Можно продолжить или вернуться в меню — башня останется на паузе.</p>
             <button class="btn" onclick="resumeGame()">▶️ Продолжить</button>
-            <button class="btn secondary" onclick="exitToMenu()">🏠 В меню</button>
+            <button class="btn secondary" onclick="exitToMenu(true)">🏠 В главное меню</button>
         </div>
         <div class="overlay" id="game-over">
             <h2>Путь прервался</h2>
             <p>Собрано достижений: <span id="final-score">0</span></p>
             <div class="new-record" id="new-record-badge">🏆 Новый рекорд!</div>
-            <button class="btn" onclick="startGame()">🔄 Заново</button>
-            <button class="btn secondary" onclick="exitToMenu()">🏠 В меню</button>
+            <button class="btn" onclick="startGame()">🔄 Новая попытка</button>
+            <button class="btn secondary" onclick="exitToMenu(false)">🏠 В главное меню</button>
         </div>
     </div>
 
@@ -186,7 +188,11 @@
     const finalScoreEl = document.getElementById('final-score');
     const menuRecordEl = document.getElementById('menu-record');
     const newRecordBadge = document.getElementById('new-record-badge');
+    const continueGameBtn = document.getElementById('continue-game-btn');
+    const newGameBtn = document.getElementById('new-game-btn');
+    const savedGameNote = document.getElementById('saved-game-note');
 
+    let hasPausedGame = false;
     let blocks = [];
     let fallingPieces = [];
     let ambientParticles = [];
@@ -254,11 +260,33 @@
         menuScreen.classList.add('active');
         isPaused = true;
         menuRecordEl.innerText = `🏆 Рекорд: ${highScore}`;
+        continueGameBtn.style.display = hasPausedGame ? 'block' : 'none';
+        savedGameNote.style.display = hasPausedGame ? 'block' : 'none';
+        newGameBtn.textContent = hasPausedGame ? '🆕 Начать новую игру' : '🚀 Начать игру';
     }
 
     function showRules() {
         hideAllScreens();
         rulesScreen.classList.add('active');
+    }
+
+    function newGameFromMenu() {
+        if (hasPausedGame && !window.confirm('Начать новую игру? Текущая башня на паузе будет сброшена.')) return;
+        startGame();
+    }
+
+    function resumeFromMenu() {
+        if (!hasPausedGame) return;
+        hideAllScreens();
+        gameScreen.classList.add('active');
+        pauseScreen.style.display = 'none';
+        gameOverScreen.style.display = 'none';
+        isGameOver = false;
+        isPaused = false;
+        hasPausedGame = false;
+        lastFrameTime = 0;
+        if (animationId) cancelAnimationFrame(animationId);
+        animationId = requestAnimationFrame(gameLoop);
     }
 
     function startGame() {
@@ -268,6 +296,9 @@
             resizeCanvas();
             isGameOver = false;
             isPaused = false;
+            hasPausedGame = false;
+            continueGameBtn.style.display = 'none';
+            savedGameNote.style.display = 'none';
             score = 0;
             gameSpeed = 4.2;
             combo = 0;
@@ -601,9 +632,10 @@
         pauseScreen.style.display = 'none';
     }
 
-    function exitToMenu() {
+    function exitToMenu(keepPausedGame = false) {
         isPaused = true;
         isGameOver = true;
+        hasPausedGame = Boolean(keepPausedGame);
         pauseScreen.style.display = 'none';
         gameOverScreen.style.display = 'none';
         if (animationId) cancelAnimationFrame(animationId);
