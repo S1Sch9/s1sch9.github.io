@@ -102,21 +102,31 @@ async function rateAllowed(request, env) {
 function adminPage() {
   return `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Обращения — Совет Первых школы №9</title>
   <style>
-  *{box-sizing:border-box}body{margin:0;background:#f7f5f6;color:#24151a;font:16px system-ui,-apple-system,sans-serif}
-  header{background:linear-gradient(115deg,#3d000d,#790d2a);color:#fff;padding:24px max(18px,calc((100% - 980px)/2));box-shadow:0 5px 24px #3d000d18}
-  main{max-width:980px;margin:28px auto;padding:0 16px}.panel,.item{background:#fff;border:1px solid #eee5e8;border-radius:20px;padding:20px;margin:14px 0;box-shadow:0 8px 28px #321b2208}
-  input{font:inherit;padding:13px;border:1px solid #d9cbd0;border-radius:12px;width:100%;margin:8px 0}
-  button{font:inherit;font-size:14px;font-weight:700;border:0;border-radius:12px;padding:11px 14px;background:#a1001f;color:white;cursor:pointer;margin:5px 5px 5px 0}
-  button.gray{background:#f1eaed;color:#421d29}button.danger{background:#7d0019}
-  button:active{transform:scale(.98)}.muted{color:#82747a;font-size:14px}.msg{white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0;line-height:1.6}
-  .top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-  .tag{display:inline-block;background:#f6e4e8;color:#a1001f;border-radius:99px;padding:5px 11px;font-size:12px;font-weight:700}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tabs button{margin:0;background:#eee8eb;color:#51313b}.tabs button.active{background:#a1001f;color:#fff}
-  .stats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}.stat{background:#fff;border:1px solid #eee5e8;border-radius:14px;padding:10px 14px;font-size:13px;color:#75686c}.stat b{display:block;font-size:21px;color:#321b22}
-  .item{padding:20px}.itemhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.actions{display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid #f1eaed;padding-top:12px}.empty{text-align:center;padding:34px 18px;color:#82747a}
-  </style><body><header><h2 style="margin:0">Обращения · Совет Первых школы №9</h2><div class="muted" style="color:#e9cbd2">Закрытая панель модерации</div></header><main>
-  <section id="login" class="panel"><h3>Вход администратора</h3><p class="muted">Введите административный пароль. Он проверяется сервером и не хранится в адресе страницы.</p><input id="token" type="password" autocomplete="current-password" placeholder="Административный пароль"><button id="loginBtn">Войти</button><p id="loginError" class="muted"></p></section>
-  <section id="app" hidden><div class="top"><div><h2 style="margin:0 0 5px">Обращения</h2><div class="muted">Все сообщения в одном месте</div></div><button class="gray" id="logout">Выйти</button></div><div class="stats" id="stats"></div><nav class="tabs" id="tabs"><button class="active" data-filter="all">Все</button><button data-filter="new">Новые</button><button data-filter="reviewed">Просмотренные</button><button data-filter="done">Завершённые</button></nav><div id="list"></div></section>
+  *{box-sizing:border-box}body{margin:0;background:#f6f4f5;color:#25151b;font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  header{background:linear-gradient(120deg,#39000d,#780d2b);color:#fff;padding:25px max(18px,calc((100% - 920px)/2))}
+  header h2{font-size:20px;letter-spacing:-.4px;margin:0 0 4px}header p{margin:0;color:#e7cbd2;font-size:13px}
+  main{max-width:920px;margin:25px auto;padding:0 16px}.panel,.item{background:#fff;border:1px solid #eee7e9;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 5px 22px #321b2208}
+  input{font:inherit;padding:13px 14px;border:1px solid #e5dce0;border-radius:12px;width:100%;margin:8px 0;background:#fff;outline:none}input:focus{border-color:#a1001f;box-shadow:0 0 0 3px #a1001f12}
+  button{font:inherit;font-size:13px;font-weight:650;border:0;border-radius:11px;padding:11px 14px;background:#a1001f;color:#fff;cursor:pointer}
+  button.secondary{background:#f3edef;color:#4c2632}button.danger{background:#fff0f1;color:#a1001f}button:active{transform:scale(.98)}
+  .muted{color:#8a7c81;font-size:13px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:16px 0}
+  .stat{background:#fff;border:1px solid #eee7e9;border-radius:14px;padding:12px;color:#807278;font-size:12px}
+  .stat b{display:block;color:#2c1920;font-size:22px;line-height:1.2;margin-bottom:3px}
+  .tabs{display:flex;gap:7px;overflow:auto;padding:2px 0 8px;margin:12px 0;scrollbar-width:none}.tabs button{white-space:nowrap;background:#eee9eb;color:#61434d}.tabs button.active{background:#3d000d;color:#fff}
+  .tools{display:flex;gap:8px;align-items:center;margin:10px 0 16px}.tools input{margin:0;flex:1;min-width:0}
+  .item{padding:17px 18px}.itemhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .tag{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:6px 10px;font-size:12px;font-weight:700;background:#fff1f3;color:#a1001f}
+  .tag.reviewed{background:#f1efff;color:#6252a2}.tag.done{background:#eaf7ef;color:#287347}
+  .meta{font-size:13px;color:#796b71;margin:13px 0 8px}.msg{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;margin:0 0 15px;color:#33252a}
+  .actions{display:flex;gap:7px;flex-wrap:wrap;border-top:1px solid #f2edef;padding-top:12px}
+  .empty{text-align:center;padding:32px 18px;color:#82747a}.empty b{display:block;color:#3c2830;margin-bottom:5px}
+  @media(max-width:520px){main{margin:17px auto}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:16px}.item{padding:15px}.tools button{padding:11px 12px}}
+  </style><body><header><h2>Обращения · Совет Первых №9</h2><p>Панель управления сообщениями</p></header><main>
+  <section id="login" class="panel"><h3 style="margin:0 0 5px">Вход администратора</h3><p class="muted">Введите пароль для просмотра обращений.</p><input id="token" type="password" autocomplete="current-password" placeholder="Административный пароль"><button id="loginBtn" style="width:100%">Войти</button><p id="loginError" class="muted"></p></section>
+  <section id="app" hidden><div class="top"><div><h2 style="margin:0 0 4px;font-size:23px">Входящие</h2><div class="muted">Здесь собраны все сообщения</div></div><div style="display:flex;gap:7px"><button class="secondary" id="refresh">↻ Обновить</button><button class="secondary" id="logout">Выйти</button></div></div>
+  <div class="stats" id="stats"></div><nav class="tabs" id="tabs"><button class="active" data-filter="all">Все</button><button data-filter="new">Новые</button><button data-filter="reviewed">Просмотренные</button><button data-filter="done">Завершённые</button></nav>
+  <div class="tools"><input id="search" type="search" placeholder="Поиск по обращениям…"><span class="muted" id="shown"></span></div><div id="list"></div></section>
   </main><script>
   const $=s=>document.querySelector(s);let token=sessionStorage.getItem("appeals_admin_token")||"";
   const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -127,22 +137,28 @@ function adminPage() {
     const counts={all:items.length,new:items.filter(x=>x.status==="new").length,reviewed:items.filter(x=>x.status==="reviewed").length,done:items.filter(x=>x.status==="done").length};
     $("#stats").innerHTML='<div class="stat"><b>'+counts.all+'</b>Всего</div><div class="stat"><b>'+counts.new+'</b>Новых</div><div class="stat"><b>'+counts.reviewed+'</b>Просмотрено</div><div class="stat"><b>'+counts.done+'</b>Завершено</div>';
     document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active",b.dataset.filter===filter));
-    const shown=items.filter(x=>filter==="all"||x.status===filter);
+    const q=$("#search").value.trim().toLocaleLowerCase("ru");
+    const shown=items.filter(x=>(filter==="all"||x.status===filter)&&[x.message,x.role,x.category].some(v=>String(v||"").toLocaleLowerCase("ru").includes(q)));
+    $("#shown").textContent=shown.length+" из "+items.length;
     $("#list").innerHTML=shown.length?shown.map(x=>{
       const label=x.status==="new"?"Новое":x.status==="reviewed"?"Просмотрено":"Завершено";
+      const cls=x.status==="new"?"":x.status==="reviewed"?"reviewed":"done";
       const actions=x.status==="new"
-        ?'<button class="gray" data-status="reviewed" data-id="'+x.id+'">Отметить просмотренным</button><button data-status="done" data-id="'+x.id+'">Завершить</button>'
+        ?'<button class="secondary" data-status="reviewed" data-id="'+x.id+'">✓ Просмотрено</button><button data-status="done" data-id="'+x.id+'">Завершить</button>'
         :x.status==="reviewed"
-          ?'<button class="gray" data-status="new" data-id="'+x.id+'">Вернуть в новые</button><button data-status="done" data-id="'+x.id+'">Завершить</button>'
-          :'<button class="gray" data-status="reviewed" data-id="'+x.id+'">Вернуть в просмотренные</button><button class="gray" data-status="new" data-id="'+x.id+'">Вернуть в новые</button>';
-      return '<article class="item"><div class="itemhead"><span class="tag">'+label+'</span><span class="muted">'+esc(new Date(x.created_at+"Z").toLocaleString("ru-RU"))+'</span></div><p><b>'+esc(x.role)+'</b> · '+esc(x.category)+'</p><div class="msg">'+esc(x.message)+'</div><div class="actions">'+actions+'<button class="danger" data-delete="'+x.id+'">Удалить</button></div></article>';
-    }).join(""):'<div class="panel empty">'+(items.length?'В этой категории пока пусто.':'Пока обращений нет 💙')+'</div>';
+          ?'<button data-status="done" data-id="'+x.id+'">Завершить</button>'
+          :'';
+      const date=new Date(x.created_at+"Z").toLocaleString("ru-RU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+      return '<article class="item"><div class="itemhead"><span class="tag '+cls+'">'+label+'</span><span class="muted">'+esc(date)+'</span></div><div class="meta">'+esc(x.role)+' · '+esc(x.category)+'</div><div class="msg">'+esc(x.message)+'</div><div class="actions">'+actions+'<button class="danger" data-delete="'+x.id+'">Удалить</button></div></article>';
+    }).join(""):'<div class="panel empty"><b>'+(items.length?'Ничего не найдено':'Пока обращений нет')+'</b>'+(items.length?'Попробуйте изменить поиск или фильтр.':'Новые сообщения появятся здесь 💙')+'</div>';
   }
   async function load(){const d=await api("/api/admin/appeals");items=d.items||[];render()}
   $("#loginBtn").onclick=async()=>{token=$("#token").value.trim();try{await api("/api/admin/appeals");sessionStorage.setItem("appeals_admin_token",token);$("#loginError").textContent="";show()}catch(e){token="";$("#loginError").textContent="Не удалось войти. Проверьте пароль."}};
   $("#logout").onclick=()=>{token="";sessionStorage.removeItem("appeals_admin_token");show()};
+  $("#refresh").onclick=()=>load().catch(e=>alert(e.message));
+  $("#search").oninput=render;
   $("#tabs").onclick=e=>{const b=e.target.closest("button[data-filter]");if(!b)return;filter=b.dataset.filter;render()};
-  $("#list").onclick=async e=>{const b=e.target.closest("button");if(!b)return;try{if(b.dataset.delete){if(!confirm("Удалить это обращение без возможности восстановления?"))return;await api("/api/admin/appeals/"+b.dataset.delete,{method:"DELETE"})}else if(b.dataset.status){await api("/api/admin/appeals/"+b.dataset.id,{method:"PATCH",body:JSON.stringify({status:b.dataset.status})})}await load()}catch(err){alert(err.message)}};
+  $("#list").onclick=async e=>{const b=e.target.closest("button");if(!b)return;try{if(b.dataset.delete){if(!confirm("Удалить обращение без возможности восстановления?"))return;await api("/api/admin/appeals/"+b.dataset.delete,{method:"DELETE"})}else if(b.dataset.status){await api("/api/admin/appeals/"+b.dataset.id,{method:"PATCH",body:JSON.stringify({status:b.dataset.status})})}await load()}catch(err){alert(err.message)}};
   show();
   </script></body></html>`;
 }
