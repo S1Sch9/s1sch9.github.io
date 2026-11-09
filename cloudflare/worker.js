@@ -242,7 +242,7 @@ export default {
         return json(items, 200, { ...headers, ...cors(origin) });
       } catch { return json([], 200, { ...headers, ...cors(origin) }); }
     }
-    const mediaMatch = url.pathname.match(/^\\/api\\/news-media\\/([^/]+)\\/(\\d+)$/);
+    const mediaMatch = url.pathname.match(/^\/api\/news-media\/([^/]+)\/(\d+)$/);
     if (mediaMatch && request.method === "GET") {
       try {
         await ensureTelegramNews(env);
