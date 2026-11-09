@@ -86,6 +86,7 @@
         margin-bottom: 60px;
     }
     canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+    .combo{display:block;font-size:12px;line-height:1.2;color:#D4AF37;opacity:.9;margin-top:3px}.feedback{position:absolute;top:18%;left:0;right:0;text-align:center;pointer-events:none;z-index:4;font-weight:900;font-size:clamp(20px,6vw,28px);color:#FFE18A;text-shadow:0 2px 12px #000,0 0 20px #D4AF37;opacity:0;transform:translateY(12px) scale(.85)}.feedback.show{animation:feedbackPop .75s ease-out forwards}@keyframes feedbackPop{0%{opacity:0;transform:translateY(12px) scale(.85)}18%{opacity:1;transform:translateY(0) scale(1.08)}65%{opacity:1}100%{opacity:0;transform:translateY(-18px) scale(1)}}
     .overlay {
         display: none; flex-direction: column; justify-content: center; align-items: center;
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -141,10 +142,10 @@
 
     <div id="game-screen" class="screen">
         <div class="top-bar">
-            <div class="stats"><span>Достижений: <span id="score">0</span></span></div>
+            <div class="stats"><span>Достижений: <span id="score">0</span><small id="combo" class="combo">Серия: 0</small></span></div>
             <button class="icon-btn" onclick="pauseGame()">⏸️</button>
         </div>
-        <div class="canvas-wrapper"><canvas id="gameCanvas"></canvas></div>
+        <div class="canvas-wrapper"><canvas id="gameCanvas"></canvas><div id="feedback" class="feedback" aria-live="polite"></div></div>
         <div class="overlay" id="pause-screen">
             <h2>⏸️ Пауза</h2>
             <button class="btn" onclick="resumeGame()">▶️ Продолжить</button>
@@ -170,6 +171,8 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    const feedbackEl = document.getElementById('feedback');
     const finalScoreEl = document.getElementById('final-score');
     const menuRecordEl = document.getElementById('menu-record');
     const newRecordBadge = document.getElementById('new-record-badge');
@@ -178,8 +181,10 @@
     let fallingPieces = [];
     let currentBlock = null;
     let score = 0;
-    let gameSpeed = 5.8;
-    let gameSpeedIncrease = 0.35;
+    let gameSpeed = 2.8;
+    let gameSpeedIncrease = 0.08;
+    let combo = 0;
+    let lastFrameTime = 0;
     let isGameOver = true;
     let isPaused = false;
     let animationId;
@@ -248,7 +253,11 @@
             isGameOver = false;
             isPaused = false;
             score = 0;
-            gameSpeed = 5.8;
+            gameSpeed = 2.8;
+            combo = 0;
+            lastFrameTime = 0;
+            comboEl.innerText = "Серия: 0";
+            feedbackEl.classList.remove("show");
             blocks = [];
             fallingPieces = [];
             scoreEl.innerText = score;
@@ -311,11 +320,23 @@
             createCrumbExplosion(currentBlock.x < prevBlock.x ? currentBlock.x + currentBlock.width : currentBlock.x, currentBlock.y);
         }
 
+        const centerOffset = Math.abs((currentBlock.x + currentBlock.width / 2) - (prevBlock.x + prevBlock.width / 2));
+        const perfect = centerOffset <= Math.max(5, prevBlock.width * 0.08);
         currentBlock.landingAnim = 10;
         blocks.push(currentBlock);
-        score++;
+        if (perfect) {
+            combo++;
+            score += combo >= 3 ? 2 : 1;
+            feedbackEl.textContent = combo >= 3 ? `ИДЕАЛЬНО! КОМБО ×${combo}  +2` : "ТОЧНО В ЦЕНТР!";
+            feedbackEl.classList.remove("show");
+            void feedbackEl.offsetWidth;
+            feedbackEl.classList.add("show");
+        } else {
+            combo = 0;
+        }
+        comboEl.innerText = `Серия: ${combo}`;
         scoreEl.innerText = score;
-        if (gameSpeed < 18) gameSpeed = Math.min(18, gameSpeed + gameSpeedIncrease);
+        gameSpeed = Math.min(7.2, gameSpeed + gameSpeedIncrease);
 
         if (currentBlock.width < 8) {
             currentBlock = null;
@@ -346,32 +367,34 @@
         }
     }
 
-    function gameLoop() {
-        update();
+    function gameLoop(timestamp) {
+        const frameScale = lastFrameTime ? Math.min((timestamp - lastFrameTime) / 16.667, 2) : 1;
+        lastFrameTime = timestamp;
+        update(frameScale);
         draw();
         if (!isGameOver) animationId = requestAnimationFrame(gameLoop);
     }
 
-    function update() {
+    function update(frameScale = 1) {
         if (isPaused || isGameOver) return;
 
         if (currentBlock) {
             if (currentBlock.movingRight) {
-                currentBlock.x += gameSpeed;
+                currentBlock.x += gameSpeed * frameScale;
                 if (currentBlock.x > visibleRight) { currentBlock = null; endGame(); return; }
             } else {
-                currentBlock.x -= gameSpeed;
+                currentBlock.x -= gameSpeed * frameScale;
                 if (currentBlock.x + currentBlock.width < visibleLeft) { currentBlock = null; endGame(); return; }
             }
         }
 
-        blocks.forEach(b => { if (b.landingAnim > 0) b.landingAnim -= 1; });
+        blocks.forEach(b => { if (b.landingAnim > 0) b.landingAnim -= frameScale; });
 
         fallingPieces.forEach(p => {
             if (p.type === 'block') {
-                p.vy += 1.15; p.y += p.vy; p.x += p.vx; p.rotation += p.vr; p.alpha -= 0.025;
+                p.vy += 1.15 * frameScale; p.y += p.vy * frameScale; p.x += p.vx * frameScale; p.rotation += p.vr * frameScale; p.alpha -= 0.025 * frameScale;
             } else if (p.type === 'crumb') {
-                p.vy += 0.8; p.y += p.vy; p.x += p.vx; p.vx *= 0.94; p.life -= 0.05; p.alpha = p.life;
+                p.vy += 0.8 * frameScale; p.y += p.vy * frameScale; p.x += p.vx * frameScale; p.vx *= Math.pow(0.94, frameScale); p.life -= 0.05 * frameScale; p.alpha = p.life;
             }
         });
         fallingPieces = fallingPieces.filter(p => p.alpha > 0 && p.y < canvasHeight + 200);
