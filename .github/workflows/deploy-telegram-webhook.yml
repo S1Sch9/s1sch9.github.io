@@ -1,0 +1,51 @@
+name: Deploy instant Telegram webhook
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "cloudflare/worker.js"
+      - "cloudflare/wrangler.jsonc"
+      - ".github/workflows/deploy-telegram-webhook.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check required secrets
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          ADMIN_ID: ${{ secrets.TELEGRAM_ADMIN_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CF_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }
+          test -n "$CF_ACCOUNT" || { echo "Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }
+          test -n "$BOT_TOKEN" || { echo "Missing TELEGRAM_BOT_TOKEN"; exit 1; }
+          test -n "$ADMIN_ID" || { echo "Missing TELEGRAM_ADMIN_ID"; exit 1; }
+      - name: Deploy Worker and configure Telegram webhook
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_ID: ${{ secrets.TELEGRAM_ADMIN_ID }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$TELEGRAM_BOT_TOKEN" | npx --yes wrangler@4 secret put TELEGRAM_BOT_TOKEN --config cloudflare/wrangler.jsonc
+          printf '%s' "$TELEGRAM_ADMIN_ID" | npx --yes wrangler@4 secret put TELEGRAM_ADMIN_ID --config cloudflare/wrangler.jsonc
+          WEBHOOK_SECRET="$(openssl rand -hex 32)"
+          printf '%s' "$WEBHOOK_SECRET" | npx --yes wrangler@4 secret put TELEGRAM_WEBHOOK_SECRET --config cloudflare/wrangler.jsonc
+          npx --yes wrangler@4 deploy --config cloudflare/wrangler.jsonc
+          curl --fail-with-body --silent --show-error \
+            --request POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+            --data-urlencode "url=https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/telegram/webhook" \
+            --data-urlencode "secret_token=${WEBHOOK_SECRET}" \
+            --data-urlencode 'allowed_updates=["message"]'
