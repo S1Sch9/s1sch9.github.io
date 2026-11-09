@@ -271,7 +271,7 @@
             blocks.push({ x: baseX, y: canvasHeight - blockHeight - 10, width: baseWidth, style: blockStyles[0] });
             spawnBlock();
             if (animationId) cancelAnimationFrame(animationId);
-            gameLoop();
+            gameLoop(performance.now());
         }, 50);
     }
 
@@ -324,9 +324,10 @@
         const perfect = centerOffset <= Math.max(5, prevBlock.width * 0.08);
         currentBlock.landingAnim = 10;
         blocks.push(currentBlock);
+        score++;
         if (perfect) {
             combo++;
-            score += combo >= 3 ? 2 : 1;
+            if (combo >= 3) score++;
             feedbackEl.textContent = combo >= 3 ? `ИДЕАЛЬНО! КОМБО ×${combo}  +2` : "ТОЧНО В ЦЕНТР!";
             feedbackEl.classList.remove("show");
             void feedbackEl.offsetWidth;
