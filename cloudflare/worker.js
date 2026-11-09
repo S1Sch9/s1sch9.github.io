@@ -50,13 +50,16 @@ function authorized(request, env) {
 async function verifyTurnstile(token, request, env) {
   if (!env.TURNSTILE_SECRET) return { ok: false, reason: "missing-secret" };
   if (!token) return { ok: false, reason: "missing-token" };
-  const data = new FormData();
+  // Turnstile Siteverify expects URL-encoded form data; multipart FormData can be rejected with HTTP 400.
+  const data = new URLSearchParams();
   data.set("secret", env.TURNSTILE_SECRET);
   data.set("response", token);
   const ip = request.headers.get("CF-Connecting-IP");
   if (ip) data.set("remoteip", ip);
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-    method: "POST", body: data
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: data.toString()
   });
   if (!response.ok) return { ok: false, reason: "siteverify-http-" + response.status };
   const result = await response.json().catch(() => null);
