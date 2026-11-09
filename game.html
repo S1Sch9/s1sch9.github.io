@@ -175,6 +175,12 @@
     const feedbackEl = document.getElementById('feedback');
     const bonusPopEl = document.getElementById('bonus-pop');
     const finalScoreEl = document.getElementById('final-score');
+    const perfectPhrases = [
+        'ВСЁ ГУД!', 'КРАСИВО!', 'ТАК ДЕРЖАТЬ!', 'ПОПАЛ В ТОЧКУ!',
+        'ВОТ ЭТО ТОЧНОСТЬ!', 'ОТЛИЧНО!', 'БАШНЯ РАСТЁТ!', 'ЕСТЬ!',
+        'ИДЕАЛЬНО!', 'МОЩНО!'
+    ];
+    let lastPerfectPhrase = '';
     const menuRecordEl = document.getElementById('menu-record');
     const newRecordBadge = document.getElementById('new-record-badge');
 
@@ -330,7 +336,15 @@
         if (perfect) {
             combo++;
             if (combo >= 3) score++;
-            feedbackEl.textContent = `КОМБО ×${combo}`;
+            let phrase;
+            if (combo >= 2 && combo % 4 === 0) {
+                phrase = `КОМБО ×${combo}`;
+            } else {
+                const availablePhrases = perfectPhrases.filter(item => item !== lastPerfectPhrase);
+                phrase = availablePhrases[Math.floor(Math.random() * availablePhrases.length)];
+                lastPerfectPhrase = phrase;
+            }
+            feedbackEl.textContent = phrase;
             const popX = (currentBlock.x + currentBlock.width / 2) / canvasWidth * 100;
             const popY = Math.max(5, currentBlock.y / canvasHeight * 100 - 8);
             feedbackEl.style.left = `${popX}%`;
@@ -348,6 +362,7 @@
             }
         } else {
             combo = 0;
+            feedbackEl.classList.remove("show");
         }
         comboEl.innerText = `КОМБО: ${combo}`;
         scoreEl.innerText = score;
