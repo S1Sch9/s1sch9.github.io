@@ -301,7 +301,7 @@ $("#form").addEventListener("submit", async e => {
     if (!response.ok || !result || !result.success) {
       throw new Error(result && result.error ? result.error + (result.diagnostic ? " Код: " + result.diagnostic : "") : ("Сервис вернул ошибку (HTTP " + response.status + ")."));
     }
-    e.target.outerHTML = '<div class="ok"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/><path d="M30 52l14 14 27-30"/></svg><h3 style="margin-top:14px">Спасибо!</h3><p class="note">Спасибо за обращение! 💙 Благодаря вам мы становимся лучше с каждым днём!</p></div>';
+    e.target.outerHTML = '<div class="ok"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/><path d="M30 52l14 14 27-30"/></svg><h3 style="margin-top:14px">Спасибо!</h3><p class="note">Спасибо за обращение! 💙 Становимся лучше благодаря вам!</p></div>';
   } catch (error) {
     console.error("Ошибка отправки обращения:", error);
     st.textContent = error && error.message
