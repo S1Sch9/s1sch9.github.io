@@ -248,7 +248,13 @@ function drawNews(){
       ? '<video controls playsinline preload="metadata" style="display:block;width:100%;max-height:420px;border-radius:18px;margin:12px 0;background:#111"><source src="' + url + '" type="video/mp4"></video>'
       : '<img src="' + url + '" alt="Фото к новости" loading="lazy" style="display:block;width:100%;max-height:420px;object-fit:cover;border-radius:18px;margin:12px 0">';
   }).join("");
-  const preview = n => (n.x ? '<p class="news-desc" style="margin-top:7px;color:var(--mut);font-size:14px;line-height:1.45">' + esc(n.x) + '</p>' : '') + ((n.media || []).length ? '<small style="display:block;margin-top:6px">📷 Фото и видео в публикации</small>' : '');
+  const preview = n => {
+    const first = (n.media || [])[0];
+    const cover = first && first.type !== "video"
+      ? '<img src="' + esc(first.url || "") + '" alt="" loading="lazy" style="display:block;width:100%;max-height:190px;object-fit:cover;border-radius:14px;margin:10px 0">'
+      : (first ? '<small style="display:block;margin:8px 0">▶ Видеоновость</small>' : '');
+    return cover + (n.x ? '<p class="news-desc" style="margin-top:7px;color:var(--mut);font-size:14px;line-height:1.45">' + esc(n.x) + '</p>' : '') + ((n.media || []).length > 1 ? '<small style="display:block;margin-top:6px">📷 Фото и видео в публикации</small>' : '');
+  };
   $("#newsList").innerHTML = list.length ? list.map(n => '<button class="row rv" data-k="' + NEWS.indexOf(n) + '"><small>' + esc(n.d) + '</small><b>' + esc(n.t) + '</b>' + preview(n) + '<em style="display:block;margin-top:9px">Читать полностью →</em></button>').join("") : '<p class="note">Ничего не найдено.</p>';
   const L = NEWS[0];
   $("#latest").innerHTML = L ? '<button class="row rv" data-k="0"><small>Последняя новость</small><b>' + esc(L.t) + '</b>' + preview(L) + '<em style="display:block;margin-top:9px">Читать полностью →</em></button>' : "";
