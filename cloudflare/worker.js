@@ -125,7 +125,7 @@ function adminPage() {
   </style><body><header><h2>Обращения · Совет Первых №9</h2><p>Панель управления сообщениями</p></header><main>
   <section id="login" class="panel"><h3 style="margin:0 0 5px">Вход администратора</h3><p class="muted">Введите пароль для просмотра обращений.</p><input id="token" type="password" autocomplete="current-password" placeholder="Административный пароль"><button id="loginBtn" style="width:100%">Войти</button><p id="loginError" class="muted"></p></section>
   <section id="app" hidden><div class="top"><div><h2 style="margin:0 0 4px;font-size:23px">Входящие</h2><div class="muted">Здесь собраны все сообщения</div></div><div style="display:flex;gap:7px"><button class="secondary" id="refresh">↻ Обновить</button><button class="secondary" id="logout">Выйти</button></div></div>
-  <div class="stats" id="stats"></div><nav class="tabs" id="tabs"><button class="active" data-filter="all">Все</button><button data-filter="new">Новые</button><button data-filter="reviewed">Просмотренные</button><button data-filter="done">Завершённые</button></nav>
+  <div class="stats" id="stats"></div><nav class="tabs" id="tabs"><button class="active" data-filter="all">Все обращения</button><button data-filter="new">Новые</button><button data-filter="reviewed">В работе</button><button data-filter="done">Завершённые</button></nav>
   <div class="tools"><input id="search" type="search" placeholder="Поиск по обращениям…"><span class="muted" id="shown"></span></div><div id="list"></div></section>
   </main><script>
   const $=s=>document.querySelector(s);let token=sessionStorage.getItem("appeals_admin_token")||"";
@@ -135,16 +135,16 @@ function adminPage() {
   let items=[],filter="all";
   function render(){
     const counts={all:items.length,new:items.filter(x=>x.status==="new").length,reviewed:items.filter(x=>x.status==="reviewed").length,done:items.filter(x=>x.status==="done").length};
-    $("#stats").innerHTML='<div class="stat"><b>'+counts.all+'</b>Всего</div><div class="stat"><b>'+counts.new+'</b>Новых</div><div class="stat"><b>'+counts.reviewed+'</b>Просмотрено</div><div class="stat"><b>'+counts.done+'</b>Завершено</div>';
+    $("#stats").innerHTML='<div class="stat"><b>'+counts.all+'</b>Всего</div><div class="stat"><b>'+counts.new+'</b>Новых</div><div class="stat"><b>'+counts.reviewed+'</b>В работе</div><div class="stat"><b>'+counts.done+'</b>Завершено</div>';
     document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active",b.dataset.filter===filter));
     const q=$("#search").value.trim().toLocaleLowerCase("ru");
     const shown=items.filter(x=>(filter==="all"||x.status===filter)&&[x.message,x.role,x.category].some(v=>String(v||"").toLocaleLowerCase("ru").includes(q)));
     $("#shown").textContent=shown.length+" из "+items.length;
     $("#list").innerHTML=shown.length?shown.map(x=>{
-      const label=x.status==="new"?"Новое":x.status==="reviewed"?"Просмотрено":"Завершено";
+      const label=x.status==="new"?"Новое":x.status==="reviewed"?"В работе":"Завершено";
       const cls=x.status==="new"?"":x.status==="reviewed"?"reviewed":"done";
       const actions=x.status==="new"
-        ?'<button class="secondary" data-status="reviewed" data-id="'+x.id+'">✓ Просмотрено</button><button data-status="done" data-id="'+x.id+'">Завершить</button>'
+        ?'<button class="secondary" data-status="reviewed" data-id="'+x.id+'">Взять в работу</button><button data-status="done" data-id="'+x.id+'">Завершить</button>'
         :x.status==="reviewed"
           ?'<button data-status="done" data-id="'+x.id+'">Завершить</button>'
           :'';
@@ -357,7 +357,7 @@ export default {
     if (url.pathname === "/api/admin/appeals" && request.method === "GET") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
-        const result = await env.DB.prepare("SELECT id, role, category, message, status, created_at FROM appeals ORDER BY id DESC LIMIT 200").all();
+        const result = await env.DB.prepare("SELECT id, role, category, message, status, created_at FROM appeals ORDER BY id DESC").all();
         return json({ items: result.results || [] }, 200, headers);
       } catch { return json({ error: "Не удалось загрузить обращения." }, 500, headers); }
     }
