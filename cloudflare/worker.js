@@ -157,8 +157,8 @@ async function telegramWebhook(request, env) {
   const isAdmin = chatId === String(env.TELEGRAM_ADMIN_ID).trim();
   if (text === "/start" || text === "/help") {
     await telegramReply(env, chatId, isAdmin
-      ? "Привет! Я бот сайта Совета Первых школы №9. 💙\\n\\nОтправь текст, фото или видео с подписью — публикация появится на сайте сразу.\\n\\nКоманды:\\n/list — список новостей\\n/edit ID новый текст — изменить\\n/delete ID — удалить"
-      : "Привет! Я бот сайта Совета Первых школы №9. 💙\\nПубликовать новости может только назначенный администратор.");
+      ? "Привет! Я бот сайта Совета Первых школы №9. 💙\n\nОтправь текст, фото или видео с подписью — публикация появится на сайте сразу.\n\nКоманды:\n/list — список новостей\n/edit ID новый текст — изменить\n/delete ID — удалить"
+      : "Привет! Я бот сайта Совета Первых школы №9. 💙\nПубликовать новости может только назначенный администратор.");
     return json({ ok: true });
   }
   if (!isAdmin) {
@@ -168,18 +168,18 @@ async function telegramWebhook(request, env) {
   await ensureTelegramNews(env);
   if (text === "/list") {
     const rows = await env.DB.prepare("SELECT id, text FROM telegram_news ORDER BY date DESC LIMIT 15").all();
-    const answer = (rows.results || []).map(x => x.id + " — " + x.text.slice(0, 90)).join("\\n") || "Новостей пока нет.";
+    const answer = (rows.results || []).map(x => x.id + " — " + x.text.slice(0, 90)).join("\n") || "Новостей пока нет.";
     await telegramReply(env, chatId, answer);
     return json({ ok: true });
   }
   if (text.startsWith("/delete ")) {
-    const id = text.split(/\\s+/)[1] || "";
+    const id = text.split(/\s+/)[1] || "";
     const result = await env.DB.prepare("DELETE FROM telegram_news WHERE id = ?").bind(id).run();
     await telegramReply(env, chatId, result.meta.changes ? "Новость удалена с сайта. 💙" : "Новость не найдена.");
     return json({ ok: true });
   }
   if (text.startsWith("/edit ")) {
-    const parts = text.split(/\\s+/);
+    const parts = text.split(/\s+/);
     const id = parts[1] || "";
     const updated = text.slice(("/edit " + id).length).trim();
     if (!updated) {
