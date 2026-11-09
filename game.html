@@ -188,8 +188,8 @@
     let fallingPieces = [];
     let currentBlock = null;
     let score = 0;
-    let gameSpeed = 2.8;
-    let gameSpeedIncrease = 0.08;
+    let gameSpeed = 4.2;
+    let gameSpeedIncrease = 0.12;
     let combo = 0;
     let lastFrameTime = 0;
     let isGameOver = true;
@@ -260,7 +260,7 @@
             isGameOver = false;
             isPaused = false;
             score = 0;
-            gameSpeed = 2.8;
+            gameSpeed = 4.2;
             combo = 0;
             lastFrameTime = 0;
             comboEl.innerText = "КОМБО: 0";
@@ -366,7 +366,7 @@
         }
         comboEl.innerText = `КОМБО: ${combo}`;
         scoreEl.innerText = score;
-        gameSpeed = Math.min(7.2, gameSpeed + gameSpeedIncrease);
+        gameSpeed = Math.min(10.5, gameSpeed + gameSpeedIncrease);
 
         if (currentBlock.width < 8) {
             currentBlock = null;
