@@ -191,11 +191,8 @@
     const finalScoreEl = document.getElementById('final-score');
     const menuRecordEl = document.getElementById('menu-record');
     const newRecordBadge = document.getElementById('new-record-badge');
-    const continueGameBtn = document.getElementById('continue-game-btn');
     const newGameBtn = document.getElementById('new-game-btn');
-    const savedGameNote = document.getElementById('saved-game-note');
 
-    let hasPausedGame = false;
     let blocks = [];
     let fallingPieces = [];
     let ambientParticles = [];
@@ -273,8 +270,6 @@
         menuScreen.classList.add('active');
         isPaused = true;
         menuRecordEl.innerText = `🏆 Рекорд: ${highScore}`;
-        continueGameBtn.style.display = 'none';
-        savedGameNote.style.display = 'none';
         newGameBtn.textContent = '🚀 Начать игру';
     }
 
@@ -288,19 +283,6 @@
         startGame();
     }
 
-    function resumeFromMenu() {
-        if (!hasPausedGame) return;
-        hideAllScreens();
-        gameScreen.classList.add('active');
-        pauseScreen.style.display = 'none';
-        gameOverScreen.style.display = 'none';
-        isGameOver = false;
-        isPaused = false;
-        hasPausedGame = false;
-        lastFrameTime = 0;
-        if (animationId) cancelAnimationFrame(animationId);
-        animationId = requestAnimationFrame(gameLoop);
-    }
 
     function startGame() {
         hideAllScreens();
@@ -309,9 +291,6 @@
             resizeCanvas();
             isGameOver = false;
             isPaused = false;
-            hasPausedGame = false;
-            continueGameBtn.style.display = 'none';
-            savedGameNote.style.display = 'none';
             score = 0;
             gameSpeed = 4.2;
             combo = 0;
@@ -649,7 +628,6 @@
         if (fromPause && !window.confirm('Выйти в главное меню? Текущая попытка и построенная башня будут сброшены. Вернуться к ним позже уже не получится.')) return;
         isPaused = true;
         isGameOver = true;
-        hasPausedGame = false;
         currentBlock = null;
         blocks = [];
         fallingPieces = [];
