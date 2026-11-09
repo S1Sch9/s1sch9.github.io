@@ -50,24 +50,29 @@ function authorized(request, env) {
 async function verifyTurnstile(token, request, env) {
   if (!env.TURNSTILE_SECRET) return { ok: false, reason: "missing-secret" };
   if (!token) return { ok: false, reason: "missing-token" };
-  // Turnstile Siteverify expects URL-encoded form data; multipart FormData can be rejected with HTTP 400.
-  const data = new URLSearchParams();
-  data.set("secret", env.TURNSTILE_SECRET);
-  data.set("response", token);
-  const ip = request.headers.get("CF-Connecting-IP");
-  if (ip) data.set("remoteip", ip);
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: data.toString()
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      secret: env.TURNSTILE_SECRET,
+      response: token
+    })
   });
-  if (!response.ok) return { ok: false, reason: "siteverify-http-" + response.status };
-  const result = await response.json().catch(() => null);
-  if (!result) return { ok: false, reason: "invalid-siteverify-response" };
-  if (!result.success) {
-    const codes = Array.isArray(result["error-codes"]) ? result["error-codes"] : [];
-    return { ok: false, reason: codes.join(",") || "verification-failed" };
+  const raw = await response.text();
+  let result = null;
+  try { result = JSON.parse(raw); } catch {}
+  // Siteverify normally returns JSON even for rejected tokens. Preserve its
+  // safe error codes so configuration problems can be diagnosed accurately.
+  if (result && Array.isArray(result["error-codes"]) && result["error-codes"].length) {
+    return { ok: false, reason: result["error-codes"].join(",") };
   }
+  if (!response.ok) {
+    return { ok: false, reason: "siteverify-http-" + response.status };
+  }
+  if (!result || typeof result.success !== "boolean") {
+    return { ok: false, reason: "invalid-siteverify-response" };
+  }
+  if (!result.success) return { ok: false, reason: "verification-failed" };
   if (result.hostname && result.hostname !== "s1sch9.github.io") {
     return { ok: false, reason: "hostname-mismatch" };
   }
