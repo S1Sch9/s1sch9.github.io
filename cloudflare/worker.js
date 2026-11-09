@@ -143,6 +143,17 @@ async function telegramApi(env, method, payload) {
 async function telegramReply(env, chatId, text) {
   return telegramApi(env, "sendMessage", { chat_id: chatId, text });
 }
+async function setTelegramCommands(env) {
+  await telegramApi(env, "setMyCommands", {
+    commands: [
+      { command: "start", description: "Открыть меню бота" },
+      { command: "help", description: "Помощь и список команд" },
+      { command: "list", description: "Показать опубликованные новости" },
+      { command: "edit", description: "Изменить новость: ID и новый текст" },
+      { command: "delete", description: "Удалить новость: ID" }
+    ]
+  });
+}
 async function telegramWebhook(request, env) {
   if (!env.TELEGRAM_WEBHOOK_SECRET ||
       !constantTimeEqual(request.headers.get("X-Telegram-Bot-Api-Secret-Token") || "", env.TELEGRAM_WEBHOOK_SECRET)) {
@@ -156,9 +167,10 @@ async function telegramWebhook(request, env) {
   const text = cleanText(msg.text || msg.caption || "", 1500);
   const isAdmin = chatId === String(env.TELEGRAM_ADMIN_ID).trim();
   if (text === "/start" || text === "/help") {
+    if (isAdmin) await setTelegramCommands(env);
     await telegramReply(env, chatId, isAdmin
-      ? "Привет! Я бот сайта Совета Первых школы №9. 💙\n\nОтправь текст, фото или видео с подписью — публикация появится на сайте сразу.\n\nКоманды:\n/list — список новостей\n/edit ID новый текст — изменить\n/delete ID — удалить"
-      : "Привет! Я бот сайта Совета Первых школы №9. 💙\nПубликовать новости может только назначенный администратор.");
+      ? "Привет! Я бот сайта Совета Первых школы №9. 💙\\n\\nНажми значок \\/ рядом со строкой ввода, чтобы открыть меню команд. Выбери команду — она появится в поле сообщения, останется дописать ID или текст.\\n\\n/list — список новостей\\n/edit ID новый текст — изменить\\n/delete ID — удалить\\n\\nОтправь текст, фото или видео с подписью — и новость появится на сайте."
+      : "Привет! Я бот сайта Совета Первых школы №9. 💙\\nПубликовать новости может только назначенный администратор.");
     return json({ ok: true });
   }
   if (!isAdmin) {
@@ -172,17 +184,28 @@ async function telegramWebhook(request, env) {
     await telegramReply(env, chatId, answer);
     return json({ ok: true });
   }
-  if (text.startsWith("/delete ")) {
-    const id = text.split(/\s+/)[1] || "";
+  if (text === "/delete" || text === "/delete@S1Sch9Obrbot") {
+    await telegramReply(env, chatId, "🗑 Удаление новости\\nВыбери /delete в меню и допиши ID. Например: /delete 3");
+    return json({ ok: true });
+  }
+  if (text.startsWith("/delete ") || text.startsWith("/delete@S1Sch9Obrbot ")) {
+    const id = text.split(/\\s+/)[1] || "";
+    if (!id) { await telegramReply(env, chatId, "Укажи ID новости. Например: /delete 3"); return json({ ok: true }); }
     const result = await env.DB.prepare("DELETE FROM telegram_news WHERE id = ?").bind(id).run();
     await telegramReply(env, chatId, result.meta.changes ? "Новость удалена с сайта. 💙" : "Новость не найдена.");
     return json({ ok: true });
   }
-  if (text.startsWith("/edit ")) {
-    const parts = text.split(/\s+/);
-    const id = parts[1] || "";
-    const updated = text.slice(("/edit " + id).length).trim();
-    if (!updated) {
+  if (text === "/edit" || text === "/edit@S1Sch9Obrbot") {
+    await telegramReply(env, chatId, "✏️ Выбери /edit в меню и допиши ID и новый текст. Например: /edit 3 Наша новая новость");
+    return json({ ok: true });
+  }
+  if (text.startsWith("/edit ") || text.startsWith("/edit@S1Sch9Obrbot ")) {
+    const prefix = text.startsWith("/edit ") ? "/edit " : "/edit@S1Sch9Obrbot ";
+    const rest = text.slice(prefix.length).trim();
+    const splitAt = rest.indexOf(" ");
+    const id = splitAt < 0 ? "" : rest.slice(0, splitAt);
+    const updated = splitAt < 0 ? "" : rest.slice(splitAt + 1).trim();
+    if (!id || !updated) {
       await telegramReply(env, chatId, "Формат: /edit ID новый текст");
     } else {
       const result = await env.DB.prepare("UPDATE telegram_news SET text = ? WHERE id = ?").bind(updated, id).run();
