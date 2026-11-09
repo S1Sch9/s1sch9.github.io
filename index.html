@@ -15,7 +15,7 @@
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
 body{font:16px/1.5 Onest,system-ui,sans-serif;color:var(--ink);background:var(--bg);padding-bottom:calc(100px + env(safe-area-inset-bottom))}
 .bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 18px 10px;background:rgba(250,246,246,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);font-weight:700}
-.bar i{width:28px;height:28px;border-radius:9px;background:var(--red);color:#fff;display:grid;place-items:center;font-style:normal;font-size:15px}
+.bar{gap:12px;min-height:58px}.bar .brand-logo{width:42px;height:42px;flex:none;object-fit:cover;border-radius:13px;box-shadow:0 3px 10px rgba(61,0,13,.13)}.bar .brand-name{display:flex;flex-direction:column;line-height:1.08;gap:3px}.bar .brand-name strong{font-size:14px;letter-spacing:.025em}.bar .brand-name small{font-size:9px;letter-spacing:.08em;color:var(--mut);font-weight:700}
 main{max-width:640px;margin:0 auto;padding:6px 18px 20px}
 section{display:none}section.on{display:block;animation:in .4s ease both}
 @keyframes in{from{opacity:0;transform:translateY(14px)}}
@@ -26,7 +26,7 @@ h1{font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin:1
 .hero:before{width:220px;height:220px;right:-60px;top:-70px;background:#ff3d63;opacity:.55}
 .hero:after{width:180px;height:180px;left:-50px;bottom:-70px;background:var(--gold);opacity:.35;animation-delay:-4s}
 @keyframes fl{to{transform:translate(-30px,24px) scale(1.15)}}
-.logo{width:76px;height:76px;border-radius:22px;background:#fff;color:var(--red);display:grid;place-items:center;font-size:42px;font-weight:800;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.3);margin-bottom:18px}
+.logo{width:112px;height:112px;border-radius:28px;background:#fff;color:var(--red);display:grid;place-items:center;font-size:42px;font-weight:800;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.3);margin-bottom:20px}.logo img{width:100%;height:100%;object-fit:cover}
 .logo img{width:100%;height:100%;object-fit:contain}
 .hero h1{margin:0 0 6px;font-size:36px}.hero p{opacity:.85;font-size:15px}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
@@ -37,8 +37,8 @@ h1{font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin:1
 .card,.row{font:inherit;color:inherit;text-align:left;cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:var(--r);transition:transform .15s;display:block;width:100%;text-decoration:none}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .card{overflow:hidden;padding:0}
-.ph{aspect-ratio:1;background:linear-gradient(160deg,#c10030,var(--deep));display:grid;place-items:end center;color:#fff;font-weight:800;font-size:38px;overflow:hidden;position:relative}
-.ph img{position:absolute;inset:5px;width:calc(100% - 10px);height:calc(100% - 10px);object-fit:cover;object-position:top;border:3px solid #fff;border-radius:18px}
+.ph{aspect-ratio:1/1;background:linear-gradient(160deg,#c10030,var(--deep));display:grid;place-items:center;color:#fff;font-weight:800;font-size:38px;overflow:hidden;position:relative}
+.ph img{position:absolute;inset:5px;width:calc(100% - 10px);height:calc(100% - 10px);object-fit:contain;object-position:center bottom;border:3px solid #fff;border-radius:18px;background:linear-gradient(160deg,#c10030,var(--deep))}
 .photo-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;text-align:center;color:#fff;background:radial-gradient(circle at 50% 25%,#d52b52 0,#8e0020 55%,#3d000d 100%);font-weight:800}.photo-placeholder .camera{font-size:30px;line-height:1}.photo-placeholder small{font-size:10px;line-height:1.25;letter-spacing:.07em}.big .photo-placeholder .camera{font-size:27px}.big .photo-placeholder small{font-size:8px}
 .card div.t{padding:12px 14px 14px}.card small{display:block;color:var(--mut);font-size:12.5px;line-height:1.3;margin-bottom:4px}
 .card b{display:block;line-height:1.25;font-size:15px}
@@ -60,7 +60,7 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .game p{opacity:.9;margin-bottom:22px}.game .btn{background:var(--gold);color:#3d000d;animation:pu 2.4s ease-in-out infinite}
 @keyframes pu{50%{transform:scale(1.04);box-shadow:0 0 30px #f0c86966}}
 .link{display:flex;align-items:center;gap:14px;padding:18px;margin-bottom:12px;font-weight:700}
-.link i{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-style:normal;font-size:22px;color:#fff;flex:none}
+.link i{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-style:normal;font-size:22px;color:#fff;flex:none}.link i svg{width:26px;height:26px;display:block}.link.school i{background:#a1001f}
 nav{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:6;max-width:616px;margin:auto;display:flex;gap:2px;padding:6px;border-radius:26px;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 10px 40px rgba(61,0,13,.2)}
 nav a{flex:1;text-align:center;padding:7px 0 6px;font-size:10.5px;color:var(--mut);text-decoration:none;font-weight:600;border-radius:20px;transition:background .25s,color .25s}
 nav a i{display:block;font-style:normal;font-size:19px;line-height:1.25;transition:transform .25s}
@@ -82,10 +82,10 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 </style>
 </head>
 <body>
-<div class="bar"><i>9</i>Совет Первых школы №9</div>
+<div class="bar"><img class="brand-logo" src="logo.jpg" alt="Логотип Совета Первых"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong><small>НОВО-САВИНОВСКИЙ РАЙОН • 2026</small></div></div>
 <main>
 <section id="home">
-  <div class="hero rv"><div class="logo" id="logo">9</div><h1>Совет Первых</h1><p>школы №9 · Ново-Савиновский район</p></div>
+  <div class="hero rv"><div class="logo" id="logo"><img src="logo.jpg" alt="Логотип Совета Первых"></div><h1>Совет Первых</h1><p>школы №9 · Ново-Савиновский район</p></div>
   <div class="tiles">
     <a class="tile red rv" href="#appeal"><span>✍️</span>Написать обращение</a>
     <a class="tile rv" href="#team"><span>👥</span>Состав</a>
@@ -126,8 +126,9 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   <button class="btn" id="play">Открыть игру</button></div>
 </section>
 <section id="links"><h1 class="rv">Наши каналы</h1>
-  <a class="row link rv" id="tg" href="#"><i style="background:#2aa3e0">✈️</i>Телеграм-канал «Совет Первых школы №9!»</a>
-  <a class="row link rv" id="mx" href="#"><i style="background:#7a3df0">💬</i>Макс-канал «Совет Первых школы №9!»</a>
+  <a class="row link rv" id="tg" href="#"><i style="background:#2aa3e0"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21.5 3.5 18.2 20c-.25 1.17-.9 1.46-1.82.91l-5.03-3.7-2.43 2.34c-.27.27-.5.5-1.02.5l.36-5.12 9.32-8.42c.4-.36-.09-.56-.62-.2L5.44 13.5.49 11.95c-1.08-.34-1.1-1.08.23-1.58L20.1 2.9c.9-.33 1.69.22 1.4.6Z" fill="white"/></svg></i>Телеграм-канал «Совет Первых школы №9!»</a>
+  <a class="row link rv" id="mx" href="#"><i style="background:#7a3df0"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v7a3.5 3.5 0 0 1-3.5 3.5H10l-5.5 4v-4.8A3.48 3.48 0 0 1 4 12.5v-7Z" fill="white"/><path d="m8 10 2.1-3 2 3 2-3 2 3" stroke="#7a3df0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></i>Макс-канал «Совет Первых школы №9!»</a>
+  <a class="row link rv school" href="https://edu.tatar.ru/nsav/page2298.htm" target="_blank" rel="noopener"><i><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" stroke="white" stroke-width="1.8"/><path d="M3.5 12h17M12 3c2.2 2.4 3.2 5.4 3.2 9S14.2 18.6 12 21c-2.2-2.4-3.2-5.4-3.2-9S9.8 5.4 12 3Z" stroke="white" stroke-width="1.5"/></svg></i>Официальный сайт школы №9</a>
 </section>
 </main>
 <nav>
