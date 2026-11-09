@@ -106,6 +106,31 @@ jobs:
               chat_id = str(chat.get("id"))
               text = (msg.get("text") or msg.get("caption") or "").strip()
 
+              # Download one attached photo or video into the public news media folder.
+              media_item = None
+              photo = msg.get("photo")
+              video = msg.get("video")
+              file_obj = (photo[-1] if photo else video)
+              if file_obj:
+                  file_info = api("getFile", {"file_id": file_obj["file_id"]})
+                  file_path = file_info["file_path"]
+                  ext = os.path.splitext(file_path)[1].lower() or (".mp4" if video else ".jpg")
+                  if ext not in [".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov"]:
+                      ext = ".mp4" if video else ".jpg"
+                  media_name = str(update["update_id"]) + ext
+                  os.makedirs("news-media", exist_ok=True)
+                  media_url = "https://api.telegram.org/file/bot" + token + "/" + file_path
+                  with urllib.request.urlopen(media_url, timeout=60) as response:
+                      media_bytes = response.read()
+                  if len(media_bytes) > 20 * 1024 * 1024:
+                      raise RuntimeError("News media file exceeds 20 MB")
+                  with open(os.path.join("news-media", media_name), "wb") as media_file:
+                      media_file.write(media_bytes)
+                  media_item = {
+                      "type": "video" if video else "image",
+                      "url": "news-media/" + media_name
+                  }
+
               if not admin:
                   api("sendMessage", {
                       "chat_id": chat_id,
@@ -120,7 +145,7 @@ jobs:
               if text in ["/start", "/help"]:
                   answer = (
                       "Привет! Я бот сайта Совета Первых школы №9.\n\n"
-                      "Отправь обычное сообщение — опубликую новость.\n"
+                      "Отправь текст, фото или видео с подписью — опубликую новость на сайте.\n"
                       "/list — список новостей\n"
                       "/edit ID новый текст — изменить новость\n"
                       "/delete ID — удалить новость"
@@ -161,16 +186,17 @@ jobs:
                       else:
                           answer = "Новость не найдена."
 
-              elif text and not text.startswith("/"):
+              elif (text and not text.startswith("/")) or media_item:
                   ident = "bot-" + str(update["update_id"])
                   news.insert(0, {
                       "id": ident,
                       "date": datetime.datetime.now(
                           datetime.timezone.utc
                       ).strftime("%Y-%m-%d"),
-                      "text": text
+                      "text": text or "Новость Совета Первых школы №9",
+                      "media": [media_item] if media_item else []
                   })
-                  answer = "Новость опубликована! ID: " + ident
+                  answer = "Новость опубликована на сайте! 💙 ID: " + ident
 
               else:
                   answer = "Неизвестная команда. Напиши /help"
