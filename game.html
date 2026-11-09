@@ -294,6 +294,7 @@
     function dropBlock() {
         if (isGameOver || isPaused || !currentBlock) return;
         const prevBlock = blocks[blocks.length - 1];
+        const centerOffset = Math.abs((currentBlock.x + currentBlock.width / 2) - (prevBlock.x + prevBlock.width / 2));
         const left = Math.max(currentBlock.x, prevBlock.x);
         const right = Math.min(currentBlock.x + currentBlock.width, prevBlock.x + prevBlock.width);
         const overlap = right - left;
@@ -320,7 +321,6 @@
             createCrumbExplosion(currentBlock.x < prevBlock.x ? currentBlock.x + currentBlock.width : currentBlock.x, currentBlock.y);
         }
 
-        const centerOffset = Math.abs((currentBlock.x + currentBlock.width / 2) - (prevBlock.x + prevBlock.width / 2));
         const perfect = centerOffset <= Math.max(5, prevBlock.width * 0.08);
         currentBlock.landingAnim = 10;
         blocks.push(currentBlock);
