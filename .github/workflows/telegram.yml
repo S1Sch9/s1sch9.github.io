@@ -59,43 +59,13 @@ jobs:
           updates = api("getUpdates", {
               "offset": offset,
               "timeout": 0,
-              "allowed_updates": ["message", "channel_post"]
+              "allowed_updates": ["message"]
           })
 
           media_groups = {}
 
           for update in updates:
               offset = max(offset, update["update_id"] + 1)
-
-              post = update.get("channel_post")
-              if post:
-                  channel = post.get("chat", {}).get("username", "")
-                  if channel.lower() == "dvizhenieschool9":
-                      text = post.get("text") or post.get("caption") or ""
-
-                      delete = re.fullmatch(
-                          r"\s*#удалить\s+(\d+)\s*", text, re.I
-                      )
-                      if delete:
-                          ident = delete.group(1)
-                          news = [
-                              n for n in news
-                              if str(n.get("id")) != ident
-                          ]
-                      elif "#на_сайт" in text.lower():
-                          text = re.sub(
-                              r"#на_сайт", "", text, flags=re.I
-                          ).strip()
-                          news = [
-                              n for n in news
-                              if str(n.get("id")) != str(post["message_id"])
-                          ]
-                          news.insert(0, {
-                              "id": post["message_id"],
-                              "date": post.get("date"),
-                              "text": text
-                          })
-                  continue
 
               msg = update.get("message")
               if not msg:
@@ -109,15 +79,31 @@ jobs:
               text = (msg.get("text") or msg.get("caption") or "").strip()
 
 
-              if not admin:
-                  api("sendMessage", {
-                      "chat_id": chat_id,
-                      "text": "Твой Telegram ID: " + chat_id +
-                      "\nДобавь его в GitHub Secrets под именем TELEGRAM_ADMIN_ID."
-                  })
+              # Everyone can start the bot; only the configured administrator can publish.
+              if text.split(maxsplit=1)[0] in ["/start", "/help"]:
+                  if admin and chat_id == admin:
+                      welcome = (
+                          "Привет! Я бот сайта Совета Первых школы №9. 💙\\n\\n"
+                          "Я готов принимать новости! Отправь текст, фото или видео с подписью.\\n\\n"
+                          "Команды администратора:\\n"
+                          "/list — список новостей\\n"
+                          "/edit ID новый текст — изменить текст новости\\n"
+                          "/delete ID — удалить новость"
+                      )
+                  else:
+                      welcome = (
+                          "Привет! Я бот сайта Совета Первых школы №9. 💙\\n\\n"
+                          "Я на связи и готов помочь! Публиковать, редактировать и удалять новости "
+                          "может только назначенный администратор."
+                      )
+                  api("sendMessage", {"chat_id": chat_id, "text": welcome})
                   continue
 
-              if chat_id != admin:
+              if not admin or chat_id != admin:
+                  api("sendMessage", {
+                      "chat_id": chat_id,
+                      "text": "Спасибо за сообщение! 💙 Публикация новостей доступна только назначенному администратору."
+                  })
                   continue
 
               # Download one attached photo or video into the public news media folder.
@@ -137,7 +123,11 @@ jobs:
                   with urllib.request.urlopen(media_url, timeout=60) as response:
                       media_bytes = response.read()
                   if len(media_bytes) > 20 * 1024 * 1024:
-                      raise RuntimeError("News media file exceeds 20 MB")
+                      api("sendMessage", {
+                          "chat_id": chat_id,
+                          "text": "Файл больше 20 МБ, поэтому я не смог прикрепить его к новости. Отправь фото или видео меньшего размера. 💙"
+                      })
+                      continue
                   with open(os.path.join("news-media", media_name), "wb") as media_file:
                       media_file.write(media_bytes)
                   media_item = {
@@ -145,16 +135,7 @@ jobs:
                       "url": "news-media/" + media_name
                   }
 
-              if text in ["/start", "/help"]:
-                  answer = (
-                      "Привет! Я бот сайта Совета Первых школы №9.\n\n"
-                      "Отправь текст, фото или видео с подписью — опубликую новость на сайте.\n"
-                      "/list — список новостей\n"
-                      "/edit ID новый текст — изменить новость\n"
-                      "/delete ID — удалить новость"
-                  )
-
-              elif text == "/list":
+              if text == "/list":
                   answer = "\n".join(
                       str(n.get("id")) + " — " +
                       str(n.get("text", ""))[:100]
