@@ -106,6 +106,18 @@ jobs:
               chat_id = str(chat.get("id"))
               text = (msg.get("text") or msg.get("caption") or "").strip()
 
+
+              if not admin:
+                  api("sendMessage", {
+                      "chat_id": chat_id,
+                      "text": "Твой Telegram ID: " + chat_id +
+                      "\nДобавь его в GitHub Secrets под именем TELEGRAM_ADMIN_ID."
+                  })
+                  continue
+
+              if chat_id != admin:
+                  continue
+
               # Download one attached photo or video into the public news media folder.
               media_item = None
               photo = msg.get("photo")
@@ -130,17 +142,6 @@ jobs:
                       "type": "video" if video else "image",
                       "url": "news-media/" + media_name
                   }
-
-              if not admin:
-                  api("sendMessage", {
-                      "chat_id": chat_id,
-                      "text": "Твой Telegram ID: " + chat_id +
-                      "\nДобавь его в GitHub Secrets под именем TELEGRAM_ADMIN_ID."
-                  })
-                  continue
-
-              if chat_id != admin:
-                  continue
 
               if text in ["/start", "/help"]:
                   answer = (
