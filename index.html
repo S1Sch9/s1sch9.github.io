@@ -242,12 +242,18 @@ function drawTeam(){
 }
 function drawNews(){
   const q = $("#q").value.toLowerCase(), list = NEWS.filter(n => (n.t + " " + n.x).toLowerCase().includes(q));
-  const preview = n => n.x ? '<p class="news-desc" style="margin-top:7px;color:var(--mut);font-size:14px;line-height:1.45">' + esc(n.x) + '</p>' : '';
+  const mediaMarkup = n => (n.media || []).map(m => {
+    const url = esc(m.url || "");
+    return m.type === "video"
+      ? '<video controls playsinline preload="metadata" style="display:block;width:100%;max-height:420px;border-radius:18px;margin:12px 0;background:#111"><source src="' + url + '" type="video/mp4"></video>'
+      : '<img src="' + url + '" alt="Фото к новости" loading="lazy" style="display:block;width:100%;max-height:420px;object-fit:cover;border-radius:18px;margin:12px 0">';
+  }).join("");
+  const preview = n => (n.x ? '<p class="news-desc" style="margin-top:7px;color:var(--mut);font-size:14px;line-height:1.45">' + esc(n.x) + '</p>' : '') + ((n.media || []).length ? '<small style="display:block;margin-top:6px">📷 Фото и видео в публикации</small>' : '');
   $("#newsList").innerHTML = list.length ? list.map(n => '<button class="row rv" data-k="' + NEWS.indexOf(n) + '"><small>' + esc(n.d) + '</small><b>' + esc(n.t) + '</b>' + preview(n) + '<em style="display:block;margin-top:9px">Читать полностью →</em></button>').join("") : '<p class="note">Ничего не найдено.</p>';
   const L = NEWS[0];
   $("#latest").innerHTML = L ? '<button class="row rv" data-k="0"><small>Последняя новость</small><b>' + esc(L.t) + '</b>' + preview(L) + '<em style="display:block;margin-top:9px">Читать полностью →</em></button>' : "";
   document.querySelectorAll("#newsList .row,#latest .row").forEach((b, i) => { b.style.setProperty("--i", Math.min(i, 9)); b.onclick = () => {
-    const n = NEWS[b.dataset.k]; openSh('<span class="chip">' + esc(n.d) + '</span><h3 style="margin-top:12px">' + esc(n.t) + '</h3><p style="white-space:pre-line;line-height:1.65">' + esc(n.x || "Подробности этой новости скоро появятся.") + '</p>'); }; });
+    const n = NEWS[b.dataset.k]; openSh('<span class="chip">' + esc(n.d) + '</span><h3 style="margin-top:12px">' + esc(n.t) + '</h3>' + (n.x ? '<p style="white-space:pre-line;line-height:1.65">' + esc(n.x) + '</p>' : '') + mediaMarkup(n)); }; });
 }
 $("#q").addEventListener("input", drawNews);
 drawTeam(); drawNews();
@@ -262,7 +268,8 @@ fetch("./news.json?v=" + Date.now())
       return {
         d: n.date ? (typeof n.date === "number" ? new Date(n.date * 1000) : new Date(n.date)).toLocaleDateString("ru-RU") : "",
         t: n.title || first || "Новость",
-        x: n.description || lines.join("\n").trim()
+        x: n.description || lines.join("\n").trim(),
+        media: Array.isArray(n.media) ? n.media : []
       };
     }).filter(n => n.t.trim());
     const existing = new Set(NEWS.map(n => n.t.trim()));
