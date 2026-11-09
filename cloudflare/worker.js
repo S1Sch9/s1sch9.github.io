@@ -169,8 +169,8 @@ async function telegramWebhook(request, env) {
   if (text === "/start" || text === "/help") {
     if (isAdmin) await setTelegramCommands(env);
     await telegramReply(env, chatId, isAdmin
-      ? "Привет! Я бот сайта Совета Первых школы №9. 💙\\n\\nНажми значок \\/ рядом со строкой ввода, чтобы открыть меню команд. Выбери команду — она появится в поле сообщения, останется дописать ID или текст.\\n\\n/list — список новостей\\n/edit ID новый текст — изменить\\n/delete ID — удалить\\n\\nОтправь текст, фото или видео с подписью — и новость появится на сайте."
-      : "Привет! Я бот сайта Совета Первых школы №9. 💙\\nПубликовать новости может только назначенный администратор.");
+      ? "Привет! Я бот сайта Совета Первых школы №9. 💙\n\nНажми значок / рядом со строкой ввода, чтобы открыть меню команд. Выбери команду — она появится в поле сообщения, останется дописать ID или текст.\n\n/list — список новостей\n/edit ID новый текст — изменить\n/delete ID — удалить\n\nОтправь текст, фото или видео с подписью — и новость появится на сайте."
+      : "Привет! Я бот сайта Совета Первых школы №9. 💙\nПубликовать новости может только назначенный администратор.");
     return json({ ok: true });
   }
   if (!isAdmin) {
@@ -185,7 +185,7 @@ async function telegramWebhook(request, env) {
     return json({ ok: true });
   }
   if (text === "/delete" || text === "/delete@S1Sch9Obrbot") {
-    await telegramReply(env, chatId, "🗑 Удаление новости\\nВыбери /delete в меню и допиши ID. Например: /delete 3");
+    await telegramReply(env, chatId, "🗑 Удаление новости\nВыбери /delete в меню и допиши ID. Например: /delete 3");
     return json({ ok: true });
   }
   if (text.startsWith("/delete ") || text.startsWith("/delete@S1Sch9Obrbot ")) {
