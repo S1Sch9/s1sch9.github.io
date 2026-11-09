@@ -299,7 +299,7 @@ $("#form").addEventListener("submit", async e => {
     });
     const result = await response.json().catch(() => null);
     if (!response.ok || !result || !result.success) {
-      throw new Error(result && result.error ? result.error : ("Сервис вернул ошибку (HTTP " + response.status + ")."));
+      throw new Error(result && result.error ? result.error + (result.diagnostic ? " Код: " + result.diagnostic : "") : ("Сервис вернул ошибку (HTTP " + response.status + ")."));
     }
     e.target.outerHTML = '<div class="ok"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/><path d="M30 52l14 14 27-30"/></svg><h3 style="margin-top:14px">Спасибо!</h3><p class="note">Обращение отправлено на модерацию. Его можно будет увидеть в закрытой панели обращений.</p></div>';
   } catch (error) {
