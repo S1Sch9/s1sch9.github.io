@@ -14,44 +14,44 @@
         min-height: 100vh; color: #FFFFFF; overflow: hidden;
     }
     .app-container {
-        width: 100%; max-width: 400px;
-        height: 100vh;
-        height: 100dvh;
-        max-height: 850px;
-        position: relative; padding: 15px; display: flex; flex-direction: column;
+        width: 100%; max-width: 430px;
+        height: 100vh; height: 100dvh; max-height: 900px;
+        position: relative; padding: 12px; display: flex; flex-direction: column;
     }
     .screen {
-        display: none; flex-direction: column; width: 100%; height: 100%;
+        display: none; flex-direction: column; width: 100%; height: 100%; min-height:0;
         justify-content: center; animation: fadeIn 0.4s ease-out;
     }
+    #rules-screen { justify-content:flex-start; overflow-y:auto; overscroll-behavior:contain; padding:4px 2px 10px; }
+    #rules-screen .rules-card { flex:0 0 auto; }
     .screen.active { display: flex; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     .logo-container {
         display: flex; justify-content: center; align-items: center; gap: 8px;
-        margin-bottom: 20px; padding: 12px 10px;
+        margin-bottom: 14px; padding: 9px 10px;
         background: rgba(255, 255, 255, 0.05); border-radius: 16px;
         border: 1px solid rgba(212, 175, 55, 0.4); box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     .logo-container img {
-        height: 50px; width: auto; max-width: 90px;
+        height: 42px; width: auto; max-width: 82px;
         object-fit: contain;
         filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
     }
     .brand-text {
-        text-align: center; font-size: 34px; font-weight: 900; line-height: 1.1;
+        text-align: center; font-size: clamp(27px, 7vw, 31px); font-weight: 900; line-height: 1.1;
         text-transform: uppercase; color: #FFFFFF;
         text-shadow: 0 0 15px rgba(212, 175, 55, 0.6), 0 4px 15px rgba(0, 0, 0, 0.8);
         letter-spacing: 2px; margin-bottom: 5px;
     }
-    .brand-subtext{text-align:center;font-size:13px;color:#E5C76C;font-weight:800;letter-spacing:2px;margin-bottom:12px;text-transform:uppercase}
+    .brand-subtext{text-align:center;font-size:11px;color:#E5C76C;font-weight:800;letter-spacing:1.7px;margin-bottom:15px;text-transform:uppercase}
     .lore-intro{max-width:310px;margin:0 auto 19px;text-align:center;color:#F1DFBD;font-size:14px;line-height:1.55;text-shadow:0 2px 8px rgba(0,0,0,.45)}
     .lore-intro b{color:#F4D77F}
-    .record-display { text-align: center; font-size: 20px; font-weight: bold; color: #D4AF37; margin-bottom: 25px; text-shadow: 0 0 10px rgba(212, 175, 55, 0.4); }
+    .record-display { text-align: center; font-size: 17px; font-weight: bold; color: #D4AF37; margin-bottom: 18px; text-shadow: 0 0 10px rgba(212, 175, 55, 0.4); }
     .btn {
         background: linear-gradient(135deg, #8A1538 0%, #5B0B22 100%);
         color: #FFFFFF; border: 2px solid #D4AF37;
-        padding: 16px; font-size: 18px; font-weight: bold;
-        border-radius: 12px; cursor: pointer; width: 100%; transition: 0.2s; margin-bottom: 15px;
+        padding: 13px 14px; font-size: 15px; font-weight: bold;
+        border-radius: 12px; cursor: pointer; width: 100%; transition: 0.2s; margin-bottom: 11px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.4); position: relative; z-index: 50; touch-action: manipulation;
         text-transform: uppercase; letter-spacing: 1px;
     }
@@ -59,13 +59,13 @@
     .btn.secondary { background: transparent; color: #D4AF37; border: 2px solid #D4AF37; box-shadow: none; }
     .rules-card {
         background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 15px; padding: 15px; margin-bottom: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     }
-    .rules-title { text-align: center; font-size: 24px; margin: 0 0 20px 0; color: #D4AF37; text-transform: uppercase;}
-    .rule-item { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 18px; }
+    .rules-title { text-align: center; font-size: 20px; margin: 0 0 14px 0; color: #D4AF37; text-transform: uppercase;}
+    .rule-item { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 12px; }
     .rule-item:last-child { margin-bottom: 0; }
-    .rule-icon { font-size: 24px; background: rgba(212, 175, 55, 0.1); padding: 8px; border-radius: 10px; line-height: 1; border: 1px solid rgba(212, 175, 55, 0.3); }
-    .rule-text { font-size: 15px; line-height: 1.4; color: #E0E0E0; }
+    .rule-icon { font-size: 20px; background: rgba(212, 175, 55, 0.1); padding: 7px; border-radius: 9px; line-height: 1; border: 1px solid rgba(212, 175, 55, 0.3); }
+    .rule-text { font-size: 13px; line-height: 1.38; color: #E0E0E0; }
     .rule-text b { color: #FFFFFF; font-weight: 700; }
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; z-index: 5; }
     .stats {
@@ -100,8 +100,8 @@
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         background-color: rgba(30, 6, 10, 0.95); border-radius: 16px; z-index: 10; backdrop-filter: blur(8px);
     }
-    .overlay h2 { margin: 0 0 10px 0; font-size: 28px; text-align: center; color: #D4AF37;}
-    .overlay p { margin: 0 0 20px 0; font-size: 18px; text-align: center; padding: 0 20px;}
+    .overlay h2 { margin: 0 0 10px 0; font-size: 23px; text-align: center; color: #D4AF37;}
+    .overlay p { margin: 0 0 16px 0; font-size: 15px; text-align: center; padding: 0 20px;}
     .overlay .btn { width: 70%; padding: 14px; margin-bottom: 10px; }
     .new-record { color: #D4AF37; font-size: 20px; font-weight: bold; animation: pulse 1s infinite; display: none; margin-bottom: 15px; }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
@@ -119,9 +119,8 @@
         </div>
         <div class="brand-text">БАШНЯ<br>ПЕРВЫХ</div>
         <div class="brand-subtext">ТВОЙ ПУТЬ К ВЕРШИНЕ</div>
-        <div class="lore-intro">Каждый блок — <b>достижение</b>, каждый проект — новая ступень. Собери свою башню и проложи путь <b>к самым небесам!</b></div>
         <div class="record-display" id="menu-record">🏆 Рекорд: 0</div>
-        <div id="saved-game-note" style="display:none;text-align:center;color:#F1DFBD;font-size:13px;line-height:1.45;margin:-12px 0 14px;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(232,195,92,.28);border-radius:12px">⏸️ У тебя есть игра на паузе. Можешь продолжить с того же места или начать заново.</div>
+        <div id="saved-game-note" style="display:none;text-align:center;color:#F1DFBD;font-size:12px;line-height:1.35;margin:-8px 0 12px;padding:9px 11px;background:rgba(255,255,255,.06);border:1px solid rgba(232,195,92,.22);border-radius:11px">⏸️ Башня сохранена. Можно продолжить с того же места или начать новую игру.</div>
         <button class="btn" id="continue-game-btn" style="display:none" onclick="resumeFromMenu()">▶️ Продолжить игру</button>
         <button class="btn" id="new-game-btn" onclick="newGameFromMenu()">🚀 Начать игру</button>
         <button class="btn secondary" onclick="showRules()">📖 Правила игры</button>
@@ -132,7 +131,7 @@
             <h2 class="rules-title">📖 Правила</h2>
             <div class="rule-item">
                 <div class="rule-icon">🏅</div>
-                <div class="rule-text">Каждый блок — новое <b>достижение</b>: участие в проектах, победы, добрые дела и открытия вместе с Движением Первых.</div>
+                <div class="rule-text">Каждый блок — ступень твоего пути: участие в проектах, добрые дела, открытия и командные победы.</div>
             </div>
             <div class="rule-item">
                 <div class="rule-icon">👆</div>
@@ -233,21 +232,21 @@
     // Часть названий относится к федеральным проектам, часть — к школьной жизни.
     const blockStyles = [
         {main:'#8A1538',light:'#B94A65',dark:'#541126',text:'ЗАРНИЦА 2.0'},
-        {main:'#C99B32',light:'#E8C96F',dark:'#8D6820',text:'БОЛЬШАЯ ПЕРЕМЕНА'},
+        {main:'#C99B32',light:'#E8C96F',dark:'#8D6820',text:'ПЕРВАЯ ПОМОЩЬ'},
         {main:'#E9DFC7',light:'#FFF4D9',dark:'#B7A98C',text:'ХРАНИТЕЛИ ИСТОРИИ'},
-        {main:'#345B79',light:'#6E91A8',dark:'#203D55',text:'ПЕРВАЯ ПОМОЩЬ'},
-        {main:'#47734B',light:'#83A77A',dark:'#2B4E32',text:'ЮННАТЫ ПЕРВЫХ'},
-        {main:'#76506F',light:'#A77D9B',dark:'#4D3450',text:'МЕДИАПРИТЯЖЕНИЕ'},
+        {main:'#345B79',light:'#6E91A8',dark:'#203D55',text:'ЮННАТЫ ПЕРВЫХ'},
+        {main:'#47734B',light:'#83A77A',dark:'#2B4E32',text:'МЕДИАПРИТЯЖЕНИЕ'},
+        {main:'#76506F',light:'#A77D9B',dark:'#4D3450',text:'ШКОЛЬНАЯ КЛАССИКА'},
         {main:'#B96E43',light:'#D99B6D',dark:'#81462F',text:'КЛАССНЫЕ ВСТРЕЧИ'},
-        {main:'#397D7C',light:'#78AAA1',dark:'#245653',text:'ПОХОДЫ ПЕРВЫХ'},
-        {main:'#8A1538',light:'#B94A65',dark:'#541126',text:'БЛАГО ТВОРИ'},
-        {main:'#C99B32',light:'#E8C96F',dark:'#8D6820',text:'ПЕРВЫЕ В ПРОФЕССИИ'},
-        {main:'#E9DFC7',light:'#FFF4D9',dark:'#B7A98C',text:'ДЕНЬ ЯЗЫКОВ'},
-        {main:'#345B79',light:'#6E91A8',dark:'#203D55',text:'ПАМЯТИ ТУКАЯ'},
-        {main:'#47734B',light:'#83A77A',dark:'#2B4E32',text:'ШСК ОРИОН'},
-        {main:'#76506F',light:'#A77D9B',dark:'#4D3450',text:'КУЛИНАРНЫЙ МАРАФОН'},
-        {main:'#B96E43',light:'#D99B6D',dark:'#81462F',text:'ДИПЛОМАТИЯ ПЕРВЫХ'},
-        {main:'#397D7C',light:'#78AAA1',dark:'#245653',text:'КОМАНДА ШКОЛЫ №9'}
+        {main:'#397D7C',light:'#78AAA1',dark:'#245653',text:'БЛАГО ТВОРИ'},
+        {main:'#8A1538',light:'#B94A65',dark:'#541126',text:'МЫ — ГРАЖДАНЕ РОССИИ'},
+        {main:'#C99B32',light:'#E8C96F',dark:'#8D6820',text:'БЕЗОПАСНОСТЬ В ДВИЖЕНИИ'},
+        {main:'#E9DFC7',light:'#FFF4D9',dark:'#B7A98C',text:'ЗВЕЗДА ПОБЕДЫ • ШКОЛА №9'},
+        {main:'#345B79',light:'#6E91A8',dark:'#203D55',text:'ЖИВАЯ ПАМЯТЬ • ШКОЛА №9'},
+        {main:'#47734B',light:'#83A77A',dark:'#2B4E32',text:'СОВЕТ ПЕРВЫХ • ШКОЛА №9'},
+        {main:'#76506F',light:'#A77D9B',dark:'#4D3450',text:'ЭКО-ОТРЯД • ШКОЛА №9'},
+        {main:'#B96E43',light:'#D99B6D',dark:'#81462F',text:'ШКОЛЬНЫЙ СПОРТ • №9'},
+        {main:'#397D7C',light:'#78AAA1',dark:'#245653',text:'БИЛӘР ФОРУМ: ПЕРВЫЕ'}
     ];
 
     function resizeCanvas() {
