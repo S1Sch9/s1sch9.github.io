@@ -1,4 +1,6 @@
-// Trigger Cloudflare Workers Builds deployment; no runtime behavior changed.
+import { adminPage } from "./admin-page.js";
+
+// Combined appeals and news administration.
 const SITE_ORIGIN = "https://s1sch9.github.io";
 const MAX_BODY = 8192;
 const MAX_MESSAGE = 1500;
@@ -99,75 +101,19 @@ async function rateAllowed(request, env) {
   `).bind(key, now, now - 3600, now - 3600, now).first();
   return !!row && row.attempts <= 5;
 }
-function adminPage() {
-  return `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Обращения — Совет Первых школы №9</title>
-  <style>
-  *{box-sizing:border-box}body{margin:0;background:#f6f4f5;color:#25151b;font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-  header{background:linear-gradient(120deg,#39000d,#780d2b);color:#fff;padding:25px max(18px,calc((100% - 920px)/2))}
-  header h2{font-size:20px;letter-spacing:-.4px;margin:0 0 4px}header p{margin:0;color:#e7cbd2;font-size:13px}
-  main{max-width:920px;margin:25px auto;padding:0 16px}.panel,.item{background:#fff;border:1px solid #eee7e9;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 5px 22px #321b2208}
-  input{font:inherit;padding:13px 14px;border:1px solid #e5dce0;border-radius:12px;width:100%;margin:8px 0;background:#fff;outline:none}input:focus{border-color:#a1001f;box-shadow:0 0 0 3px #a1001f12}
-  button{font:inherit;font-size:13px;font-weight:650;border:0;border-radius:11px;padding:11px 14px;background:#a1001f;color:#fff;cursor:pointer}
-  button.secondary{background:#f3edef;color:#4c2632}button.danger{background:#fff0f1;color:#a1001f}button:active{transform:scale(.98)}
-  .muted{color:#8a7c81;font-size:13px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:16px 0}
-  .stat{background:#fff;border:1px solid #eee7e9;border-radius:14px;padding:12px;color:#807278;font-size:12px}
-  .stat b{display:block;color:#2c1920;font-size:22px;line-height:1.2;margin-bottom:3px}
-  .tabs{display:flex;gap:7px;overflow:auto;padding:2px 0 8px;margin:12px 0;scrollbar-width:none}.tabs button{white-space:nowrap;background:#eee9eb;color:#61434d}.tabs button.active{background:#3d000d;color:#fff}.tabs .count{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;padding:0 6px;margin-left:4px;border-radius:99px;background:#fff;color:#5b3540;font-size:11px;font-weight:800}.tabs button.active .count{background:#fff;color:#3d000d}
-  .tools{display:flex;gap:8px;align-items:center;margin:10px 0 16px}.tools input{margin:0;flex:1;min-width:0}
-  .item{padding:17px 18px}.itemhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-  .tag{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:6px 10px;font-size:12px;font-weight:700;background:#fff1f3;color:#a1001f}
-  .tag.reviewed{background:#f1efff;color:#6252a2}.tag.done{background:#eaf7ef;color:#287347}
-  .meta{font-size:13px;color:#796b71;margin:13px 0 8px}.msg{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;margin:0 0 15px;color:#33252a}
-  .actions{display:flex;gap:7px;flex-wrap:wrap;border-top:1px solid #f2edef;padding-top:12px}
-  .empty{text-align:center;padding:32px 18px;color:#82747a}.empty b{display:block;color:#3c2830;margin-bottom:5px}
-  @media(max-width:520px){main{margin:17px auto}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:16px}.item{padding:15px}.tools button{padding:11px 12px}}
-  </style><body><header><h2>Обращения · Совет Первых №9</h2><p>Панель управления сообщениями</p></header><main>
-  <section id="login" class="panel"><h3 style="margin:0 0 5px">Вход администратора</h3><p class="muted">Введите пароль для просмотра обращений.</p><input id="token" type="password" autocomplete="current-password" placeholder="Административный пароль"><button id="loginBtn" style="width:100%">Войти</button><p id="loginError" class="muted"></p></section>
-  <section id="app" hidden><div class="top"><div><h2 style="margin:0 0 4px;font-size:23px">Входящие</h2><div class="muted">Здесь собраны все сообщения</div></div><div style="display:flex;gap:7px"><button class="secondary" id="refresh">↻ Обновить</button><button class="secondary" id="logout">Выйти</button></div></div>
-  <div class="stats" id="stats"></div><nav class="tabs" id="tabs"><button class="active" data-filter="new">Новые <span class="count" id="count-new">0</span></button><button data-filter="reviewed">В работе <span class="count" id="count-reviewed">0</span></button><button data-filter="done">Завершённые <span class="count" id="count-done">0</span></button><button data-filter="all">Все <span class="count" id="count-all">0</span></button></nav>
-  <div class="tools"><input id="search" type="search" placeholder="Поиск по обращениям…"><span class="muted" id="shown"></span></div><div id="list"></div></section>
-  </main><script>
-  const $=s=>document.querySelector(s);let token=sessionStorage.getItem("appeals_admin_token")||"";
-  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json",...(opts.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Ошибка запроса");return d}
-  function show(){const ok=!!token;$("#login").hidden=ok;$("#app").hidden=!ok;if(ok)load().catch(e=>{token="";sessionStorage.removeItem("appeals_admin_token");show();$("#loginError").textContent=e.message})}
-  let items=[],filter="new";
-  function render(){
-    const counts={all:items.length,new:items.filter(x=>x.status==="new").length,reviewed:items.filter(x=>x.status==="reviewed").length,done:items.filter(x=>x.status==="done").length};
-    $("#stats").innerHTML='<div class="stat"><b>'+counts.all+'</b>Всего</div><div class="stat"><b>'+counts.new+'</b>Новых</div><div class="stat"><b>'+counts.reviewed+'</b>В работе</div><div class="stat"><b>'+counts.done+'</b>Завершено</div>';
-    document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active",b.dataset.filter===filter));
-    $("#count-new").textContent=counts.new;$("#count-reviewed").textContent=counts.reviewed;$("#count-done").textContent=counts.done;$("#count-all").textContent=counts.all;
-    const q=$("#search").value.trim().toLocaleLowerCase("ru");
-    const shown=items.filter(x=>(filter==="all"||x.status===filter)&&[x.message,x.role,x.category].some(v=>String(v||"").toLocaleLowerCase("ru").includes(q)));
-    $("#shown").textContent=shown.length+" из "+items.length;
-    $("#list").innerHTML=shown.length?shown.map(x=>{
-      const label=x.status==="new"?"Новое":x.status==="reviewed"?"В работе":"Завершено";
-      const cls=x.status==="new"?"":x.status==="reviewed"?"reviewed":"done";
-      const actions=x.status==="new"
-        ?'<button class="secondary" data-status="reviewed" data-id="'+x.id+'">Взять в работу</button><button data-status="done" data-id="'+x.id+'">Завершить</button>'
-        :x.status==="reviewed"
-          ?'<button data-status="done" data-id="'+x.id+'">Завершить</button>'
-          :'';
-      const date=new Date(x.created_at+"Z").toLocaleString("ru-RU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
-      return '<article class="item"><div class="itemhead"><span class="tag '+cls+'">'+label+'</span><span class="muted">'+esc(date)+'</span></div><div class="meta">'+esc(x.role)+' · '+esc(x.category)+'</div><div class="msg">'+esc(x.message)+'</div><div class="actions">'+actions+'<button class="danger" data-delete="'+x.id+'">Удалить</button></div></article>';
-    }).join(""):'<div class="panel empty"><b>'+(items.length?'Ничего не найдено':'Пока обращений нет')+'</b>'+(items.length?'Попробуйте изменить поиск или фильтр.':'Новые сообщения появятся здесь 💙')+'</div>';
-  }
-  async function load(){const d=await api("/api/admin/appeals");items=d.items||[];render()}
-  $("#loginBtn").onclick=async()=>{token=$("#token").value.trim();try{await api("/api/admin/appeals");sessionStorage.setItem("appeals_admin_token",token);$("#loginError").textContent="";show()}catch(e){token="";$("#loginError").textContent="Не удалось войти. Проверьте пароль."}};
-  $("#logout").onclick=()=>{token="";sessionStorage.removeItem("appeals_admin_token");show()};
-  $("#refresh").onclick=()=>load().catch(e=>alert(e.message));
-  $("#search").oninput=render;
-  $("#tabs").onclick=e=>{const b=e.target.closest("button[data-filter]");if(!b)return;filter=b.dataset.filter;render()};
-  $("#list").onclick=async e=>{const b=e.target.closest("button");if(!b)return;try{if(b.dataset.delete){if(!confirm("Удалить обращение без возможности восстановления?"))return;await api("/api/admin/appeals/"+b.dataset.delete,{method:"DELETE"})}else if(b.dataset.status){await api("/api/admin/appeals/"+b.dataset.id,{method:"PATCH",body:JSON.stringify({status:b.dataset.status})})}await load()}catch(err){alert(err.message)}};
-  show();
-  </script></body></html>`;
-}
-
 async function ensureTelegramNews(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_news (
     id TEXT PRIMARY KEY, date TEXT NOT NULL, text TEXT NOT NULL, media TEXT NOT NULL DEFAULT '[]'
   )`).run();
+  // Additive migrations preserve every existing publication and media reference.
+  for (const sql of [
+    "ALTER TABLE telegram_news ADD COLUMN title TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE telegram_news ADD COLUMN description TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE telegram_news ADD COLUMN publish_at TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE telegram_news ADD COLUMN status TEXT NOT NULL DEFAULT 'published'"
+  ]) {
+    try { await env.DB.prepare(sql).run(); } catch {}
+  }
 }
 async function telegramApi(env, method, payload) {
   const response = await fetch("https://api.telegram.org/bot" + env.TELEGRAM_BOT_TOKEN + "/" + method, {
@@ -201,80 +147,11 @@ async function telegramWebhook(request, env) {
   const msg = update && update.message;
   if (!msg || !msg.chat || msg.chat.type !== "private") return json({ ok: true });
   const chatId = String(msg.chat.id);
-  const text = cleanText(msg.text || msg.caption || "", 1500);
-  const isAdmin = chatId === String(env.TELEGRAM_ADMIN_ID).trim();
-  if (text === "/start" || text === "/help") {
-    if (isAdmin) await setTelegramCommands(env);
-    await telegramReply(env, chatId, isAdmin
-      ? "Привет! Я бот сайта Совета Первых школы №9. 💙\n\nНажми значок / рядом со строкой ввода, чтобы открыть меню команд. Выбери команду — она появится в поле сообщения, останется дописать ID или текст.\n\n/list — список новостей\n/edit ID новый текст — изменить\n/delete ID — удалить\n\nОтправь текст, фото или видео с подписью — и новость появится на сайте."
-      : "Привет! Я бот сайта Совета Первых школы №9. 💙\nПубликовать новости может только назначенный администратор.");
-    return json({ ok: true });
-  }
-  if (!isAdmin) {
-    await telegramReply(env, chatId, "Публикация новостей доступна только назначенному администратору. 💙");
-    return json({ ok: true });
-  }
-  await ensureTelegramNews(env);
-  if (text === "/list") {
-    const rows = await env.DB.prepare("SELECT id, text FROM telegram_news ORDER BY date DESC LIMIT 15").all();
-    const answer = (rows.results || []).map(x => x.id + " — " + x.text.slice(0, 90)).join("\n") || "Новостей пока нет.";
-    await telegramReply(env, chatId, answer);
-    return json({ ok: true });
-  }
-  if (text === "/delete" || text === "/delete@S1Sch9Obrbot") {
-    await telegramReply(env, chatId, "🗑 Удаление новости\nВыбери /delete в меню и допиши ID. Например: /delete 3");
-    return json({ ok: true });
-  }
-  if (text.startsWith("/delete ") || text.startsWith("/delete@S1Sch9Obrbot ")) {
-    const id = text.split(/\\s+/)[1] || "";
-    if (!id) { await telegramReply(env, chatId, "Укажи ID новости. Например: /delete 3"); return json({ ok: true }); }
-    const result = await env.DB.prepare("DELETE FROM telegram_news WHERE id = ?").bind(id).run();
-    await telegramReply(env, chatId, result.meta.changes ? "Новость удалена с сайта. 💙" : "Новость не найдена.");
-    return json({ ok: true });
-  }
-  if (text === "/edit" || text === "/edit@S1Sch9Obrbot") {
-    await telegramReply(env, chatId, "✏️ Выбери /edit в меню и допиши ID и новый текст. Например: /edit 3 Наша новая новость");
-    return json({ ok: true });
-  }
-  if (text.startsWith("/edit ") || text.startsWith("/edit@S1Sch9Obrbot ")) {
-    const prefix = text.startsWith("/edit ") ? "/edit " : "/edit@S1Sch9Obrbot ";
-    const rest = text.slice(prefix.length).trim();
-    const splitAt = rest.indexOf(" ");
-    const id = splitAt < 0 ? "" : rest.slice(0, splitAt);
-    const updated = splitAt < 0 ? "" : rest.slice(splitAt + 1).trim();
-    if (!id || !updated) {
-      await telegramReply(env, chatId, "Формат: /edit ID новый текст");
-    } else {
-      const result = await env.DB.prepare("UPDATE telegram_news SET text = ? WHERE id = ?").bind(updated, id).run();
-      await telegramReply(env, chatId, result.meta.changes ? "Новость изменена. 💙" : "Новость не найдена.");
-    }
-    return json({ ok: true });
-  }
-  const photo = Array.isArray(msg.photo) && msg.photo.length ? msg.photo[msg.photo.length - 1] : null;
-  const video = msg.video || null;
-  const file = photo || video;
-  if (!text && !file) {
-    await telegramReply(env, chatId, "Отправь текст, фото или видео с подписью. Для помощи — /help");
-    return json({ ok: true });
-  }
-  const media = file ? [{ type: video ? "video" : "image", file_id: file.file_id }] : [];
-  const groupId = msg.media_group_id ? "album-" + msg.media_group_id : "tg-" + update.update_id;
-  const date = new Date((msg.date || Math.floor(Date.now()/1000)) * 1000).toISOString().slice(0,10);
-  if (msg.media_group_id) {
-    const existing = await env.DB.prepare("SELECT text, media FROM telegram_news WHERE id = ?").bind(groupId).first();
-    if (existing) {
-      const oldMedia = JSON.parse(existing.media || "[]");
-      await env.DB.prepare("UPDATE telegram_news SET text = ?, media = ? WHERE id = ?")
-        .bind(text || existing.text, JSON.stringify(oldMedia.concat(media)), groupId).run();
-    } else {
-      await env.DB.prepare("INSERT INTO telegram_news (id,date,text,media) VALUES (?,?,?,?)")
-        .bind(groupId, date, text || "Новость Совета Первых школы №9", JSON.stringify(media)).run();
-    }
+  if (chatId === String(env.TELEGRAM_ADMIN_ID).trim()) {
+    await telegramReply(env, chatId, "Новости теперь удобно публиковать через закрытую панель сайта: https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/admin");
   } else {
-    await env.DB.prepare("INSERT INTO telegram_news (id,date,text,media) VALUES (?,?,?,?)")
-      .bind(groupId, date, text || "Новость Совета Первых школы №9", JSON.stringify(media)).run();
+    await telegramReply(env, chatId, "Спасибо за сообщение! Публикация новостей доступна только администратору.");
   }
-  await telegramReply(env, chatId, "Новость опубликована на сайте! 💙");
   return json({ ok: true });
 }
 
@@ -292,13 +169,23 @@ export default {
     if (url.pathname === "/api/news" && request.method === "GET") {
       try {
         await ensureTelegramNews(env);
-        const result = await env.DB.prepare("SELECT id, date, text, media FROM telegram_news ORDER BY date DESC, rowid DESC LIMIT 50").all();
-        const items = (result.results || []).map(item => ({
-          id: item.id, date: item.date, text: item.text,
-          media: JSON.parse(item.media || "[]").map((m, index) => ({
-            type: m.type, url: new URL("/api/news-media/" + encodeURIComponent(item.id) + "/" + index, request.url).toString()
-          }))
-        }));
+        const result = await env.DB.prepare("SELECT id, date, text, media, title, description, publish_at, status FROM telegram_news WHERE status = 'published' AND (publish_at = '' OR publish_at <= ?) ORDER BY date DESC, rowid DESC LIMIT 50")
+          .bind(new Date().toISOString()).all();
+        const items = (result.results || []).map(item => {
+          const lines = String(item.text || "").split(/\\r?\\n/);
+          const fallbackTitle = lines.shift() || "Новость";
+          return {
+            id: item.id,
+            date: item.date,
+            text: item.text,
+            title: item.title || fallbackTitle,
+            description: item.description || lines.join("\\n").trim(),
+            media: JSON.parse(item.media || "[]").map((m, index) => ({
+              type: m.type,
+              url: new URL("/api/news-media/" + encodeURIComponent(item.id) + "/" + index, request.url).toString()
+            }))
+          };
+        });
         return json(items, 200, { ...headers, ...cors(origin) });
       } catch { return json([], 200, { ...headers, ...cors(origin) }); }
     }
@@ -353,6 +240,97 @@ export default {
       } catch {
         return json({ error: "Сервис временно недоступен. Попробуйте позже." }, 503, { ...headers, ...cors(origin) });
       }
+    }
+
+    if (url.pathname === "/api/admin/news/upload" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        const form = await request.formData();
+        const file = form.get("file");
+        if (!file || typeof file.arrayBuffer !== "function") return json({ error: "Выберите файл." }, 400, headers);
+        const isVideo = String(file.type || "").startsWith("video/");
+        const isImage = String(file.type || "").startsWith("image/");
+        if (!isVideo && !isImage) return json({ error: "Можно загружать только фото и видео." }, 415, headers);
+        const limit = isVideo ? 20 * 1024 * 1024 : 10 * 1024 * 1024;
+        if (file.size > limit) return json({ error: isVideo ? "Видео должно быть не больше 20 МБ." : "Фото должно быть не больше 10 МБ." }, 413, headers);
+        if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID) return json({ error: "Хранилище медиа не настроено." }, 503, headers);
+        const upload = new FormData();
+        upload.set("chat_id", String(env.TELEGRAM_ADMIN_ID));
+        upload.set(isVideo ? "video" : "photo", file, file.name || (isVideo ? "video.mp4" : "photo.jpg"));
+        const method = isVideo ? "sendVideo" : "sendPhoto";
+        const response = await fetch("https://api.telegram.org/bot" + env.TELEGRAM_BOT_TOKEN + "/" + method, { method: "POST", body: upload });
+        const result = await response.json();
+        if (!response.ok || !result.ok || !result.result) return json({ error: "Не удалось сохранить медиафайл." }, 502, headers);
+        const message = result.result;
+        const uploaded = isVideo ? message.video : (Array.isArray(message.photo) ? message.photo[message.photo.length - 1] : null);
+        if (!uploaded || !uploaded.file_id) return json({ error: "Не удалось получить файл." }, 502, headers);
+        try {
+          await telegramApi(env, "deleteMessage", { chat_id: env.TELEGRAM_ADMIN_ID, message_id: message.message_id });
+        } catch {}
+        return json({ media: { type: isVideo ? "video" : "image", file_id: uploaded.file_id } }, 200, headers);
+      } catch (error) {
+        return json({ error: "Ошибка загрузки медиафайла." }, 500, headers);
+      }
+    }
+
+    if (url.pathname === "/api/admin/news" && request.method === "GET") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensureTelegramNews(env);
+        const result = await env.DB.prepare("SELECT id, date, text, media, title, description, publish_at, status FROM telegram_news ORDER BY date DESC, rowid DESC LIMIT 100").all();
+        const items = (result.results || []).map(item => ({
+          ...item,
+          media: JSON.parse(item.media || "[]").map((m, index) => ({
+            ...m,
+            url: new URL("/api/news-media/" + encodeURIComponent(item.id) + "/" + index, request.url).toString()
+          }))
+        }));
+        return json({ items }, 200, headers);
+      } catch { return json({ error: "Не удалось загрузить новости." }, 500, headers); }
+    }
+
+    if (url.pathname === "/api/admin/news" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensureTelegramNews(env);
+        const body = await request.json();
+        const title = cleanText(body.title, 120);
+        const description = cleanText(body.description, 3000);
+        const date = /^\\d{4}-\\d{2}-\\d{2}$/.test(body.date || "") ? body.date : new Date().toISOString().slice(0, 10);
+        const publishAt = cleanText(body.publish_at, 40);
+        const status = body.status === "draft" ? "draft" : "published";
+        const media = Array.isArray(body.media) ? body.media.filter(m => m && m.file_id && ["image", "video"].includes(m.type)).slice(0, 10) : [];
+        if (title.length < 2) return json({ error: "Укажите заголовок новости." }, 400, headers);
+        const id = "web-" + crypto.randomUUID();
+        await env.DB.prepare("INSERT INTO telegram_news (id,date,text,media,title,description,publish_at,status) VALUES (?,?,?,?,?,?,?,?)")
+          .bind(id, date, title + (description ? "\\n" + description : ""), JSON.stringify(media), title, description, publishAt, status).run();
+        return json({ success: true, id }, 201, headers);
+      } catch { return json({ error: "Не удалось сохранить новость." }, 500, headers); }
+    }
+
+    const newsMatch = url.pathname.match(/^\\/api\\/admin\\/news\\/(.+)$/);
+    if (newsMatch && (request.method === "PATCH" || request.method === "DELETE")) {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      const id = decodeURIComponent(newsMatch[1]);
+      try {
+        await ensureTelegramNews(env);
+        if (request.method === "DELETE") {
+          await env.DB.prepare("DELETE FROM telegram_news WHERE id = ?").bind(id).run();
+          return json({ success: true }, 200, headers);
+        }
+        const body = await request.json();
+        const title = cleanText(body.title, 120);
+        const description = cleanText(body.description, 3000);
+        const date = /^\\d{4}-\\d{2}-\\d{2}$/.test(body.date || "") ? body.date : new Date().toISOString().slice(0, 10);
+        const publishAt = cleanText(body.publish_at, 40);
+        const status = body.status === "draft" ? "draft" : "published";
+        const media = Array.isArray(body.media) ? body.media.filter(m => m && m.file_id && ["image", "video"].includes(m.type)).slice(0, 10) : [];
+        if (title.length < 2) return json({ error: "Укажите заголовок новости." }, 400, headers);
+        const result = await env.DB.prepare("UPDATE telegram_news SET date=?, text=?, media=?, title=?, description=?, publish_at=?, status=? WHERE id=?")
+          .bind(date, title + (description ? "\\n" + description : ""), JSON.stringify(media), title, description, publishAt, status, id).run();
+        if (!result.meta.changes) return json({ error: "Новость не найдена." }, 404, headers);
+        return json({ success: true }, 200, headers);
+      } catch { return json({ error: "Не удалось изменить новость." }, 500, headers); }
     }
 
     if (url.pathname === "/api/admin/appeals" && request.method === "GET") {
