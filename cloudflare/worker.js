@@ -161,13 +161,12 @@ async function telegramWebhook(request, env) {
   const msg = update && update.message;
   if (!msg || !msg.chat || msg.chat.type !== "private") return json({ ok: true });
   const chatId = String(msg.chat.id);
-  const text = cleanText(msg.text, MAX_MESSAGE);
+  const text = cleanText(msg.text, 64);
   const keyboard = {
     keyboard: [[{ text: "✍️ Написать обращение" }]],
     resize_keyboard: true,
     is_persistent: true
   };
-  const hideKeyboard = { remove_keyboard: true };
   await ensureTelegramAppeals(env);
   if (Number.isSafeInteger(update.update_id)) {
     const seen = await env.DB.prepare("INSERT OR IGNORE INTO telegram_appeal_updates (update_id, created_at) VALUES (?, ?)")
@@ -176,6 +175,7 @@ async function telegramWebhook(request, env) {
   }
   const command = text.split(/\\s/)[0].toLowerCase();
   if (command === "/start" || command === "/help") {
+    if (command === "/start") await setTelegramCommands(env);
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
@@ -202,13 +202,14 @@ async function telegramWebhook(request, env) {
     await telegramReply(env, chatId, "Чтобы отправить обращение, нажмите кнопку «Написать обращение».", keyboard);
     return json({ ok: true });
   }
-  const message = cleanText(msg.text || msg.caption, MAX_MESSAGE);
-  if (message.length < 5) {
-    await telegramReply(env, chatId, "Пожалуйста, напишите обращение чуть подробнее — минимум 5 символов. Или отправьте /cancel.", keyboard);
+  const rawMessage = typeof (msg.text || msg.caption) === "string" ? (msg.text || msg.caption).trim() : "";
+  if (rawMessage.length > MAX_MESSAGE) {
+    await telegramReply(env, chatId, "Сообщение слишком длинное. Максимум — 1500 символов. Сократите его и отправьте ещё раз.", keyboard);
     return json({ ok: true });
   }
-  if (message.length > MAX_MESSAGE) {
-    await telegramReply(env, chatId, "Сообщение слишком длинное. Максимум — 1500 символов. Сократите его и отправьте ещё раз.", keyboard);
+  const message = cleanText(rawMessage, MAX_MESSAGE);
+  if (message.length < 5) {
+    await telegramReply(env, chatId, "Пожалуйста, напишите обращение чуть подробнее — минимум 5 символов. Или отправьте /cancel.", keyboard);
     return json({ ok: true });
   }
   await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
