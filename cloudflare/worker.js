@@ -157,6 +157,11 @@ async function telegramWebhook(request, env) {
   const chatId = String(msg.chat.id);
   const text = cleanText(msg.text, 64);
   const keyboard = {
+    keyboard: [[{ text: "✍️ Написать обращение" }]],
+    resize_keyboard: true,
+    is_persistent: true
+  };
+  const cancelKeyboard = {
     keyboard: [
       [{ text: "✍️ Написать обращение" }],
       [{ text: "↩️ Отменить отправку" }]
@@ -191,7 +196,7 @@ async function telegramWebhook(request, env) {
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
       "✍️ Мы готовы вас выслушать!\n\nНапишите обращение одним сообщением — от 5 до 1500 символов. Это может быть идея, предложение, вопрос или обратная связь.\n\n🔒 Ваше обращение — конфиденциально. Мы бережно относимся к каждому сообщению и не публикуем личную информацию.\n\nЕсли передумали, нажмите «Отменить отправку».",
-      { ...keyboard, one_time_keyboard: true });
+      { ...cancelKeyboard, one_time_keyboard: true });
     return json({ ok: true });
   }
   const session = await env.DB.prepare("SELECT awaiting FROM telegram_appeal_sessions WHERE chat_id = ?").bind(chatId).first();
@@ -201,12 +206,12 @@ async function telegramWebhook(request, env) {
   }
   const rawMessage = typeof (msg.text || msg.caption) === "string" ? (msg.text || msg.caption).trim() : "";
   if (rawMessage.length > MAX_MESSAGE) {
-    await telegramReply(env, chatId, "📝 Получилось слишком длинное сообщение.\n\nМаксимальный объём — 1500 символов. Немного сократите текст и отправьте его ещё раз, пожалуйста.", keyboard);
+    await telegramReply(env, chatId, "📝 Получилось слишком длинное сообщение.\n\nМаксимальный объём — 1500 символов. Немного сократите текст и отправьте его ещё раз, пожалуйста.", cancelKeyboard);
     return json({ ok: true });
   }
   const message = cleanText(rawMessage, MAX_MESSAGE);
   if (message.length < 5) {
-    await telegramReply(env, chatId, "💙 Кажется, сообщение получилось слишком коротким.\n\nДобавьте немного подробностей — нужно хотя бы 5 символов. Если передумали, нажмите «Отменить отправку».", keyboard);
+    await telegramReply(env, chatId, "💙 Кажется, сообщение получилось слишком коротким.\n\nДобавьте немного подробностей — нужно хотя бы 5 символов. Если передумали, нажмите «Отменить отправку».", cancelKeyboard);
     return json({ ok: true });
   }
   await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
