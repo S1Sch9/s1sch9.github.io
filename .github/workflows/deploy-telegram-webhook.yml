@@ -40,11 +40,11 @@ jobs:
           TELEGRAM_ADMIN_ID: ${{ secrets.TELEGRAM_ADMIN_ID }}
         run: |
           set -euo pipefail
+          npx --yes wrangler@4 deploy --config cloudflare/wrangler.jsonc
           printf '%s' "$TELEGRAM_BOT_TOKEN" | npx --yes wrangler@4 secret put TELEGRAM_BOT_TOKEN --config cloudflare/wrangler.jsonc
           printf '%s' "$TELEGRAM_ADMIN_ID" | npx --yes wrangler@4 secret put TELEGRAM_ADMIN_ID --config cloudflare/wrangler.jsonc
           WEBHOOK_SECRET="$(openssl rand -hex 32)"
           printf '%s' "$WEBHOOK_SECRET" | npx --yes wrangler@4 secret put TELEGRAM_WEBHOOK_SECRET --config cloudflare/wrangler.jsonc
-          npx --yes wrangler@4 deploy --config cloudflare/wrangler.jsonc
           curl --fail-with-body --silent --show-error \
             --request POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
             --data-urlencode "url=https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/telegram/webhook" \
