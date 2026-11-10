@@ -173,13 +173,13 @@ async function telegramWebhook(request, env) {
       .bind(update.update_id, Math.floor(Date.now() / 1000)).run();
     if (!seen.meta.changes) return json({ ok: true });
   }
-  const command = text.split(/\\s/)[0].toLowerCase();
+  const command = text.split(/\s/)[0].toLowerCase();
   if (command === "/start" || command === "/help") {
     if (command === "/start") await setTelegramCommands(env);
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
-      "Здравствуйте! Это бот обратной связи Совета Первых школы №9 💙\\n\\nЗдесь можно отправить идею, предложение или обращение. Оно сразу появится в нашей админке сайта.\\n\\nНажмите «Написать обращение», чтобы начать.",
+      "Здравствуйте! Это бот обратной связи Совета Первых школы №9 💙\n\\nЗдесь можно отправить идею, предложение или обращение. Оно сразу появится в нашей админке сайта.\\n\\nНажмите «Написать обращение», чтобы начать.",
       keyboard);
     return json({ ok: true });
   }
