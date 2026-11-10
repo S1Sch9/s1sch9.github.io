@@ -176,7 +176,7 @@ async function telegramWebhook(request, env) {
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
-      "💙 Добро пожаловать!\n\nЭто официальный бот обратной связи Совета Первых школы № 9.\n\nЗдесь вы можете поделиться идеей, предложением или задать вопрос — ваше сообщение попадёт прямо в Совет Первых.\n\n👇 Нажмите кнопку «Написать обращение», и мы вас внимательно выслушаем.",
+      "💙 Добро пожаловать!\n\nЭто официальный бот обратной связи Совета Первых школы № 9.\n\nЗдесь вы можете поделиться идеей, предложением или задать вопрос — ваше сообщение попадёт прямо в Совет Первых.\n\n🔒 Ваше обращение — конфиденциально. Мы бережно относимся к каждому сообщению и не публикуем личную информацию.\n\nВажно: Telegram передаёт боту технические данные аккаунта. Если хотите сохранить анонимность, не указывайте в тексте имя и другие личные данные.\n\n👇 Нажмите кнопку «Написать обращение», и мы вас внимательно выслушаем.",
       keyboard);
     return json({ ok: true });
   }
@@ -190,13 +190,13 @@ async function telegramWebhook(request, env) {
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 1, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=1, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
-      "✍️ Мы готовы вас выслушать!\n\nНапишите обращение одним сообщением — от 5 до 1500 символов. Это может быть идея, предложение, вопрос или обратная связь.\n\n🔒 Не указывайте пароли и другие личные данные.\n\nЕсли передумали, нажмите «Отменить отправку».",
+      "✍️ Мы готовы вас выслушать!\n\nНапишите обращение одним сообщением — от 5 до 1500 символов. Это может быть идея, предложение, вопрос или обратная связь.\n\n🔒 Ваше обращение — конфиденциально. Мы бережно относимся к каждому сообщению и не публикуем личную информацию.\n\nВажно: Telegram передаёт боту технические данные аккаунта. Если хотите сохранить анонимность, не указывайте в тексте имя и другие личные данные.\n\nЕсли передумали, нажмите «Отменить отправку».",
       { ...keyboard, one_time_keyboard: true });
     return json({ ok: true });
   }
   const session = await env.DB.prepare("SELECT awaiting FROM telegram_appeal_sessions WHERE chat_id = ?").bind(chatId).first();
   if (!session || !session.awaiting) {
-    await telegramReply(env, chatId, "💬 Хотите поделиться идеей или задать вопрос?\n\nНажмите «Написать обращение» — и ваше сообщение попадёт прямо в Совет Первых. 💙", keyboard);
+    await telegramReply(env, chatId, "💬 Хотите поделиться идеей или задать вопрос?\n\nНажмите «Написать обращение» — и ваше сообщение попадёт прямо в Совет Первых. 💙\n\n🔒 Мы бережно относимся к каждому сообщению и не публикуем личную информацию. В Telegram бот получает технические данные аккаунта.", keyboard);
     return json({ ok: true });
   }
   const rawMessage = typeof (msg.text || msg.caption) === "string" ? (msg.text || msg.caption).trim() : "";
@@ -214,7 +214,7 @@ async function telegramWebhook(request, env) {
   await env.DB.prepare("UPDATE telegram_appeal_sessions SET awaiting=0, updated_at=? WHERE chat_id=?")
     .bind(Math.floor(Date.now() / 1000), chatId).run();
   await telegramReply(env, chatId,
-    "✨ Спасибо, ваше обращение отправлено!\n\nОно уже поступило в Совет Первых — мы обязательно ознакомимся с вашим сообщением.\n\n💙 Становимся лучше благодаря вам!\n\nМожете отправить ещё одно обращение в любой момент — просто нажмите кнопку ниже.",
+    "✨ Спасибо, ваше обращение отправлено!\n\nОно уже поступило в Совет Первых — мы обязательно ознакомимся с вашим сообщением и не будем публиковать личную информацию.\n\n💙 Становимся лучше благодаря вам!\n\nМожете отправить ещё одно обращение в любой момент — просто нажмите кнопку ниже.",
     keyboard);
   return json({ ok: true });
 }
