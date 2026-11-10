@@ -113,7 +113,7 @@ function adminPage() {
   .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:16px 0}
   .stat{background:#fff;border:1px solid #eee7e9;border-radius:14px;padding:12px;color:#807278;font-size:12px}
   .stat b{display:block;color:#2c1920;font-size:22px;line-height:1.2;margin-bottom:3px}
-  .tabs{display:flex;gap:7px;overflow:auto;padding:2px 0 8px;margin:12px 0;scrollbar-width:none}.tabs button{white-space:nowrap;background:#eee9eb;color:#61434d}.tabs button.active{background:#3d000d;color:#fff}
+  .tabs{display:flex;gap:7px;overflow:auto;padding:2px 0 8px;margin:12px 0;scrollbar-width:none}.tabs button{white-space:nowrap;background:#eee9eb;color:#61434d}.tabs button.active{background:#3d000d;color:#fff}.tabs .count{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;padding:0 6px;margin-left:4px;border-radius:99px;background:#fff;color:#5b3540;font-size:11px;font-weight:800}.tabs button.active .count{background:#fff;color:#3d000d}
   .tools{display:flex;gap:8px;align-items:center;margin:10px 0 16px}.tools input{margin:0;flex:1;min-width:0}
   .item{padding:17px 18px}.itemhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
   .tag{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:6px 10px;font-size:12px;font-weight:700;background:#fff1f3;color:#a1001f}
@@ -125,18 +125,19 @@ function adminPage() {
   </style><body><header><h2>Обращения · Совет Первых №9</h2><p>Панель управления сообщениями</p></header><main>
   <section id="login" class="panel"><h3 style="margin:0 0 5px">Вход администратора</h3><p class="muted">Введите пароль для просмотра обращений.</p><input id="token" type="password" autocomplete="current-password" placeholder="Административный пароль"><button id="loginBtn" style="width:100%">Войти</button><p id="loginError" class="muted"></p></section>
   <section id="app" hidden><div class="top"><div><h2 style="margin:0 0 4px;font-size:23px">Входящие</h2><div class="muted">Здесь собраны все сообщения</div></div><div style="display:flex;gap:7px"><button class="secondary" id="refresh">↻ Обновить</button><button class="secondary" id="logout">Выйти</button></div></div>
-  <div class="stats" id="stats"></div><nav class="tabs" id="tabs"><button class="active" data-filter="all">Все обращения</button><button data-filter="new">Новые</button><button data-filter="reviewed">В работе</button><button data-filter="done">Завершённые</button></nav>
+  <div class="stats" id="stats"></div><nav class="tabs" id="tabs"><button class="active" data-filter="new">Новые <span class="count" id="count-new">0</span></button><button data-filter="reviewed">В работе <span class="count" id="count-reviewed">0</span></button><button data-filter="done">Завершённые <span class="count" id="count-done">0</span></button><button data-filter="all">Все <span class="count" id="count-all">0</span></button></nav>
   <div class="tools"><input id="search" type="search" placeholder="Поиск по обращениям…"><span class="muted" id="shown"></span></div><div id="list"></div></section>
   </main><script>
   const $=s=>document.querySelector(s);let token=sessionStorage.getItem("appeals_admin_token")||"";
   const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json",...(opts.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Ошибка запроса");return d}
   function show(){const ok=!!token;$("#login").hidden=ok;$("#app").hidden=!ok;if(ok)load().catch(e=>{token="";sessionStorage.removeItem("appeals_admin_token");show();$("#loginError").textContent=e.message})}
-  let items=[],filter="all";
+  let items=[],filter="new";
   function render(){
     const counts={all:items.length,new:items.filter(x=>x.status==="new").length,reviewed:items.filter(x=>x.status==="reviewed").length,done:items.filter(x=>x.status==="done").length};
     $("#stats").innerHTML='<div class="stat"><b>'+counts.all+'</b>Всего</div><div class="stat"><b>'+counts.new+'</b>Новых</div><div class="stat"><b>'+counts.reviewed+'</b>В работе</div><div class="stat"><b>'+counts.done+'</b>Завершено</div>';
     document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active",b.dataset.filter===filter));
+    $("#count-new").textContent=counts.new;$("#count-reviewed").textContent=counts.reviewed;$("#count-done").textContent=counts.done;$("#count-all").textContent=counts.all;
     const q=$("#search").value.trim().toLocaleLowerCase("ru");
     const shown=items.filter(x=>(filter==="all"||x.status===filter)&&[x.message,x.role,x.category].some(v=>String(v||"").toLocaleLowerCase("ru").includes(q)));
     $("#shown").textContent=shown.length+" из "+items.length;
