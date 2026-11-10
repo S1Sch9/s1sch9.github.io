@@ -172,14 +172,14 @@ export default {
         const result = await env.DB.prepare("SELECT id, date, text, media, title, description, publish_at, status FROM telegram_news WHERE status = 'published' AND (publish_at = '' OR publish_at <= ?) ORDER BY date DESC, rowid DESC LIMIT 50")
           .bind(new Date().toISOString()).all();
         const items = (result.results || []).map(item => {
-          const lines = String(item.text || "").split(/\\r?\\n/);
+          const lines = String(item.text || "").split(/\r?\n/);
           const fallbackTitle = lines.shift() || "Новость";
           return {
             id: item.id,
             date: item.date,
             text: item.text,
             title: item.title || fallbackTitle,
-            description: item.description || lines.join("\\n").trim(),
+            description: item.description || lines.join("\n").trim(),
             media: JSON.parse(item.media || "[]").map((m, index) => ({
               type: m.type,
               url: new URL("/api/news-media/" + encodeURIComponent(item.id) + "/" + index, request.url).toString()
@@ -296,19 +296,19 @@ export default {
         const body = await request.json();
         const title = cleanText(body.title, 120);
         const description = cleanText(body.description, 3000);
-        const date = /^\\d{4}-\\d{2}-\\d{2}$/.test(body.date || "") ? body.date : new Date().toISOString().slice(0, 10);
+        const date = /^\d{4}-\d{2}-\d{2}$/.test(body.date || "") ? body.date : new Date().toISOString().slice(0, 10);
         const publishAt = cleanText(body.publish_at, 40);
         const status = body.status === "draft" ? "draft" : "published";
         const media = Array.isArray(body.media) ? body.media.filter(m => m && m.file_id && ["image", "video"].includes(m.type)).slice(0, 10) : [];
         if (title.length < 2) return json({ error: "Укажите заголовок новости." }, 400, headers);
         const id = "web-" + crypto.randomUUID();
         await env.DB.prepare("INSERT INTO telegram_news (id,date,text,media,title,description,publish_at,status) VALUES (?,?,?,?,?,?,?,?)")
-          .bind(id, date, title + (description ? "\\n" + description : ""), JSON.stringify(media), title, description, publishAt, status).run();
+          .bind(id, date, title + (description ? "\n" + description : ""), JSON.stringify(media), title, description, publishAt, status).run();
         return json({ success: true, id }, 201, headers);
       } catch { return json({ error: "Не удалось сохранить новость." }, 500, headers); }
     }
 
-    const newsMatch = url.pathname.match(/^\\/api\\/admin\\/news\\/(.+)$/);
+    const newsMatch = url.pathname.match(/^\/api\/admin\/news\/(.+)$/);
     if (newsMatch && (request.method === "PATCH" || request.method === "DELETE")) {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       const id = decodeURIComponent(newsMatch[1]);
@@ -321,13 +321,13 @@ export default {
         const body = await request.json();
         const title = cleanText(body.title, 120);
         const description = cleanText(body.description, 3000);
-        const date = /^\\d{4}-\\d{2}-\\d{2}$/.test(body.date || "") ? body.date : new Date().toISOString().slice(0, 10);
+        const date = /^\d{4}-\d{2}-\d{2}$/.test(body.date || "") ? body.date : new Date().toISOString().slice(0, 10);
         const publishAt = cleanText(body.publish_at, 40);
         const status = body.status === "draft" ? "draft" : "published";
         const media = Array.isArray(body.media) ? body.media.filter(m => m && m.file_id && ["image", "video"].includes(m.type)).slice(0, 10) : [];
         if (title.length < 2) return json({ error: "Укажите заголовок новости." }, 400, headers);
         const result = await env.DB.prepare("UPDATE telegram_news SET date=?, text=?, media=?, title=?, description=?, publish_at=?, status=? WHERE id=?")
-          .bind(date, title + (description ? "\\n" + description : ""), JSON.stringify(media), title, description, publishAt, status, id).run();
+          .bind(date, title + (description ? "\n" + description : ""), JSON.stringify(media), title, description, publishAt, status, id).run();
         if (!result.meta.changes) return json({ error: "Новость не найдена." }, 404, headers);
         return json({ success: true }, 200, headers);
       } catch { return json({ error: "Не удалось изменить новость." }, 500, headers); }
