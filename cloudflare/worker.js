@@ -179,7 +179,7 @@ async function telegramWebhook(request, env) {
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
-      "Здравствуйте! Это бот обратной связи Совета Первых школы №9 💙\n\\nЗдесь можно отправить идею, предложение или обращение. Оно сразу появится в нашей админке сайта.\\n\\nНажмите «Написать обращение», чтобы начать.",
+      "Здравствуйте! Это бот обратной связи Совета Первых школы №9 💙\n\nЗдесь можно отправить идею, предложение или обращение. Оно сразу появится в нашей админке сайта.\n\nНажмите «Написать обращение», чтобы начать.",
       keyboard);
     return json({ ok: true });
   }
@@ -193,7 +193,7 @@ async function telegramWebhook(request, env) {
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 1, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=1, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
-      "Напишите ваше обращение одним сообщением (от 5 до 1500 символов).\\n\\nПожалуйста, не отправляйте пароли и другие конфиденциальные данные. Для отмены используйте /cancel.",
+      "Напишите ваше обращение одним сообщением (от 5 до 1500 символов).\n\nПожалуйста, не отправляйте пароли и другие конфиденциальные данные. Для отмены используйте /cancel.",
       { ...keyboard, one_time_keyboard: true });
     return json({ ok: true });
   }
@@ -217,7 +217,7 @@ async function telegramWebhook(request, env) {
   await env.DB.prepare("UPDATE telegram_appeal_sessions SET awaiting=0, updated_at=? WHERE chat_id=?")
     .bind(Math.floor(Date.now() / 1000), chatId).run();
   await telegramReply(env, chatId,
-    "Спасибо за обращение! 💙\\n\\nОно успешно отправлено и уже поступило в Совет Первых.\\n\\nСтановимся лучше благодаря вам!",
+    "Спасибо за обращение! 💙\n\nОно успешно отправлено и уже поступило в Совет Первых.\n\nСтановимся лучше благодаря вам!",
     keyboard);
   return json({ ok: true });
 }
