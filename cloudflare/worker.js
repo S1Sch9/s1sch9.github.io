@@ -123,17 +123,31 @@ async function telegramApi(env, method, payload) {
   if (!response.ok || !result.ok) throw new Error("Telegram API error");
   return result.result;
 }
-async function telegramReply(env, chatId, text) {
-  return telegramApi(env, "sendMessage", { chat_id: chatId, text });
+async function telegramReply(env, chatId, text, replyMarkup) {
+  return telegramApi(env, "sendMessage", {
+    chat_id: chatId,
+    text,
+    ...(replyMarkup ? { reply_markup: replyMarkup } : {})
+  });
+}
+async function ensureTelegramAppeals(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_appeal_sessions (
+    chat_id TEXT PRIMARY KEY,
+    awaiting INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL DEFAULT 0
+  )`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_appeal_updates (
+    update_id INTEGER PRIMARY KEY,
+    created_at INTEGER NOT NULL
+  )`).run();
 }
 async function setTelegramCommands(env) {
   await telegramApi(env, "setMyCommands", {
     commands: [
-      { command: "start", description: "Открыть меню бота" },
-      { command: "help", description: "Помощь и список команд" },
-      { command: "list", description: "Показать опубликованные новости" },
-      { command: "edit", description: "Изменить новость: ID и новый текст" },
-      { command: "delete", description: "Удалить новость: ID" }
+      { command: "start", description: "Начать и открыть меню" },
+      { command: "new", description: "Написать обращение" },
+      { command: "cancel", description: "Отменить отправку" },
+      { command: "help", description: "Как отправить обращение" }
     ]
   });
 }
@@ -142,16 +156,68 @@ async function telegramWebhook(request, env) {
       !constantTimeEqual(request.headers.get("X-Telegram-Bot-Api-Secret-Token") || "", env.TELEGRAM_WEBHOOK_SECRET)) {
     return json({ error: "Unauthorized" }, 401);
   }
-  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID) return json({ error: "Bot is not configured" }, 503);
+  if (!env.TELEGRAM_BOT_TOKEN) return json({ error: "Bot is not configured" }, 503);
   const update = await request.json();
   const msg = update && update.message;
   if (!msg || !msg.chat || msg.chat.type !== "private") return json({ ok: true });
   const chatId = String(msg.chat.id);
-  if (chatId === String(env.TELEGRAM_ADMIN_ID).trim()) {
-    await telegramReply(env, chatId, "Новости теперь удобно публиковать через закрытую панель сайта: https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/admin");
-  } else {
-    await telegramReply(env, chatId, "Спасибо за сообщение! Публикация новостей доступна только администратору.");
+  const text = cleanText(msg.text, MAX_MESSAGE);
+  const keyboard = {
+    keyboard: [[{ text: "✍️ Написать обращение" }]],
+    resize_keyboard: true,
+    is_persistent: true
+  };
+  const hideKeyboard = { remove_keyboard: true };
+  await ensureTelegramAppeals(env);
+  if (Number.isSafeInteger(update.update_id)) {
+    const seen = await env.DB.prepare("INSERT OR IGNORE INTO telegram_appeal_updates (update_id, created_at) VALUES (?, ?)")
+      .bind(update.update_id, Math.floor(Date.now() / 1000)).run();
+    if (!seen.meta.changes) return json({ ok: true });
   }
+  const command = text.split(/\\s/)[0].toLowerCase();
+  if (command === "/start" || command === "/help") {
+    await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
+      .bind(chatId, Math.floor(Date.now() / 1000)).run();
+    await telegramReply(env, chatId,
+      "Здравствуйте! Это бот обратной связи Совета Первых школы №9 💙\\n\\nЗдесь можно отправить идею, предложение или обращение. Оно сразу появится в нашей админке сайта.\\n\\nНажмите «Написать обращение», чтобы начать.",
+      keyboard);
+    return json({ ok: true });
+  }
+  if (command === "/cancel" || text === "Отмена") {
+    await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
+      .bind(chatId, Math.floor(Date.now() / 1000)).run();
+    await telegramReply(env, chatId, "Отправка отменена. Если захотите написать нам, нажмите кнопку ниже.", keyboard);
+    return json({ ok: true });
+  }
+  if (command === "/new" || text === "✍️ Написать обращение") {
+    await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 1, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=1, updated_at=excluded.updated_at")
+      .bind(chatId, Math.floor(Date.now() / 1000)).run();
+    await telegramReply(env, chatId,
+      "Напишите ваше обращение одним сообщением (от 5 до 1500 символов).\\n\\nПожалуйста, не отправляйте пароли и другие конфиденциальные данные. Для отмены используйте /cancel.",
+      { ...keyboard, one_time_keyboard: true });
+    return json({ ok: true });
+  }
+  const session = await env.DB.prepare("SELECT awaiting FROM telegram_appeal_sessions WHERE chat_id = ?").bind(chatId).first();
+  if (!session || !session.awaiting) {
+    await telegramReply(env, chatId, "Чтобы отправить обращение, нажмите кнопку «Написать обращение».", keyboard);
+    return json({ ok: true });
+  }
+  const message = cleanText(msg.text || msg.caption, MAX_MESSAGE);
+  if (message.length < 5) {
+    await telegramReply(env, chatId, "Пожалуйста, напишите обращение чуть подробнее — минимум 5 символов. Или отправьте /cancel.", keyboard);
+    return json({ ok: true });
+  }
+  if (message.length > MAX_MESSAGE) {
+    await telegramReply(env, chatId, "Сообщение слишком длинное. Максимум — 1500 символов. Сократите его и отправьте ещё раз.", keyboard);
+    return json({ ok: true });
+  }
+  await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
+    .bind("Telegram", "Через Telegram-бота", message).run();
+  await env.DB.prepare("UPDATE telegram_appeal_sessions SET awaiting=0, updated_at=? WHERE chat_id=?")
+    .bind(Math.floor(Date.now() / 1000), chatId).run();
+  await telegramReply(env, chatId,
+    "Спасибо за обращение! 💙\\n\\nОно успешно отправлено и уже поступило в Совет Первых.\\n\\nСтановимся лучше благодаря вам!",
+    keyboard);
   return json({ ok: true });
 }
 
