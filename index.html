@@ -75,7 +75,7 @@ h1{font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin:1
 .card{overflow:hidden;padding:0;display:flex;flex-direction:column;height:100%;min-width:0}
 .ph{aspect-ratio:1/1;width:100%;flex:none;background:linear-gradient(160deg,#c10030,var(--deep));display:grid;place-items:center;color:#fff;font-weight:800;font-size:38px;overflow:hidden;position:relative}
 .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;border:0;border-radius:0;background:linear-gradient(160deg,#c10030,var(--deep));transition:transform .35s ease}.card:active .ph img{transform:scale(1.025)}
-.photo-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;text-align:center;color:#fff;background:radial-gradient(circle at 50% 25%,#d52b52 0,#8e0020 55%,#3d000d 100%);font-weight:800}.photo-placeholder .camera{font-size:30px;line-height:1}.photo-placeholder small{font-size:10px;line-height:1.25;letter-spacing:.07em}.big .photo-placeholder .camera{font-size:27px}.big .photo-placeholder small{font-size:8px}
+.photo-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;text-align:center;color:#fff;background:radial-gradient(circle at 50% 25%,#d52b52 0,#8e0020 55%,#3d000d 100%);font-weight:800}.photo-placeholder small{font-size:10px;line-height:1.25;letter-spacing:.07em}.big .photo-placeholder .camera{font-size:27px}.big .photo-placeholder small{font-size:8px}
 .card div.t{padding:12px 14px 14px;flex:1;display:flex;flex-direction:column;align-items:stretch}.card small{min-height:3.9em;display:flex;align-items:flex-start}.card b{min-height:2.5em}.card small{display:block;color:var(--mut);font-size:12.5px;line-height:1.3;margin-bottom:4px}
 .card b{display:block;line-height:1.25;font-size:15px}
 .row{padding:16px 18px;margin-bottom:12px}.row small{color:var(--red);font-weight:700}.row b{display:block;font-size:17px;line-height:1.25;margin:2px 0}.row em{font-style:normal;color:var(--mut);font-size:14px}
@@ -209,7 +209,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
 const src = p => p;
 const ini = s => s.split(/\s+/).filter(w => /^[А-ЯЁA-Z]/.test(w)).slice(0,2).map(w => w[0]).join("");
 /* Если фото есть — показываем только фото; если нет — инициалы */
-const placeholderHTML = () => '<div class="photo-placeholder"><span class="camera">📷</span><small>ФОТО СКОРО<br>ПОЯВИТСЯ</small></div>';
+const placeholderHTML = () => '<div class="photo-placeholder"><small>ФОТО СКОРО<br>ПОЯВИТСЯ</small></div>';
 function photoError(el){ el.outerHTML = placeholderHTML(); }
 const photo = (p, i) => p
   ? '<img src="' + esc(src(p)) + '" alt="" loading="lazy" onerror="photoError(this)">'
