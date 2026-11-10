@@ -1,10 +1,11 @@
-name: Deploy instant Telegram webhook
+name: Deploy site admin and news API
 
 on:
   workflow_dispatch:
   push:
     paths:
       - "cloudflare/worker.js"
+      - "cloudflare/admin-page.js"
       - "cloudflare/wrangler.jsonc"
       - ".github/workflows/deploy-telegram-webhook.yml"
 
