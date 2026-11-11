@@ -432,7 +432,7 @@ body{background:#FAF6F6;color:#1D1215}
         }, 50);
     }
 
-    function spawnBlock(){if(isGameOver)return;const prev=blocks[blocks.length-1],style=blockStyles[(blocks.length-1)%blockStyles.length],axis=nextAxis;nextAxis=nextAxis==='x'?'z':'x';projectLabel.classList.remove('show');currentBlock={x:axis==='x'?prev.x-prev.width:prev.x,z:axis==='z'?prev.z-prev.depth:prev.z,width:prev.width,depth:prev.depth,level:blocks.length,style,axis,landingAnim:0};}
+    function spawnBlock(){if(isGameOver)return;const prev=blocks[blocks.length-1],style=blockStyles[(blocks.length-1)%blockStyles.length],axis=nextAxis;nextAxis=nextAxis==='x'?'z':'x';projectLabel.classList.remove('show');const travel=(canvasWidth*.78)/(ISO_X*Math.max(.35,cameraScale));currentBlock={x:axis==='x'?prev.x-travel:prev.x,z:axis==='z'?prev.z-travel:prev.z,width:prev.width,depth:prev.depth,level:blocks.length,style,axis,landingAnim:0,entryDistance:travel};}
 
     function dropBlock() {
         if (isGameOver || isPaused || !currentBlock) return;
