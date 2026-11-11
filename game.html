@@ -151,6 +151,34 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
 .new-record{color:#FFE2EA}
 @media(max-height:720px){.app-container{padding:9px}.logo-container{margin-bottom:6px}.brand-text{margin-top:7px;font-size:34px}.brand-subtext{margin-bottom:12px}.record-display{margin-bottom:12px}.canvas-wrapper{max-height:min(58vh,440px)}}
 
+/* V3 — visual language matched to the main S1Sch9 website */
+body{background:#FAF6F6;color:#1D1215}
+.logo-container{background:#fff;border:1px solid #EADFE1;box-shadow:0 12px 34px rgba(61,0,13,.08)}
+.brand-text{color:#3D000D;text-shadow:none}
+.brand-subtext{color:#A1001F}
+.record-display{color:#A1001F;text-shadow:none}
+.btn{background:linear-gradient(135deg,#B3002A,#3D000D);color:#fff;border:1px solid rgba(240,200,105,.6);box-shadow:0 9px 22px rgba(61,0,13,.17)}
+.btn.secondary{background:#EFE6E8;color:#3D000D;border:1px solid #EADFE1}
+.rules-card{background:#fff;border:1px solid #EADFE1;box-shadow:0 12px 34px rgba(61,0,13,.07)}
+.rules-title{color:#A1001F}
+.rule-icon{background:#F6E4E8;border:1px solid #EADFE1}
+.rule-text{color:#75686C}
+.rule-text b{color:#3D000D}
+.stats{background:#fff;border:1px solid #EADFE1;color:#1D1215;box-shadow:0 5px 18px rgba(61,0,13,.07)}
+.combo{background:#F6E4E8;border:1px solid #EADFE1;color:#A1001F;text-shadow:none}
+.icon-btn{background:#fff;border:1px solid #EADFE1;color:#A1001F;box-shadow:0 5px 14px rgba(61,0,13,.07)}
+.game-header-crest{width:38px;height:38px;flex:0 0 38px;object-fit:contain;padding:3px;border-radius:12px;background:#fff;border:1px solid #EADFE1;box-shadow:0 4px 12px rgba(61,0,13,.08)}
+.canvas-wrapper{background:linear-gradient(180deg,#FAF6F6 0%,#F6E4E8 35%,#B3002A 72%,#3D000D 100%);border:1px solid #EADFE1;box-shadow:0 15px 38px rgba(61,0,13,.14),inset 0 1px rgba(255,255,255,.55)}
+.canvas-wrapper:before{border-color:rgba(161,0,31,.10)}
+#game-crest{display:none}
+#project-label{display:none}
+.feedback,.bonus-pop{color:#3D000D;text-shadow:0 2px 12px rgba(255,255,255,.9)}
+.overlay{background:rgba(61,0,13,.88)}
+.overlay h2{color:#F0C869}
+.exit-confirm-card{background:linear-gradient(155deg,#B3002A,#3D000D);border:1px solid rgba(240,200,105,.45)}
+.new-record{color:#A1001F}
+@media(max-height:720px){.game-header-crest{width:34px;height:34px;flex-basis:34px}}
+
 </style>
 </head>
 <body>
@@ -179,7 +207,7 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
             </div>
             <div class="rule-item">
                 <div class="rule-icon">👆</div>
-                <div class="rule-text">Блоки по очереди движутся по двум направлениям — X и Z. Нажми на поле, когда блок окажется над башней: так ты поставишь новую ступень по вертикальной оси Y.</div>
+                <div class="rule-text">Нажми на игровое поле, когда движущийся блок окажется прямо над башней. Постарайся попасть точно — так башня будет расти выше!</div>
             </div>
             <div class="rule-item">
                 <div class="rule-icon">✂️</div>
@@ -203,10 +231,11 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
 
     <div id="game-screen" class="screen">
         <div class="top-bar">
+            <img class="game-header-crest" src="gerb.png" alt="Герб школы №9">
             <div class="stats"><span>Очки: <span id="score">0</span><small id="combo" class="combo">Серия: 0</small></span></div>
             <button class="icon-btn" onclick="pauseGame()">⏸️</button>
         </div>
-        <div class="canvas-wrapper"><canvas id="gameCanvas"></canvas><img id="game-crest" src="gerb.png" alt="" aria-hidden="true"><div id="project-label" aria-live="polite"></div><div id="feedback" class="feedback" aria-live="polite"></div><div id="bonus-pop" class="bonus-pop" aria-hidden="true"></div></div>
+        <div class="canvas-wrapper"><canvas id="gameCanvas"></canvas><div id="project-label" aria-live="polite"></div><div id="feedback" class="feedback" aria-live="polite"></div><div id="bonus-pop" class="bonus-pop" aria-hidden="true"></div></div>
         <div class="overlay" id="pause-screen">
             <h2>⏸️ Пауза</h2>
             <p style="font-size:14px;color:#F1DFBD;margin:0 20px 18px">Передохни и возвращайся к своей башне!</p>
@@ -260,8 +289,8 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
     let impactGlow = 0;
     let currentBlock = null;
     let score = 0;
-    let gameSpeed = 4.2;
-    let gameSpeedIncrease = 0.12;
+    let gameSpeed = 2.9;
+    let gameSpeedIncrease = 0.075;
     let combo = 0;
     let lastFrameTime = 0;
     let isGameOver = true;
@@ -282,22 +311,22 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
     // На блоках — реальные проекты Движения Первых и события школы №9.
     // Часть названий относится к федеральным проектам, часть — к школьной жизни.
     const blockStyles = [
-        {main:'#A93658',light:'#D66D89',dark:'#6F1D3A',project:'ЗАРНИЦА 2.0'},
-        {main:'#D98B9D',light:'#F2B8C4',dark:'#9B5267',project:'ПЕРВАЯ ПОМОЩЬ'},
-        {main:'#F0D8D7',light:'#FFF0EC',dark:'#B99198',project:'ХРАНИТЕЛИ ИСТОРИИ'},
-        {main:'#8F3655',light:'#BE6680',dark:'#5C1F39',project:'ЮННАТЫ ПЕРВЫХ'},
-        {main:'#C45A78',light:'#E68DA5',dark:'#87334F',project:'МЕДИАПРИТЯЖЕНИЕ'},
-        {main:'#713047',light:'#A65A73',dark:'#481B2E',project:'ПРЕМИЯ ПЕРВЫХ'},
-        {main:'#D17B8F',light:'#EFA9B7',dark:'#91445D',project:'КЛАССНЫЕ ВСТРЕЧИ'},
-        {main:'#9C4964',light:'#CB7B94',dark:'#632A43',project:'БЛАГО ТВОРИ'},
-        {main:'#A93658',light:'#D66D89',dark:'#6F1D3A',project:'МЫ — ГРАЖДАНЕ РОССИИ'},
-        {main:'#D98B9D',light:'#F2B8C4',dark:'#9B5267',project:'БЕЗОПАСНОСТЬ В ДВИЖЕНИИ'},
-        {main:'#F0D8D7',light:'#FFF0EC',dark:'#B99198',project:'ЗВЕЗДА ПОБЕДЫ'},
-        {main:'#8F3655',light:'#BE6680',dark:'#5C1F39',project:'ЖИВАЯ ПАМЯТЬ'},
-        {main:'#C45A78',light:'#E68DA5',dark:'#87334F',project:'СОВЕТ ПЕРВЫХ'},
-        {main:'#713047',light:'#A65A73',dark:'#481B2E',project:'ЭКО-ОТРЯД'},
-        {main:'#D17B8F',light:'#EFA9B7',dark:'#91445D',project:'ШКОЛЬНЫЙ СПОРТ'},
-        {main:'#9C4964',light:'#CB7B94',dark:'#632A43',project:'УРА, АВЫЛГА'}
+        {main:'#A1001F',light:'#D52B52',dark:'#3D000D',project:'ЗАРНИЦА 2.0'},
+        {main:'#8E0020',light:'#B3002A',dark:'#3D000D',project:'ПЕРВАЯ ПОМОЩЬ'},
+        {main:'#B88725',light:'#F0C869',dark:'#76500D',project:'ХРАНИТЕЛИ ИСТОРИИ'},
+        {main:'#3D000D',light:'#8E0020',dark:'#1D1215',project:'ЮННАТЫ ПЕРВЫХ'},
+        {main:'#A1001F',light:'#D52B52',dark:'#3D000D',project:'МЕДИАПРИТЯЖЕНИЕ'},
+        {main:'#8E0020',light:'#B3002A',dark:'#3D000D',project:'ПРЕМИЯ ПЕРВЫХ'},
+        {main:'#B88725',light:'#F0C869',dark:'#76500D',project:'КЛАССНЫЕ ВСТРЕЧИ'},
+        {main:'#3D000D',light:'#8E0020',dark:'#1D1215',project:'БЛАГО ТВОРИ'},
+        {main:'#A1001F',light:'#D52B52',dark:'#3D000D',project:'МЫ — ГРАЖДАНЕ РОССИИ'},
+        {main:'#8E0020',light:'#B3002A',dark:'#3D000D',project:'БЕЗОПАСНОСТЬ В ДВИЖЕНИИ'},
+        {main:'#B88725',light:'#F0C869',dark:'#76500D',project:'ЗВЕЗДА ПОБЕДЫ'},
+        {main:'#3D000D',light:'#8E0020',dark:'#1D1215',project:'ЖИВАЯ ПАМЯТЬ'},
+        {main:'#A1001F',light:'#D52B52',dark:'#3D000D',project:'СОВЕТ ПЕРВЫХ'},
+        {main:'#8E0020',light:'#B3002A',dark:'#3D000D',project:'ЭКО-ОТРЯД'},
+        {main:'#B88725',light:'#F0C869',dark:'#76500D',project:'ШКОЛЬНЫЙ СПОРТ'},
+        {main:'#3D000D',light:'#8E0020',dark:'#1D1215',project:'УРА, АВЫЛГА'}
     ];
     function resizeCanvas() {
         const rect = canvas.parentElement.getBoundingClientRect();
@@ -346,7 +375,7 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
             isGameOver = false;
             isPaused = false;
             score = 0;
-            gameSpeed = 4.2;
+            gameSpeed = 2.9;
             combo = 0;
             lastFrameTime = 0;
             comboEl.innerText = "КОМБО ×0";
@@ -370,13 +399,14 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
         }, 50);
     }
 
-    function spawnBlock(){if(isGameOver)return;const prev=blocks[blocks.length-1],style=blockStyles[(blocks.length-1)%blockStyles.length],axis=nextAxis;nextAxis=nextAxis==='x'?'z':'x';projectLabel.textContent=style.project+'  ·  ОСЬ '+axis.toUpperCase();projectLabel.classList.remove('show');requestAnimationFrame(()=>projectLabel.classList.add('show'));currentBlock={x:axis==='x'?-boardHalf-prev.width:prev.x,z:axis==='z'?-boardHalf-prev.depth:prev.z,width:prev.width,depth:prev.depth,level:blocks.length,style,axis,landingAnim:0};}
+    function spawnBlock(){if(isGameOver)return;const prev=blocks[blocks.length-1],style=blockStyles[(blocks.length-1)%blockStyles.length],axis=nextAxis;nextAxis=nextAxis==='x'?'z':'x';projectLabel.classList.remove('show');currentBlock={x:axis==='x'?-boardHalf-prev.width:prev.x,z:axis==='z'?-boardHalf-prev.depth:prev.z,width:prev.width,depth:prev.depth,level:blocks.length,style,axis,landingAnim:0};}
 
     function dropBlock() {
         if (isGameOver || isPaused || !currentBlock) return;
         const prevBlock=blocks[blocks.length-1],axis=currentBlock.axis;
         const offset=axis==='x'?Math.abs(currentBlock.x+currentBlock.width/2-prevBlock.x-prevBlock.width/2):Math.abs(currentBlock.z+currentBlock.depth/2-prevBlock.z-prevBlock.depth/2);
-        const autoAligned=offset<=Math.max(3,(axis==='x'?prevBlock.width:prevBlock.depth)*.045);
+        const snapRatio=blocks.length<=4?.18:.095;
+        const autoAligned=offset<=Math.max(5,(axis==='x'?prevBlock.width:prevBlock.depth)*snapRatio);
         if(autoAligned){currentBlock.x=prevBlock.x;currentBlock.z=prevBlock.z;currentBlock.width=prevBlock.width;currentBlock.depth=prevBlock.depth;}
         let overlap,cutStart,cutSize=0;
         if(axis==='x'){const left=Math.max(currentBlock.x,prevBlock.x),right=Math.min(currentBlock.x+currentBlock.width,prevBlock.x+prevBlock.width);overlap=right-left;if(overlap>0&&overlap<currentBlock.width){cutStart=currentBlock.x<prevBlock.x?currentBlock.x:prevBlock.x+prevBlock.width;cutSize=currentBlock.width-overlap;currentBlock.x=left;currentBlock.width=overlap;}}
@@ -425,7 +455,7 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
         const bonusLabel = comboBonus === 1 ? "очко" : comboBonus > 1 && comboBonus < 5 ? "очка" : "очков";
         comboEl.innerText = `КОМБО ×${combo}`;
         scoreEl.innerText = score;
-        gameSpeed = Math.min(10.5, gameSpeed + gameSpeedIncrease);
+        gameSpeed = Math.min(8.2, gameSpeed + gameSpeedIncrease);
 
         if(currentBlock.width<8||currentBlock.depth<8){
             currentBlock = null;
@@ -501,7 +531,7 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
     }
     function drawAtmosphere(){
         const sky=ctx.createLinearGradient(0,0,0,canvasHeight);
-        sky.addColorStop(0,'#F5D8D7');sky.addColorStop(.25,'#D996A5');sky.addColorStop(.58,'#843A57');sky.addColorStop(1,'#260D20');
+        sky.addColorStop(0,'#FAF6F6');sky.addColorStop(.24,'#F6E4E8');sky.addColorStop(.58,'#B3002A');sky.addColorStop(1,'#3D000D');
         ctx.fillStyle=sky;ctx.fillRect(0,0,canvasWidth,canvasHeight);
         const sunX=canvasWidth*.5,sunY=canvasHeight*.16,sunR=Math.min(canvasWidth*.25,75);
         const halo=ctx.createRadialGradient(sunX,sunY,2,sunX,sunY,sunR*2.5);
@@ -524,9 +554,9 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
             ctx.save();
             ctx.translate(canvasWidth / 2, targetY);
             const crown=ctx.createRadialGradient(0,0,5,0,0,66);
-            crown.addColorStop(0,'rgba(255,239,190,.42)');crown.addColorStop(1,'rgba(255,239,190,0)');
+            crown.addColorStop(0,'rgba(240,200,105,.48)');crown.addColorStop(1,'rgba(240,200,105,0)');
             ctx.fillStyle=crown;ctx.beginPath();ctx.arc(0,0,66,0,Math.PI*2);ctx.fill();
-            ctx.fillStyle='#FFF0F4';ctx.shadowColor='rgba(255,232,240,.8)';ctx.shadowBlur=16;
+            ctx.fillStyle='#F0C869';ctx.shadowColor='rgba(240,200,105,.8)';ctx.shadowBlur=16;
             ctx.beginPath();ctx.moveTo(0,-35);ctx.lineTo(10,-12);ctx.lineTo(30,-12);ctx.lineTo(14,3);ctx.lineTo(20,27);ctx.lineTo(0,13);ctx.lineTo(-20,27);ctx.lineTo(-14,3);ctx.lineTo(-30,-12);ctx.lineTo(-10,-12);ctx.closePath();ctx.fill();ctx.shadowBlur=0;
             ctx.restore();
         }
