@@ -130,6 +130,27 @@ async function telegramReply(env, chatId, text, replyMarkup) {
     ...(replyMarkup ? { reply_markup: replyMarkup } : {})
   });
 }
+
+async function notifyAdminAboutAppeal(env, { source, role, category, message }) {
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID) return;
+  const preview = String(message || "").slice(0, 3000);
+  const text = "🔔 НОВОЕ ОБРАЩЕНИЕ\\n\\n" +
+    "Источник: " + source + "\\n" +
+    "Кто: " + role + "\\n" +
+    "Категория: " + category + "\\n\\n" +
+    preview + (String(message || "").length > 3000 ? "…" : "");
+  try {
+    await telegramApi(env, "sendMessage", {
+      chat_id: String(env.TELEGRAM_ADMIN_ID),
+      text,
+      reply_markup: {
+        inline_keyboard: [[{ text: "Открыть админку", url: "https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/admin" }]]
+      }
+    });
+  } catch (error) {
+    console.error("Admin appeal notification failed");
+  }
+}
 async function ensureTelegramAppeals(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_appeal_sessions (
     chat_id TEXT PRIMARY KEY,
@@ -216,6 +237,12 @@ async function telegramWebhook(request, env) {
   }
   await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
     .bind("Telegram", "Через Telegram-бота", message).run();
+  await notifyAdminAboutAppeal(env, {
+    source: "Telegram-бот",
+    role: "Telegram",
+    category: "Через Telegram-бота",
+    message
+  });
   await env.DB.prepare("UPDATE telegram_appeal_sessions SET awaiting=0, updated_at=? WHERE chat_id=?")
     .bind(Math.floor(Date.now() / 1000), chatId).run();
   await telegramReply(env, chatId,
@@ -305,6 +332,12 @@ export default {
         }
         await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
           .bind(role, category, message).run();
+        await notifyAdminAboutAppeal(env, {
+          source: "Сайт",
+          role,
+          category,
+          message
+        });
         return json({ success: true }, 201, { ...headers, ...cors(origin) });
       } catch {
         return json({ error: "Сервис временно недоступен. Попробуйте позже." }, 503, { ...headers, ...cors(origin) });
