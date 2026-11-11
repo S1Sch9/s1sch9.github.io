@@ -91,10 +91,23 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .ok svg{width:84px;height:84px;stroke:var(--red);fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
 .ok circle{stroke-dasharray:260;stroke-dashoffset:260;animation:dr .7s .1s forwards}.ok path{stroke-dasharray:60;stroke-dashoffset:60;animation:dr .4s .7s forwards}
 @keyframes dr{to{stroke-dashoffset:0}}
-.game{position:relative;overflow:hidden;border-radius:30px;padding:34px 22px;text-align:center;color:var(--gold);background:linear-gradient(160deg,#4f0012,#1b0207);box-shadow:inset 0 0 0 1.5px #f0c86955}
-.game h2{font-size:34px;line-height:1.05;color:#fff;letter-spacing:.02em;margin-bottom:8px;text-shadow:0 0 28px #f0c86966}
-.game p{opacity:.9;margin-bottom:22px}.game .btn{background:var(--gold);color:#3d000d;animation:pu 2.4s ease-in-out infinite}
-@keyframes pu{50%{transform:scale(1.04);box-shadow:0 0 30px #f0c86966}}
+.game{position:relative;overflow:hidden;padding:0;border-radius:28px;background:#fff;border:1px solid var(--line);box-shadow:0 12px 30px rgba(61,0,13,.09)}
+.game-art{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:16px;padding:24px 20px 22px;color:#fff;background:linear-gradient(135deg,#B3002A 0%,#8E0020 48%,#3D000D 100%)}
+.game-art:before,.game-art:after{content:"";position:absolute;z-index:-1;border-radius:50%;pointer-events:none}
+.game-art:before{width:180px;height:180px;right:-72px;top:-100px;background:rgba(240,200,105,.24);filter:blur(5px)}
+.game-art:after{width:130px;height:130px;left:20px;bottom:-100px;background:rgba(255,255,255,.10);filter:blur(8px)}
+.game-emblem{width:76px;height:76px;display:grid;place-items:center;padding:9px;border-radius:22px;background:#fff;box-shadow:0 8px 20px rgba(29,0,8,.2)}
+.game-emblem img{width:100%;height:100%;object-fit:contain}
+.game-copy{min-width:0}
+.game-kicker{display:block;margin-bottom:6px;color:#F0C869;font-size:9px;font-weight:900;letter-spacing:1.5px}
+.game h2{margin:0 0 7px;color:#fff;font-size:clamp(22px,6vw,29px);line-height:1.02;letter-spacing:-.5px}
+.game p{margin:0;color:rgba(255,255,255,.86);font-size:13px;line-height:1.4}
+.game-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px 17px;background:#fff}
+.game-hint{color:var(--mut);font-size:11px;line-height:1.3}
+.game .btn{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;min-width:138px;margin:0;padding:13px 18px;border:0;border-radius:15px;background:var(--gold);color:var(--deep);font-size:14px;font-weight:800;box-shadow:0 5px 13px rgba(61,0,13,.12);transition:transform .16s,box-shadow .16s}
+.game .btn:active{transform:scale(.97);box-shadow:0 2px 7px rgba(61,0,13,.14)}
+@media(max-width:380px){.game-art{grid-template-columns:62px minmax(0,1fr);gap:12px;padding:20px 15px}.game-emblem{width:62px;height:62px;border-radius:18px}.game-bottom{align-items:stretch;flex-direction:column}.game .btn{width:100%}}
+
 .link{display:flex;align-items:center;gap:14px;padding:18px;margin-bottom:12px;font-weight:700}
 .link i{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-style:normal;font-size:22px;color:#fff;flex:none}.link i svg{width:26px;height:26px;display:block}.link i img{width:100%;height:100%;display:block;object-fit:contain}.link.school i{background:#fff;padding:3px}
 nav{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:6;max-width:616px;margin:auto;display:flex;gap:2px;padding:6px;border-radius:26px;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 10px 40px rgba(61,0,13,.2)}
@@ -164,8 +177,13 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 
 </section>
 <section id="games"><h1 class="rv">Мини-игры</h1>
-  <div class="game rv"><img src="gerb.png" alt="" style="height:86px;margin-bottom:12px"><h2>БАШНЯ ПЕРВЫХ</h2><p>Покоряй вершины! Строй свою башню к небесам с помощью достижений и проектов Движения.</p>
-  <button class="btn" id="play">Открыть игру</button></div>
+  <div class="game rv">
+    <div class="game-art">
+      <div class="game-emblem"><img src="gerb.png" alt="Герб школы №9"></div>
+      <div class="game-copy"><span class="game-kicker">ИГРА СОВЕТА ПЕРВЫХ</span><h2>Башня Первых</h2><p>Проверь точность, строй выше и побей свой рекорд!</p></div>
+    </div>
+    <div class="game-bottom"><span class="game-hint">🏆 Рекорд сохраняется на устройстве</span><button class="btn" id="play" type="button">Играть <span aria-hidden="true">→</span></button></div>
+  </div>
 </section>
 <section id="links"><h1 class="rv">Наши ресурсы</h1>
   <a class="row link rv" id="tg" href="#"><i style="background:#2aa3e0"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21.5 3.5 18.2 20c-.25 1.17-.9 1.46-1.82.91l-5.03-3.7-2.43 2.34c-.27.27-.5.5-1.02.5l.36-5.12 9.32-8.42c.4-.36-.09-.56-.62-.2L5.44 13.5.49 11.95c-1.08-.34-1.1-1.08.23-1.58L20.1 2.9c.9-.33 1.69.22 1.4.6Z" fill="white"/></svg></i>Телеграм-канал «Совет Первых школы №9!»</a>
