@@ -212,6 +212,25 @@ body{background:#FAF6F6;color:#1D1215}
 .exit-confirm-card p{color:#fff}
 .new-record{color:#A1001F}
 @media(max-height:720px){.app-container{padding:8px}.logo-container{margin-bottom:6px}.brand-text{margin-top:6px;font-size:34px}.brand-subtext{margin-bottom:9px}.record-display{margin-bottom:10px}.canvas-wrapper{max-height:min(54dvh,390px)}}
+
+
+/* V5 — portrait playfield, complete tower framing, main-site palette */
+html,body{min-height:100%;background:#FAF6F6!important;color:#3D000D!important}
+body{overflow:hidden}
+.app-container{width:100%;max-width:460px;height:100dvh;max-height:none;padding:clamp(10px,2.8vw,16px);margin:0 auto}
+#game-screen{justify-content:flex-start;gap:0;padding-top:2px;padding-bottom:2px;overflow:hidden}
+#game-screen .top-bar{flex:0 0 auto;margin-bottom:10px}
+#game-screen .canvas-wrapper{flex:0 0 auto;width:min(100%,330px,calc((100dvh - 250px)*.75));height:auto;aspect-ratio:3/4;max-height:none;min-height:0;margin:0 auto;border-radius:22px;overflow:hidden;background:linear-gradient(145deg,#FFFDFC 0%,#F6E4E8 55%,#EAD0D8 100%);border:1px solid #EADFE1;box-shadow:0 12px 30px rgba(61,0,13,.12),inset 0 1px rgba(255,255,255,.9)}
+#game-screen canvas{width:100%;height:100%;display:block}
+#game-screen .canvas-wrapper:before{inset:8px;border:1px solid rgba(161,0,31,.12);border-radius:15px}
+#game-screen .canvas-wrapper:after{display:none}
+#game-screen .top-bar .stats{background:#fff;border:1px solid #EADFE1;color:#3D000D;box-shadow:0 4px 14px rgba(61,0,13,.06)}
+#game-screen .icon-btn{background:#3D000D;color:#F0C869;border:1px solid #3D000D}
+#game-screen .game-header-crest{background:#fff;border:1px solid #EADFE1}
+#game-screen .overlay{border-radius:22px;background:rgba(61,0,13,.90)}
+@media(max-height:700px){.app-container{padding:7px}#game-screen .top-bar{margin-bottom:6px}#game-screen .canvas-wrapper{width:min(100%,285px,calc((100dvh - 205px)*.75))}}
+@media(min-width:600px){#game-screen .canvas-wrapper{width:min(100%,360px,calc((100dvh - 250px)*.75))}}
+
 </style>
 </head>
 <body>
@@ -534,7 +553,7 @@ body{background:#FAF6F6;color:#1D1215}
         blocks.forEach(b=>{if(b.landingAnim>0)b.landingAnim-=frameScale;});
         fallingPieces.forEach(p=>{if(p.type==='block'){p.vy+=1.15*frameScale;p.y+=p.vy*frameScale;p.x+=p.vx*frameScale;p.rotation+=p.vr*frameScale;p.alpha-=.025*frameScale;}else if(p.type==='crumb'){p.vy+=.8*frameScale;p.y+=p.vy*frameScale;p.x+=p.vx*frameScale;p.vx*=Math.pow(.94,frameScale);p.life-=.05*frameScale;p.alpha=p.life;}});
         fallingPieces=fallingPieces.filter(p=>p.alpha>0&&p.y<canvasHeight+200);ambientParticles.forEach(p=>{p.y-=p.speed*frameScale;p.phase+=.018*frameScale;if(p.y<-5){p.y=canvasHeight+5;p.x=Math.random()*canvasWidth;}});impactGlow=Math.max(0,impactGlow-.055*frameScale);
-        const towerHeight=blocks.length*blockHeight;const baseOffset=(blocks[0]?.width||0)*ISO_Y+blockHeight+34;const fitHeight=canvasHeight*.68;cameraTargetScale=Math.max(.20,Math.min(1,fitHeight/Math.max(1,towerHeight+baseOffset)));cameraTargetY=0;cameraScale+=(cameraTargetScale-cameraScale)*Math.min(.16*frameScale,.34);cameraY+=(cameraTargetY-cameraY)*Math.min(.16*frameScale,.34);updateCameraBounds();
+        const towerHeight=blocks.length*blockHeight;const baseWidth=(blocks[0]?.width||0);const projectedHeight=towerHeight+baseWidth*ISO_Y+blockHeight+44;const fitHeight=canvasHeight*.48;const fitWidth=canvasWidth*.72;const heightScale=fitHeight/Math.max(1,projectedHeight);const widthScale=fitWidth/Math.max(1,baseWidth*1.15);cameraTargetScale=Math.max(.22,Math.min(.78,heightScale,widthScale));cameraTargetY=-canvasHeight*.075;cameraScale+=(cameraTargetScale-cameraScale)*Math.min(.13*frameScale,.28);cameraY+=(cameraTargetY-cameraY)*Math.min(.13*frameScale,.28);updateCameraBounds();
     }
 
     function getFittedText(text, maxWidth) {
@@ -563,13 +582,13 @@ body{background:#FAF6F6;color:#1D1215}
         ctx.beginPath();ctx.ellipse(x,y,34*scale,10*scale,0,0,Math.PI*2);ctx.ellipse(x-17*scale,y-6*scale,15*scale,13*scale,0,0,Math.PI*2);ctx.ellipse(x+2*scale,y-11*scale,19*scale,17*scale,0,0,Math.PI*2);ctx.ellipse(x+22*scale,y-5*scale,14*scale,11*scale,0,0,Math.PI*2);ctx.fill();ctx.restore();
     }
     function drawAtmosphere(){
-        const bg=ctx.createLinearGradient(0,0,0,canvasHeight);
-        bg.addColorStop(0,'#4F0012');bg.addColorStop(.58,'#31000B');bg.addColorStop(1,'#1B0207');
+        const bg=ctx.createLinearGradient(0,0,canvasWidth,canvasHeight);
+        bg.addColorStop(0,'#FFFDFC');bg.addColorStop(.48,'#F8EDF0');bg.addColorStop(1,'#EEDDE2');
         ctx.fillStyle=bg;ctx.fillRect(0,0,canvasWidth,canvasHeight);
-        const glow=ctx.createRadialGradient(canvasWidth*.5,canvasHeight*.34,4,canvasWidth*.5,canvasHeight*.34,canvasWidth*.72);
-        glow.addColorStop(0,'rgba(240,200,105,.10)');glow.addColorStop(1,'rgba(240,200,105,0)');
+        const glow=ctx.createRadialGradient(canvasWidth*.5,canvasHeight*.38,4,canvasWidth*.5,canvasHeight*.38,canvasWidth*.72);
+        glow.addColorStop(0,'rgba(179,0,42,.10)');glow.addColorStop(.62,'rgba(240,200,105,.08)');glow.addColorStop(1,'rgba(240,200,105,0)');
         ctx.fillStyle=glow;ctx.fillRect(0,0,canvasWidth,canvasHeight);
-        if(impactGlow>0){const flash=ctx.createRadialGradient(canvasWidth/2,canvasHeight*.52,0,canvasWidth/2,canvasHeight*.52,canvasWidth*.58);flash.addColorStop(0,'rgba(240,200,105,'+(impactGlow*.12)+')');flash.addColorStop(1,'rgba(240,200,105,0)');ctx.fillStyle=flash;ctx.fillRect(0,0,canvasWidth,canvasHeight);}
+        if(impactGlow>0){const flash=ctx.createRadialGradient(canvasWidth/2,canvasHeight*.52,0,canvasWidth/2,canvasHeight*.52,canvasWidth*.58);flash.addColorStop(0,'rgba(179,0,42,'+(impactGlow*.09)+')');flash.addColorStop(1,'rgba(179,0,42,0)');ctx.fillStyle=flash;ctx.fillRect(0,0,canvasWidth,canvasHeight);}
     }
     function drawTopTarget() {
         let targetY = canvasHeight - (38 * 30) + cameraY;
