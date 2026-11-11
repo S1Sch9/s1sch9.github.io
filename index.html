@@ -114,6 +114,7 @@ nav a.on{background:var(--red);color:#fff}nav a.on i{transform:scale(1.14)}
 #gm iframe{width:100%;height:100%;border:0}#gm button{position:absolute;bottom:calc(10px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:2;padding:10px 22px;border-radius:99px;border:1px solid #f0c86988;background:#2a0710;color:var(--gold);font:700 15px Onest,sans-serif}
 .note{color:var(--mut);font-size:14px}
 a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.site-credit{margin:18px 0 92px;padding:0 16px;text-align:center;color:var(--mut);font-size:11px;line-height:1.5;letter-spacing:.02em;opacity:.58}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 </style>
   <meta name="google-site-verification" content="OeqPg6QGqLsGVY-m0d_avxqMQK16st13n9Bg8HKyTgY" />
@@ -159,7 +160,6 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
     <p><b>Запрещены:</b> нецензурная лексика, оскорбления, спам, сообщения не по теме проекта.</p>
     <p><b>Цель проекта:</b> дать каждому ученику возможность внести свой вклад в развитие нашей школы.</p>
     <p><b>Как это работает:</b><br>1. Вы отправляете обращение.<br>2. Оно проходит модерацию на соответствие правилам.<br>3. Если нарушений нет, предложение выносится на обсуждение Совета Первых. Лучшие предложения выкладываются в канал «Совет Первых школы №9!»</p>
-    <p>Проект создан: Михеев Д.А. 9А</p>
   </details>
 
 </section>
@@ -336,6 +336,7 @@ $("#share").onclick = () => { const u = location.href.split("#")[0];
   navigator.share ? navigator.share({title: document.title, url: u}).catch(() => {}) : navigator.clipboard?.writeText(u).then(() => alert("Ссылка скопирована")); };
 route();
 </script>
+<footer class="site-credit" aria-label="Информация о создателе сайта">Сайт создан Михеевым Д. А. · 9 «А» класс</footer>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </body>
 </html>
