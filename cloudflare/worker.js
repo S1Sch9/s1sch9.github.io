@@ -327,6 +327,10 @@ export default {
         return new Response(fileResponse.body, { headers: { ...headers, ...cors(origin), "Content-Type": fileResponse.headers.get("Content-Type") || (media.type === "video" ? "video/mp4" : "image/jpeg"), "Cache-Control": "public, max-age=3600" } });
       } catch { return new Response("Media unavailable", { status: 502, headers }); }
     }
+    if (url.pathname === "/admin-icon.png" && request.method === "GET") {
+      const icon = Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAD8UlEQVR42u3dQXLbMAxGYZujm6QXycXbi+Qu6cKbTuM4tiQSBPi9fUcW8fQTpBj1+vvydgHu0QwByAFygBwgB8gBcoAcIAfIAXIA5AA5QA6QA+QAOUAOkAPkADkAcoAcIAfIAXKAHCAHyAFyrMT758fKt78x4FU//lx/LXLv16rf53j//DhYxedjo6ouBeX4t6hHyvbqnFJPkTpyfFfLfTU70m2UsWQrrEXs7ymgSO7keFKLHXU6S7jUimSVo2tDcHoUJVWkZdRiR/EW37FYQo4jNX7y39IoX0OqZnqO7lo8nv57KJi3J92WMkMCFZFDFTWkIMdKUzU5QA7hsfAtSA6QA/Xk0JaSoyz7XhNe5tjmWW77fPIU/O9mY4Oz1RjTLCnSI2P64U8TZjcm8NnI0XOUDI8JoyJfz1Gs80j0bDRmuP2sPYcX91YrzJhxKGyCYRo5nn8CxEb4gGwz3KQXKJaywiDZslbPgQnkEBvphlFyIFoOsZFxMCUHQuUQG0mH1HmOR4vDxbXuvs8x7fjGfutn/C1Ijl5jevsnqwXJRoukigzYKm3MmLAqP/6AMb+hMSOXH3XerRRO4BA/Bl+0fnL0G9DBpRqvY2PG/AUb1mQsJMewyhULjBVXK/wmR8CwVj3m2FEO79vIIY3LhoeeAxFyRC3AkCY5xisSZWS9J6ENGzgpQg6K1FnxBTSkFJEcFCEH+s8sUZMLOSjyLf40IWV/6pgggoOkFX68yl+3tyKSA+QAOQITPuROu3amkgNTytH1aRv5KFc989ZKmoGscgzb7Kt0lSXkGDyUvS9XO/9aYTN6XzTcjN6b6Et8h7THpVfomQZ9MC58KM/9AYt00y3jUxv7S9ZZZ631yv5W191T9WrL7xH/a0KBT/FNeAsDjnSse9jnmYMzvkP6NrISyBIbFy/eEC+Hv0LIOJiSAxPIITzSDaPkQPRqxbLl1TC4O1CD09cfNaUxZvxzNTo5hEeiVkzPgZnksGzJMhR6DlpMNq0sHh5Zbr/NP0C3bwCZjDSkd7SolzdZ1mtbbO1n2OpBjuT4cfoQHiMJ2AT7Okw7Sl5gJ21+0ePlWGHyTiqHHVJmkwPkADmK9KST34LkADmEBzlwIl7ZR+I8R52CnTsF2CFNNlX/WLBTrpvlDZHkMI9oSE+q3JHqpnulTI4RNU56ks1b2Z0lf/LSqQ+g5JYjtkl8fN0C55IqNKS3MhxR5NxCljmuViE5jgfJKd8XrHf0taAcrypysKj7jjmSI4cuDruTY62Hnhzoi00wkAPkADlADpAD5AA5QA6QA+QAyAFygBwgB8gBcoAcIAfIAXIA5AA5QA6QA+QAOUAOkAPl+Atk0K26a296KQAAAABJRU5ErkJggg=="), c => c.charCodeAt(0));
+      return new Response(icon, { headers: { ...headers, "content-type": "image/png", "cache-control": "public, max-age=86400" } });
+    }
     if (url.pathname === "/service-worker.js" && request.method === "GET") {
       const script = `self.addEventListener("push", event => {
   let data = {};
@@ -334,8 +338,8 @@ export default {
   const title = data.title || "Совет Первых · школа №9";
   const options = {
     body: data.body || "Поступило новое обращение.",
-    icon: "https://s1sch9.github.io/apple-touch-icon.png",
-    badge: "https://s1sch9.github.io/favicon.png",
+    icon: "/admin-icon.png",
+    badge: "/admin-icon.png",
     tag: data.tag || "s1sch9-notification",
     renotify: true,
     data: { url: data.url || "/admin#appeals" }
@@ -360,16 +364,16 @@ self.addEventListener("notificationclick", event => {
     if (url.pathname === "/manifest.webmanifest" && request.method === "GET") {
       return json({
         id: "/admin",
-        name: "Совет Первых · школа №9",
-        short_name: "Совет Первых",
+        name: "Админка",
+        short_name: "Админка",
         start_url: "/admin",
         scope: "/",
         display: "standalone",
         background_color: "#f6f4f5",
         theme_color: "#470014",
         icons: [
-          { src: "https://s1sch9.github.io/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-          { src: "https://s1sch9.github.io/favicon.png", sizes: "32x32", type: "image/png" }
+          { src: "/admin-icon.png", sizes: "180x180", type: "image/png" },
+          { src: "/admin-icon.png", sizes: "180x180", type: "image/png" }
         ]
       }, 200, { ...headers, "content-type": "application/manifest+json; charset=utf-8" });
     }
