@@ -175,8 +175,8 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     let impactGlow = 0;
     let currentBlock = null;
     let score = 0;
-    let gameSpeed = 2.9;
-    let gameSpeedIncrease = 0.075;
+    let gameSpeed = 4.2;
+    let gameSpeedIncrease = 0.055;
     let combo = 0;
     let lastFrameTime = 0;
     let isGameOver = true;
@@ -261,7 +261,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
             isGameOver = false;
             isPaused = false;
             score = 0;
-            gameSpeed = 2.9;
+            gameSpeed = 4.2;
             combo = 0;
             lastFrameTime = 0;
             comboEl.innerText = "КОМБО ×0";
@@ -277,14 +277,14 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
             newRecordBadge.style.display = 'none';
             cameraScale = .82;
             const baseWidth=Math.min(canvasWidth*.52,190),baseX=-baseWidth/2,baseZ=-baseWidth/2;boardHalf=baseWidth/2;nextAxis='x';blocks.push({x:baseX,z:baseZ,width:baseWidth,depth:baseWidth,level:0,style:blockStyles[0],landingAnim:0});
-            cameraY=10+blockHeight/2-canvasHeight/(2*cameraScale);cameraTargetScale=cameraScale;cameraTargetY=cameraY;updateCameraBounds();
+            cameraY=10+(canvasHeight*.76-canvasHeight)/cameraScale;cameraTargetScale=cameraScale;cameraTargetY=cameraY;updateCameraBounds();
             spawnBlock();
             if (animationId) cancelAnimationFrame(animationId);
             gameLoop(performance.now());
         }, 50);
     }
 
-    function spawnBlock(){if(isGameOver)return;const prev=blocks[blocks.length-1],style=blockStyles[(blocks.length-1)%blockStyles.length],axis=nextAxis;nextAxis=nextAxis==='x'?'z':'x';projectLabel.classList.remove('show');const travel=(canvasWidth*.78)/(ISO_X*Math.max(.35,cameraScale));currentBlock={x:axis==='x'?prev.x-travel:prev.x,z:axis==='z'?prev.z-travel:prev.z,width:prev.width,depth:prev.depth,level:blocks.length,style,axis,landingAnim:0,entryDistance:travel};}
+    function spawnBlock(){if(isGameOver)return;const prev=blocks[blocks.length-1],style=blockStyles[(blocks.length-1)%blockStyles.length],axis=nextAxis;nextAxis=nextAxis==='x'?'z':'x';projectLabel.classList.remove('show');const travel=(canvasWidth*.62)/(ISO_X*Math.max(.35,cameraScale));currentBlock={x:axis==='x'?prev.x-travel:prev.x,z:axis==='z'?prev.z-travel:prev.z,width:prev.width,depth:prev.depth,level:blocks.length,style,axis,landingAnim:0,entryDistance:travel};}
 
     function dropBlock() {
         if (isGameOver || isPaused || !currentBlock) return;
@@ -340,7 +340,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         const bonusLabel = comboBonus === 1 ? "очко" : comboBonus > 1 && comboBonus < 5 ? "очка" : "очков";
         comboEl.innerText = `КОМБО ×${combo}`;
         scoreEl.innerText = score;
-        gameSpeed = Math.min(8.2, gameSpeed + gameSpeedIncrease);
+        gameSpeed = Math.min(7.0, gameSpeed + gameSpeedIncrease);
 
         if(currentBlock.width<8||currentBlock.depth<8){
             currentBlock = null;
@@ -386,7 +386,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         blocks.forEach(b=>{if(b.landingAnim>0)b.landingAnim-=frameScale;});
         fallingPieces.forEach(p=>{if(p.type==='block'){p.vy+=1.15*frameScale;p.y+=p.vy*frameScale;p.x+=p.vx*frameScale;p.rotation+=p.vr*frameScale;p.alpha-=.025*frameScale;}else if(p.type==='crumb'){p.vy+=.8*frameScale;p.y+=p.vy*frameScale;p.x+=p.vx*frameScale;p.vx*=Math.pow(.94,frameScale);p.life-=.05*frameScale;p.alpha=p.life;}});
         fallingPieces=fallingPieces.filter(p=>p.alpha>0&&p.y<canvasHeight+200);ambientParticles.forEach(p=>{p.y-=p.speed*frameScale;p.phase+=.018*frameScale;if(p.y<-5){p.y=canvasHeight+5;p.x=Math.random()*canvasWidth;}});impactGlow=Math.max(0,impactGlow-.055*frameScale);
-        const towerHeight=blocks.length*blockHeight;const baseWidth=(blocks[0]?.width||0);const projectedHeight=towerHeight+baseWidth*ISO_Y+blockHeight+48;const fitHeight=canvasHeight*.70;const fitWidth=canvasWidth*.76;const heightScale=fitHeight/Math.max(1,projectedHeight);const widthScale=fitWidth/Math.max(1,baseWidth*1.15);cameraTargetScale=Math.max(.20,Math.min(.82,heightScale,widthScale));cameraTargetY=10+towerHeight/2-canvasHeight/(2*cameraTargetScale);cameraScale+=(cameraTargetScale-cameraScale)*Math.min(.12*frameScale,.26);cameraY+=(cameraTargetY-cameraY)*Math.min(.12*frameScale,.26);updateCameraBounds();
+        const towerHeight=blocks.length*blockHeight;const baseWidth=(blocks[0]?.width||0);const projectedHeight=towerHeight+baseWidth*ISO_Y+blockHeight+48;const fitHeight=canvasHeight*.70;const fitWidth=canvasWidth*.76;const heightScale=fitHeight/Math.max(1,projectedHeight);const widthScale=fitWidth/Math.max(1,baseWidth*1.15);cameraTargetScale=Math.max(.20,Math.min(.82,heightScale,widthScale));cameraTargetY=10+(blocks.length-1)*blockHeight+blockHeight/2+(canvasHeight*.62-canvasHeight)/cameraTargetScale;cameraScale+=(cameraTargetScale-cameraScale)*Math.min(.12*frameScale,.26);cameraY+=(cameraTargetY-cameraY)*Math.min(.12*frameScale,.26);updateCameraBounds();
     }
 
     function getFittedText(text, maxWidth) {
