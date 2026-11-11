@@ -51,10 +51,12 @@ button{font:inherit}
 canvas{display:block;width:100%;height:100%;touch-action:none}
 .canvas-wrapper:before{content:"";position:absolute;inset:9px;z-index:1;pointer-events:none;border:1px solid rgba(240,200,105,.24);border-radius:16px}
 .canvas-wrapper:after{content:"";position:absolute;left:18%;right:18%;top:0;height:2px;z-index:1;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,231,174,.8),transparent)}
-.canvas-wrapper.combo-streak{box-shadow:0 14px 34px rgba(61,0,13,.16),inset 16px 0 28px rgba(255,218,137,.16),inset -16px 0 28px rgba(255,218,137,.16),inset 0 0 22px rgba(255,218,137,.08);animation:comboSideGlow 1.45s ease-in-out infinite}
-.canvas-wrapper.combo-streak.combo-hot{box-shadow:0 14px 38px rgba(61,0,13,.2),inset 20px 0 34px rgba(255,218,137,.23),inset -20px 0 34px rgba(255,218,137,.23),inset 0 0 28px rgba(255,218,137,.13)}
-.canvas-wrapper.combo-impact{animation:comboSideGlow 1.45s ease-in-out infinite,comboNudge .26s ease-out}
-@keyframes comboSideGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.055)}}
+.canvas-wrapper.combo-streak{box-shadow:0 14px 34px rgba(61,0,13,.16),inset 13px 0 25px rgba(255,218,137,.13),inset -13px 0 25px rgba(255,218,137,.13),inset 0 0 18px rgba(255,218,137,.06);transition:box-shadow .7s ease}
+.canvas-wrapper.combo-streak:before{border-color:rgba(255,224,157,.48);box-shadow:inset 0 0 17px rgba(255,218,137,.12);animation:comboEdgeFlow 2.8s ease-in-out infinite}
+.canvas-wrapper.combo-streak.combo-hot{box-shadow:0 14px 38px rgba(61,0,13,.18),inset 17px 0 30px rgba(255,218,137,.18),inset -17px 0 30px rgba(255,218,137,.18),inset 0 0 23px rgba(255,218,137,.09)}
+.canvas-wrapper.combo-streak.combo-hot:before{border-color:rgba(255,231,177,.68);box-shadow:inset 0 0 22px rgba(255,218,137,.18)}
+.canvas-wrapper.combo-impact{animation:comboNudge .26s ease-out}
+@keyframes comboEdgeFlow{0%,100%{opacity:.58;box-shadow:inset 0 0 12px rgba(255,218,137,.08)}50%{opacity:1;box-shadow:inset 0 0 22px rgba(255,218,137,.2)}}
 @keyframes comboNudge{0%,100%{transform:translateX(0)}22%{transform:translateX(-2px)}48%{transform:translateX(2px)}72%{transform:translateX(-1px)}}
 @media(prefers-reduced-motion:reduce){.canvas-wrapper.combo-streak,.canvas-wrapper.combo-impact{animation:none}}
 .feedback,.bonus-pop{position:absolute;left:50%;top:0;width:max-content;max-width:90%;pointer-events:none;z-index:4;font-weight:900;text-align:center;opacity:0;transform:translate(-50%,8px) scale(.8);color:#fff;text-shadow:0 2px 12px rgba(61,0,13,.65),0 0 16px rgba(240,200,105,.55)}
