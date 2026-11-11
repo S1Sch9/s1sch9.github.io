@@ -1,4 +1,5 @@
 import { adminPage } from "./admin-page.js";
+import { buildPushPayload } from "@block65/webcrypto-web-push";
 
 // Combined appeals and news administration.
 const SITE_ORIGIN = "https://s1sch9.github.io";
@@ -131,24 +132,52 @@ async function telegramReply(env, chatId, text, replyMarkup) {
   });
 }
 
-async function notifyAdminAboutAppeal(env, { source, role, category, message }) {
-  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID) return;
-  const preview = String(message || "").slice(0, 3000);
-  const text = "🔔 НОВОЕ ОБРАЩЕНИЕ\n\n" +
-    "Источник: " + source + "\n" +
-    "Кто: " + role + "\n" +
-    "Категория: " + category + "\n\n" +
-    preview + (String(message || "").length > 3000 ? "…" : "");
+async function ensurePushTables(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS push_subscriptions (
+    endpoint TEXT PRIMARY KEY,
+    subscription_json TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  )`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS push_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  )`).run();
+}
+async function sendPushNotifications(env, data) {
   try {
-    await telegramApi(env, "sendMessage", {
-      chat_id: String(env.TELEGRAM_ADMIN_ID),
-      text,
-      reply_markup: {
-        inline_keyboard: [[{ text: "Открыть админку", url: "https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/admin" }]]
+    await ensurePushTables(env);
+    const setting = await env.DB.prepare("SELECT value FROM push_settings WHERE key = 'public_key'").first();
+    if (!setting?.value || !env.VAPID_PRIVATE_KEY) return { sent: 0, skipped: true };
+    const rows = await env.DB.prepare("SELECT endpoint, subscription_json FROM push_subscriptions").all();
+    const vapid = {
+      subject: "https://s1sch9.github.io",
+      publicKey: setting.value,
+      privateKey: env.VAPID_PRIVATE_KEY
+    };
+    let sent = 0;
+    await Promise.all((rows.results || []).map(async row => {
+      try {
+        const subscription = JSON.parse(row.subscription_json);
+        const payload = await buildPushPayload({
+          data,
+          options: { ttl: 3600, urgency: "high", topic: "new-appeal" }
+        }, subscription, vapid);
+        const response = await fetch(row.endpoint, payload);
+        if (response.status === 404 || response.status === 410) {
+          await env.DB.prepare("DELETE FROM push_subscriptions WHERE endpoint = ?").bind(row.endpoint).run();
+        } else if (response.ok) {
+          sent++;
+        } else {
+          console.error("Push delivery returned status", response.status);
+        }
+      } catch (error) {
+        console.error("Push delivery failed");
       }
-    });
+    }));
+    return { sent, skipped: false };
   } catch (error) {
-    console.error("Admin appeal notification failed");
+    console.error("Push notification processing failed");
+    return { sent: 0, failed: true };
   }
 }
 async function ensureTelegramAppeals(env) {
@@ -237,11 +266,11 @@ async function telegramWebhook(request, env) {
   }
   await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
     .bind("Telegram", "Через Telegram-бота", message).run();
-  await notifyAdminAboutAppeal(env, {
-    source: "Telegram-бот",
-    role: "Telegram",
-    category: "Через Telegram-бота",
-    message
+  await sendPushNotifications(env, {
+    title: "Совет Первых · Новое обращение",
+    body: "Поступило обращение из Telegram-бота. Нажмите, чтобы открыть админку.",
+    url: "/admin#appeals",
+    tag: "new-appeal"
   });
   await env.DB.prepare("UPDATE telegram_appeal_sessions SET awaiting=0, updated_at=? WHERE chat_id=?")
     .bind(Math.floor(Date.now() / 1000), chatId).run();
@@ -298,6 +327,107 @@ export default {
         return new Response(fileResponse.body, { headers: { ...headers, ...cors(origin), "Content-Type": fileResponse.headers.get("Content-Type") || (media.type === "video" ? "video/mp4" : "image/jpeg"), "Cache-Control": "public, max-age=3600" } });
       } catch { return new Response("Media unavailable", { status: 502, headers }); }
     }
+    if (url.pathname === "/service-worker.js" && request.method === "GET") {
+      const script = `self.addEventListener("push", event => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch {}
+  const title = data.title || "Совет Первых · школа №9";
+  const options = {
+    body: data.body || "Поступило новое обращение.",
+    icon: "https://s1sch9.github.io/apple-touch-icon.png",
+    badge: "https://s1sch9.github.io/favicon.png",
+    tag: data.tag || "s1sch9-notification",
+    renotify: true,
+    data: { url: data.url || "/admin#appeals" }
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url || "/admin#appeals", self.location.origin).href;
+  event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+    for (const client of list) {
+      if (client.url.startsWith(self.location.origin)) {
+        client.navigate(target);
+        return client.focus();
+      }
+    }
+    return clients.openWindow(target);
+  }));
+});`;
+      return new Response(script, { headers: { ...headers, "content-type": "application/javascript; charset=utf-8", "Service-Worker-Allowed": "/", "cache-control": "no-cache" } });
+    }
+    if (url.pathname === "/manifest.webmanifest" && request.method === "GET") {
+      return json({
+        id: "/admin",
+        name: "Совет Первых · школа №9",
+        short_name: "Совет Первых",
+        start_url: "/admin",
+        scope: "/",
+        display: "standalone",
+        background_color: "#f6f4f5",
+        theme_color: "#470014",
+        icons: [
+          { src: "https://s1sch9.github.io/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+          { src: "https://s1sch9.github.io/favicon.png", sizes: "32x32", type: "image/png" }
+        ]
+      }, 200, { ...headers, "content-type": "application/manifest+json; charset=utf-8" });
+    }
+    if (url.pathname === "/api/admin/push/config" && request.method === "GET") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensurePushTables(env);
+        const row = await env.DB.prepare("SELECT value FROM push_settings WHERE key = 'public_key'").first();
+        return json({ publicKey: row?.value || "", ready: !!row?.value && !!env.VAPID_PRIVATE_KEY }, 200, headers);
+      } catch { return json({ error: "Не удалось проверить настройки уведомлений." }, 500, headers); }
+    }
+    if (url.pathname === "/api/admin/push/config" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        const body = await request.json();
+        const publicKey = cleanText(body.publicKey, 120);
+        if (!/^[A-Za-z0-9_-]{80,100}$/.test(publicKey)) return json({ error: "Некорректный публичный ключ." }, 400, headers);
+        await ensurePushTables(env);
+        await env.DB.prepare("INSERT INTO push_settings (key, value) VALUES ('public_key', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(publicKey).run();
+        return json({ success: true }, 200, headers);
+      } catch { return json({ error: "Не удалось сохранить публичный ключ." }, 500, headers); }
+    }
+    if (url.pathname === "/api/admin/push/subscribe" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        const body = await request.json();
+        const sub = body.subscription;
+        if (!sub || typeof sub.endpoint !== "string" || !sub.endpoint.startsWith("https://") ||
+            !sub.keys || typeof sub.keys.p256dh !== "string" || typeof sub.keys.auth !== "string") {
+          return json({ error: "Некорректная подписка браузера." }, 400, headers);
+        }
+        await ensurePushTables(env);
+        await env.DB.prepare("INSERT INTO push_subscriptions (endpoint, subscription_json, created_at) VALUES (?, ?, ?) ON CONFLICT(endpoint) DO UPDATE SET subscription_json=excluded.subscription_json")
+          .bind(sub.endpoint, JSON.stringify(sub), Math.floor(Date.now() / 1000)).run();
+        return json({ success: true }, 201, headers);
+      } catch { return json({ error: "Не удалось сохранить подписку." }, 500, headers); }
+    }
+    if (url.pathname === "/api/admin/push/subscribe" && request.method === "DELETE") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        const body = await request.json();
+        const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
+        await ensurePushTables(env);
+        await env.DB.prepare("DELETE FROM push_subscriptions WHERE endpoint = ?").bind(endpoint).run();
+        return json({ success: true }, 200, headers);
+      } catch { return json({ error: "Не удалось отключить уведомления." }, 500, headers); }
+    }
+    if (url.pathname === "/api/admin/push/test" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      const result = await sendPushNotifications(env, {
+        title: "Совет Первых · Уведомления подключены",
+        body: "Отлично! Теперь новые обращения будут приходить сюда.",
+        url: "/admin#appeals",
+        tag: "push-test"
+      });
+      return json({ success: result.sent > 0, sent: result.sent, skipped: !!result.skipped }, result.sent > 0 ? 200 : 503, headers);
+    }
+
     if (url.pathname === "/admin" || url.pathname === "/admin/") {
       return new Response(adminPage(), { headers: { "content-type": "text/html; charset=utf-8", ...headers } });
     }
@@ -332,11 +462,11 @@ export default {
         }
         await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
           .bind(role, category, message).run();
-        await notifyAdminAboutAppeal(env, {
-          source: "Сайт",
-          role,
-          category,
-          message
+        await sendPushNotifications(env, {
+          title: "Совет Первых · Новое обращение",
+          body: "Поступило новое обращение с сайта. Нажмите, чтобы открыть админку.",
+          url: "/admin#appeals",
+          tag: "new-appeal"
         });
         return json({ success: true }, 201, { ...headers, ...cors(origin) });
       } catch {
