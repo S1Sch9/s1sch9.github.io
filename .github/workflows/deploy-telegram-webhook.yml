@@ -6,6 +6,7 @@ on:
     paths:
       - "cloudflare/worker.js"
       - "cloudflare/admin-page.js"
+      - "cloudflare/package.json"
       - "cloudflare/wrangler.jsonc"
       - ".github/workflows/deploy-telegram-webhook.yml"
 
