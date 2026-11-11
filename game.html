@@ -399,7 +399,7 @@ body{background:#FAF6F6;color:#1D1215}
         }, 50);
     }
 
-    function spawnBlock(){if(isGameOver)return;const prev=blocks[blocks.length-1],style=blockStyles[(blocks.length-1)%blockStyles.length],axis=nextAxis;nextAxis=nextAxis==='x'?'z':'x';projectLabel.classList.remove('show');currentBlock={x:axis==='x'?-boardHalf-prev.width:prev.x,z:axis==='z'?-boardHalf-prev.depth:prev.z,width:prev.width,depth:prev.depth,level:blocks.length,style,axis,landingAnim:0};}
+    function spawnBlock(){if(isGameOver)return;const prev=blocks[blocks.length-1],style=blockStyles[(blocks.length-1)%blockStyles.length],axis=nextAxis;nextAxis=nextAxis==='x'?'z':'x';projectLabel.classList.remove('show');currentBlock={x:axis==='x'?prev.x-prev.width:prev.x,z:axis==='z'?prev.z-prev.depth:prev.z,width:prev.width,depth:prev.depth,level:blocks.length,style,axis,landingAnim:0};}
 
     function dropBlock() {
         if (isGameOver || isPaused || !currentBlock) return;
@@ -497,7 +497,7 @@ body{background:#FAF6F6;color:#1D1215}
         if (!isGameOver) animationId = requestAnimationFrame(gameLoop);
     }
 
-    function update(frameScale=1){if(isPaused||isGameOver)return;if(currentBlock){if(currentBlock.axis==='x'){currentBlock.x+=gameSpeed*frameScale;if(currentBlock.x>boardHalf+currentBlock.width){currentBlock=null;endGame();return;}}else{currentBlock.z+=gameSpeed*frameScale;if(currentBlock.z>boardHalf+currentBlock.depth){currentBlock=null;endGame();return;}}}
+    function update(frameScale=1){if(isPaused||isGameOver)return;if(currentBlock){if(currentBlock.axis==='x'){currentBlock.x+=gameSpeed*frameScale;const target=blocks[blocks.length-1];if(currentBlock.x>target.x+target.width){currentBlock=null;endGame();return;}}else{currentBlock.z+=gameSpeed*frameScale;const target=blocks[blocks.length-1];if(currentBlock.z>target.z+target.depth){currentBlock=null;endGame();return;}}}
         blocks.forEach(b=>{if(b.landingAnim>0)b.landingAnim-=frameScale;});
         fallingPieces.forEach(p=>{if(p.type==='block'){p.vy+=1.15*frameScale;p.y+=p.vy*frameScale;p.x+=p.vx*frameScale;p.rotation+=p.vr*frameScale;p.alpha-=.025*frameScale;}else if(p.type==='crumb'){p.vy+=.8*frameScale;p.y+=p.vy*frameScale;p.x+=p.vx*frameScale;p.vx*=Math.pow(.94,frameScale);p.life-=.05*frameScale;p.alpha=p.life;}});
         fallingPieces=fallingPieces.filter(p=>p.alpha>0&&p.y<canvasHeight+200);ambientParticles.forEach(p=>{p.y-=p.speed*frameScale;p.phase+=.018*frameScale;if(p.y<-5){p.y=canvasHeight+5;p.x=Math.random()*canvasWidth;}});impactGlow=Math.max(0,impactGlow-.055*frameScale);
