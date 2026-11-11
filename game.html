@@ -365,7 +365,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
             comboBonus = Math.max(0, combo - 1);
             score += comboBonus;
             feedbackEl.textContent = `КОМБО ×${combo}`;
-            const popX=landed.x/canvasWidth*100,popY=Math.max(5,landed.y/canvasHeight*100-8);
+            const popX=Math.min(88,Math.max(12,landed.x/canvasWidth*100)),popY=Math.min(78,Math.max(14,landed.y/canvasHeight*100-8));
             feedbackEl.style.left = `${popX}%`;
             feedbackEl.style.top = `${popY}%`;
             feedbackEl.classList.remove("show");
