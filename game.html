@@ -46,11 +46,11 @@ button{font:inherit}
 .top-bar-controls{min-height:40px}
 .field-caption{margin-right:auto;color:#8A6570;font-size:9px;font-weight:900;letter-spacing:1.8px}
 .stats{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;min-height:58px;border-radius:17px;background:linear-gradient(145deg,#fff,#FFF9F0);border:1px solid #E7D7D9;color:var(--deep);box-shadow:0 5px 16px rgba(61,0,13,.09)}
-.field-stats{position:absolute;z-index:3;top:13px;left:50%;transform:translateX(-50%);width:min(174px,55%);min-height:48px;padding:6px 13px;border-radius:15px;background:linear-gradient(145deg,rgba(61,0,13,.84),rgba(101,0,24,.78));border:1px solid rgba(240,200,105,.52);color:#FFF8E8;box-shadow:0 5px 18px rgba(36,0,8,.22),inset 0 1px rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.field-stats .score-block small,.field-stats .combo-block small{color:rgba(255,241,211,.76);font-size:8px;letter-spacing:1.1px}
-.field-stats #score{font-size:22px;color:#FFF0C9}
-.field-stats .stats-divider{height:27px;background:rgba(255,240,201,.28)}
-.field-stats .combo{min-width:36px;padding:4px 8px;background:rgba(240,200,105,.17);border:1px solid rgba(240,200,105,.35);color:#FFE6A8;font-size:13px}
+.field-stats{position:absolute;z-index:3;top:13px;left:50%;transform:translateX(-50%);width:min(190px,62%);min-height:50px;padding:6px 16px;border-radius:16px;background:linear-gradient(145deg,rgba(255,252,246,.97),rgba(255,244,229,.94));border:1px solid rgba(240,200,105,.9);color:#3D000D;box-shadow:0 6px 18px rgba(61,0,13,.16),inset 0 1px #fff;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.field-stats .score-block small,.field-stats .combo-block small{color:#8A6570;font-size:8px;letter-spacing:1.25px}
+.field-stats #score{font-size:25px;line-height:1;color:#A1001F}
+.field-stats .stats-divider{height:29px;background:rgba(161,0,31,.16)}
+.field-stats .combo{min-width:42px;padding:5px 9px;background:#F0C869;border:1px solid #D9AE4E;color:#3D000D;font-size:14px;box-shadow:0 2px 5px rgba(61,0,13,.08)}
 .score-block,.combo-block{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0}
 .score-block small,.combo-block small{font-size:9px;line-height:1.1;letter-spacing:1.2px;font-weight:900;color:#806B70}
 #score{font-size:25px;line-height:1.05;font-weight:950;font-variant-numeric:tabular-nums;color:var(--red)}
@@ -61,7 +61,7 @@ button{font:inherit}
 .canvas-wrapper{position:relative;flex:0 0 auto;width:min(100%,390px,calc((100dvh - 144px)*.75));aspect-ratio:3/4;height:auto;min-height:0;margin:0 auto;border:1px solid rgba(61,0,13,.13);border-radius:24px;overflow:hidden;background:linear-gradient(155deg,#D52B52 0%,#A1001F 42%,#650018 72%,#3D000D 100%);box-shadow:0 14px 34px rgba(61,0,13,.16),inset 0 1px rgba(255,255,255,.22)}
 .play-hint{display:flex;align-items:center;justify-content:center;gap:8px;width:min(100%,390px);margin:10px auto 0;padding:9px 12px;border:1px solid #E8D8BD;border-radius:12px;background:#FFF9ED;color:#6B0019;font-size:10px;line-height:1.2;font-weight:900;letter-spacing:.45px;text-align:center}
 .play-hint-dot{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#B3002A;box-shadow:0 0 0 4px rgba(179,0,42,.1)}
-@media(max-width:370px){.top-bar{gap:7px}.field-stats{padding:6px 10px;min-height:45px}.field-stats #score{font-size:20px}.icon-btn{width:46px;height:46px}.canvas-wrapper{width:min(100%,350px,calc((100dvh - 148px)*.75))}.play-hint{font-size:9px;padding:8px 8px}.logo-container{gap:12px;padding:11px 15px;width:min(100%,310px);min-height:68px}.logo-container img{height:34px}.logo-container img:first-child{height:39px}}
+@media(max-width:370px){.top-bar{gap:7px}.field-stats{width:min(180px,64%);padding:6px 12px;min-height:46px}.field-stats #score{font-size:22px}.icon-btn{width:46px;height:46px}.canvas-wrapper{width:min(100%,350px,calc((100dvh - 148px)*.75))}.play-hint{font-size:9px;padding:8px 8px}.logo-container{gap:12px;padding:11px 15px;width:min(100%,310px);min-height:68px}.logo-container img{height:34px}.logo-container img:first-child{height:39px}}
 canvas{display:block;width:100%;height:100%;touch-action:none}
 .canvas-wrapper:before{content:"";position:absolute;inset:9px;z-index:1;pointer-events:none;border:1px solid rgba(240,200,105,.24);border-radius:16px}
 .canvas-wrapper:after{content:"";position:absolute;left:18%;right:18%;top:0;height:2px;z-index:1;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,231,174,.8),transparent)}
@@ -318,7 +318,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
             newRecordBadge.style.display = 'none';
             cameraScale = .82;
             const baseWidth=Math.min(canvasWidth*.52,190),baseX=-baseWidth/2,baseZ=-baseWidth/2;boardHalf=baseWidth/2;nextAxis='x';blocks.push({x:baseX,z:baseZ,width:baseWidth,depth:baseWidth,level:0,style:blockStyles[0],landingAnim:0});
-            cameraY=10+(canvasHeight*.84-canvasHeight)/cameraScale;cameraTargetScale=cameraScale;cameraTargetY=cameraY;updateCameraBounds();
+            const baseTop=projectPoint(baseX+baseWidth/2,baseZ+baseWidth/2,0);cameraY=(canvasHeight*.70-canvasHeight)/cameraScale-(baseTop.y-canvasHeight);cameraTargetScale=cameraScale;cameraTargetY=cameraY;updateCameraBounds();
             spawnBlock();
             if (animationId) cancelAnimationFrame(animationId);
             gameLoop(performance.now());
@@ -434,7 +434,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         blocks.forEach(b=>{if(b.landingAnim>0)b.landingAnim-=frameScale;});
         fallingPieces.forEach(p=>{if(p.type==='block'){p.vy+=1.15*frameScale;p.y+=p.vy*frameScale;p.x+=p.vx*frameScale;p.rotation+=p.vr*frameScale;p.alpha-=.025*frameScale;}else if(p.type==='crumb'){p.vy+=.8*frameScale;p.y+=p.vy*frameScale;p.x+=p.vx*frameScale;p.vx*=Math.pow(.94,frameScale);p.life-=.05*frameScale;p.alpha=p.life;}});
         fallingPieces=fallingPieces.filter(p=>p.alpha>0&&p.y<canvasHeight+200);ambientParticles.forEach(p=>{p.y-=p.speed*frameScale;p.phase+=.018*frameScale;if(p.y<-5){p.y=canvasHeight+5;p.x=Math.random()*canvasWidth;}});impactGlow=Math.max(0,impactGlow-.055*frameScale);
-        const towerHeight=blocks.length*blockHeight;const baseWidth=(blocks[0]?.width||0);const projectedHeight=towerHeight+baseWidth*ISO_Y+blockHeight+48;const fitHeight=canvasHeight*.78;const fitWidth=canvasWidth*.82;const heightScale=fitHeight/Math.max(1,projectedHeight);const widthScale=fitWidth/Math.max(1,baseWidth*1.15);cameraTargetScale=Math.max(.16,Math.min(.90,heightScale,widthScale));const topScreenY=canvasHeight*.23;cameraTargetY=10+(blocks.length-1)*blockHeight+blockHeight/2+(topScreenY-canvasHeight)/cameraTargetScale;cameraScale+=(cameraTargetScale-cameraScale)*Math.min(.12*frameScale,.26);cameraY+=(cameraTargetY-cameraY)*Math.min(.12*frameScale,.26);updateCameraBounds();
+        const towerHeight=blocks.length*blockHeight;const baseWidth=(blocks[0]?.width||0);const projectedHeight=towerHeight+baseWidth*ISO_Y+blockHeight+48;const fitHeight=canvasHeight*.78;const fitWidth=canvasWidth*.82;const heightScale=fitHeight/Math.max(1,projectedHeight);const widthScale=fitWidth/Math.max(1,baseWidth*1.15);cameraTargetScale=Math.max(.16,Math.min(.90,heightScale,widthScale));const topScreenY=canvasHeight*(.70-Math.min(.45,(blocks.length-1)*.018));const topBlock=blocks[blocks.length-1];const topPoint=projectPoint(topBlock.x+topBlock.width/2,topBlock.z+topBlock.depth/2,topBlock.level);cameraTargetY=(topScreenY-canvasHeight)/cameraTargetScale-(topPoint.y-canvasHeight);cameraScale+=(cameraTargetScale-cameraScale)*Math.min(.12*frameScale,.26);cameraY+=(cameraTargetY-cameraY)*Math.min(.12*frameScale,.26);updateCameraBounds();
     }
 
     function getFittedText(text, maxWidth) {
