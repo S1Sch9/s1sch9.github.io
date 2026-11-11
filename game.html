@@ -137,6 +137,7 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
 .canvas-wrapper{border:1px solid rgba(255,255,255,.12);border-radius:25px;background:linear-gradient(180deg,#F0C9C6 0%,#C77D89 24%,#7B354E 61%,#260D20 100%);box-shadow:0 24px 60px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.28);margin-bottom:0}
 .canvas-wrapper:before{inset:9px;border:1px solid rgba(255,255,255,.14);border-radius:17px}
 .canvas-wrapper:after{display:none}
+#game-crest{position:absolute;z-index:2;width:min(43%,170px);height:min(43%,170px);object-fit:contain;left:50%;top:48%;transform:translate(-50%,-50%);opacity:.075;filter:grayscale(1) brightness(2.2);pointer-events:none}
 #project-label{position:absolute;z-index:3;top:17px;left:50%;transform:translateX(-50%) translateY(-5px);padding:8px 13px;border-radius:999px;background:rgba(49,12,29,.48);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(14px);color:#fff;font-size:10px;font-weight:800;letter-spacing:1.5px;white-space:nowrap;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
 #project-label.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .feedback,.bonus-pop{text-shadow:0 3px 18px rgba(46,8,23,.65);color:#fff0f4}
@@ -205,7 +206,7 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
             <div class="stats"><span>Очки: <span id="score">0</span><small id="combo" class="combo">Серия: 0</small></span></div>
             <button class="icon-btn" onclick="pauseGame()">⏸️</button>
         </div>
-        <div class="canvas-wrapper"><canvas id="gameCanvas"></canvas><div id="project-label" aria-live="polite"></div><div id="feedback" class="feedback" aria-live="polite"></div><div id="bonus-pop" class="bonus-pop" aria-hidden="true"></div></div>
+        <div class="canvas-wrapper"><canvas id="gameCanvas"></canvas><img id="game-crest" src="gerb.png" alt="" aria-hidden="true"><div id="project-label" aria-live="polite"></div><div id="feedback" class="feedback" aria-live="polite"></div><div id="bonus-pop" class="bonus-pop" aria-hidden="true"></div></div>
         <div class="overlay" id="pause-screen">
             <h2>⏸️ Пауза</h2>
             <p style="font-size:14px;color:#F1DFBD;margin:0 20px 18px">Передохни и возвращайся к своей башне!</p>
@@ -270,6 +271,10 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
     let cameraScale = 1;
     let visibleLeft = 0;
     let visibleRight = 0;
+    const ISO_X = 0.72;
+    const ISO_Y = 0.24;
+    let boardHalf = 0;
+    let nextAxis = 'x';
 
     let highScore = 0;
     try { highScore = parseInt(localStorage.getItem('firstTowerRecord')) || 0; } catch (e) {}
@@ -314,6 +319,11 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
     function updateCameraBounds() {
         visibleLeft = canvasWidth / 2 - (canvasWidth / 2) / cameraScale;
         visibleRight = canvasWidth / 2 + (canvasWidth / 2) / cameraScale;
+        boardHalf = canvasWidth * 0.26;
+    }
+
+    function projectPoint(x, z, level) {
+        return { x: canvasWidth / 2 + (x - z) * ISO_X, y: canvasHeight - 10 - level * blockHeight + (x + z) * ISO_Y };
     }
 
     function hideAllScreens() {
@@ -365,9 +375,11 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
             cameraY = 0;
             cameraScale = 1;
             updateCameraBounds();
-            const baseWidth = canvasWidth * 0.65;
-            const baseX = (canvasWidth - baseWidth) / 2;
-            blocks.push({ x: baseX, y: canvasHeight - blockHeight - 10, width: baseWidth, style: blockStyles[0] });
+            const baseWidth = Math.min(canvasWidth * 0.52, 190);
+            const baseX = -baseWidth / 2, baseZ = -baseWidth / 2;
+            boardHalf = baseWidth / 2;
+            nextAxis = 'x';
+            blocks.push({ x: baseX, z: baseZ, width: baseWidth, depth: baseWidth, level: 0, style: blockStyles[0], landingAnim: 0 });
             spawnBlock();
             if (animationId) cancelAnimationFrame(animationId);
             gameLoop(performance.now());
@@ -377,59 +389,69 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
     function spawnBlock() {
         if (isGameOver) return;
         const prevBlock = blocks[blocks.length - 1];
-        const width = prevBlock.width;
-        const fromLeft = blocks.length % 2 !== 0;
         const style = blockStyles[(blocks.length - 1) % blockStyles.length];
-        projectLabel.textContent = style.project;
+        const axis = nextAxis;
+        nextAxis = nextAxis === 'x' ? 'z' : 'x';
+        projectLabel.textContent = style.project + '  ·  ОСЬ ' + axis.toUpperCase();
         projectLabel.classList.remove('show');
         requestAnimationFrame(() => projectLabel.classList.add('show'));
         currentBlock = {
-            x: fromLeft ? visibleLeft - width : visibleRight,
-            y: canvasHeight - (blocks.length + 1) * blockHeight - 10,
-            width: width,
-            style: style,
-            movingRight: fromLeft,
-            landingAnim: 0
+            x: axis === 'x' ? -boardHalf - prevBlock.width : prevBlock.x,
+            z: axis === 'z' ? -boardHalf - prevBlock.depth : prevBlock.z,
+            width: prevBlock.width, depth: prevBlock.depth, level: blocks.length,
+            style: style, axis: axis, landingAnim: 0
         };
     }
 
     function dropBlock() {
         if (isGameOver || isPaused || !currentBlock) return;
         const prevBlock = blocks[blocks.length - 1];
-        let centerOffset = Math.abs((currentBlock.x + currentBlock.width / 2) - (prevBlock.x + prevBlock.width / 2));
-        // Небольшая помощь при почти точном попадании: игра сама выравнивает блок.
-        const snapDistance = Math.max(3, prevBlock.width * 0.045);
+        const axis = currentBlock.axis;
+        const centerOffset = axis === 'x'
+            ? Math.abs((currentBlock.x + currentBlock.width / 2) - (prevBlock.x + prevBlock.width / 2))
+            : Math.abs((currentBlock.z + currentBlock.depth / 2) - (prevBlock.z + prevBlock.depth / 2));
+        const snapDistance = Math.max(3, (axis === 'x' ? prevBlock.width : prevBlock.depth) * 0.045);
         const autoAligned = centerOffset <= snapDistance;
         if (autoAligned) {
-            currentBlock.x = prevBlock.x;
-            currentBlock.width = prevBlock.width;
-            centerOffset = 0;
+            currentBlock.x = prevBlock.x; currentBlock.z = prevBlock.z;
+            currentBlock.width = prevBlock.width; currentBlock.depth = prevBlock.depth;
         }
 
-        const left = Math.max(currentBlock.x, prevBlock.x);
-        const right = Math.min(currentBlock.x + currentBlock.width, prevBlock.x + prevBlock.width);
-        const overlap = right - left;
+        let overlap, cutStart, cutSize = 0;
+        if (axis === 'x') {
+            const left = Math.max(currentBlock.x, prevBlock.x);
+            const right = Math.min(currentBlock.x + currentBlock.width, prevBlock.x + prevBlock.width);
+            overlap = right - left;
+            if (overlap > 0 && overlap < currentBlock.width) {
+                cutStart = currentBlock.x < prevBlock.x ? currentBlock.x : prevBlock.x + prevBlock.width;
+                cutSize = currentBlock.width - overlap;
+                currentBlock.x = left; currentBlock.width = overlap;
+            }
+        } else {
+            const near = Math.max(currentBlock.z, prevBlock.z);
+            const far = Math.min(currentBlock.z + currentBlock.depth, prevBlock.z + prevBlock.depth);
+            overlap = far - near;
+            if (overlap > 0 && overlap < currentBlock.depth) {
+                cutStart = currentBlock.z < prevBlock.z ? currentBlock.z : prevBlock.z + prevBlock.depth;
+                cutSize = currentBlock.depth - overlap;
+                currentBlock.z = near; currentBlock.depth = overlap;
+            }
+        }
 
         if (overlap <= 0) {
-            addFallingPiece(currentBlock.x, currentBlock.y, currentBlock.width, currentBlock.style);
+            const missPoint = projectPoint(currentBlock.x, currentBlock.z, currentBlock.level);
+            addFallingPiece(missPoint.x, missPoint.y, currentBlock.width * ISO_X, currentBlock.style);
             currentBlock = null;
             endGame();
             return;
         }
 
-        if (overlap < currentBlock.width) {
-            let cutX, cutWidth;
-            if (currentBlock.x < prevBlock.x) {
-                cutX = prevBlock.x + overlap;
-                cutWidth = currentBlock.width - overlap;
-            } else {
-                cutX = currentBlock.x;
-                cutWidth = currentBlock.width - overlap;
-            }
-            currentBlock.x = left;
-            currentBlock.width = overlap;
-            addFallingPiece(cutX, currentBlock.y, cutWidth, currentBlock.style);
-            createCrumbExplosion(currentBlock.x < prevBlock.x ? currentBlock.x + currentBlock.width : currentBlock.x, currentBlock.y);
+        if (cutSize > 0) {
+            const cutX = axis === 'x' ? cutStart : currentBlock.x;
+            const cutZ = axis === 'z' ? cutStart : currentBlock.z;
+            const cutPoint = projectPoint(cutX, cutZ, currentBlock.level);
+            addFallingPiece(cutPoint.x, cutPoint.y, cutSize * ISO_X, currentBlock.style);
+            createCrumbExplosion(cutPoint.x, cutPoint.y + blockHeight / 2);
         }
 
         const perfect = autoAligned;
@@ -440,13 +462,14 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
         score++;
         let comboBonus = 0;
         if (perfect) {
-            createPerfectBurst(currentBlock.x+currentBlock.width/2,currentBlock.y+blockHeight/2);
+            const landedPoint = projectPoint(currentBlock.x + currentBlock.width / 2, currentBlock.z + currentBlock.depth / 2, currentBlock.level);
+            createPerfectBurst(landedPoint.x, landedPoint.y + blockHeight / 2);
             combo++;
             comboBonus = Math.max(0, combo - 1);
             score += comboBonus;
             feedbackEl.textContent = `КОМБО ×${combo}`;
-            const popX = (currentBlock.x + currentBlock.width / 2) / canvasWidth * 100;
-            const popY = Math.max(5, currentBlock.y / canvasHeight * 100 - 8);
+            const popX = landedPoint.x / canvasWidth * 100;
+            const popY = Math.max(5, landedPoint.y / canvasHeight * 100 - 8);
             feedbackEl.style.left = `${popX}%`;
             feedbackEl.style.top = `${popY}%`;
             feedbackEl.classList.remove("show");
@@ -470,7 +493,7 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
         scoreEl.innerText = score;
         gameSpeed = Math.min(10.5, gameSpeed + gameSpeedIncrease);
 
-        if (currentBlock.width < 8) {
+        if (currentBlock.width < 8 || currentBlock.depth < 8) {
             currentBlock = null;
             endGame();
             return;
@@ -514,127 +537,16 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
         if (isPaused || isGameOver) return;
 
         if (currentBlock) {
-            if (currentBlock.movingRight) {
+            if (currentBlock.axis === 'x') {
                 currentBlock.x += gameSpeed * frameScale;
-                if (currentBlock.x > visibleRight) { currentBlock = null; endGame(); return; }
+                if (currentBlock.x > boardHalf + currentBlock.width) { currentBlock = null; endGame(); return; }
             } else {
-                currentBlock.x -= gameSpeed * frameScale;
-                if (currentBlock.x + currentBlock.width < visibleLeft) { currentBlock = null; endGame(); return; }
+                currentBlock.z += gameSpeed * frameScale;
+                if (currentBlock.z > boardHalf + currentBlock.depth) { currentBlock = null; endGame(); return; }
             }
         }
 
-        blocks.forEach(b => { if (b.landingAnim > 0) b.landingAnim -= frameScale; });
-
-        fallingPieces.forEach(p => {
-            if (p.type === 'block') {
-                p.vy += 1.15 * frameScale; p.y += p.vy * frameScale; p.x += p.vx * frameScale; p.rotation += p.vr * frameScale; p.alpha -= 0.025 * frameScale;
-            } else if (p.type === 'crumb') {
-                p.vy += 0.8 * frameScale; p.y += p.vy * frameScale; p.x += p.vx * frameScale; p.vx *= Math.pow(0.94, frameScale); p.life -= 0.05 * frameScale; p.alpha = p.life;
-            }
-        });
-        fallingPieces = fallingPieces.filter(p => p.alpha > 0 && p.y < canvasHeight + 200);
-        ambientParticles.forEach(p=>{p.y-=p.speed*frameScale;p.phase+=.018*frameScale;if(p.y<-5){p.y=canvasHeight+5;p.x=Math.random()*canvasWidth;}});
-        impactGlow=Math.max(0,impactGlow-.055*frameScale);
-
-        const towerHeight = blocks.length * blockHeight;
-        const threshold = canvasHeight * 0.55;
-        if(towerHeight>threshold){const overflow=towerHeight-threshold;cameraTargetScale=Math.max(.52,1-overflow/1150);cameraTargetY=overflow*.72;}
-        else{cameraTargetScale=1;cameraTargetY=0;}
-        cameraScale+=(cameraTargetScale-cameraScale)*Math.min(.12*frameScale,.28);
-        cameraY+=(cameraTargetY-cameraY)*Math.min(.14*frameScale,.3);
-        updateCameraBounds();
-    }
-
-    function getFittedText(text, maxWidth) {
-        let fontSize = 12;
-        ctx.font = `bold ${fontSize}px -apple-system, sans-serif`;
-        let textWidth = ctx.measureText(text).width;
-        if (textWidth > maxWidth) {
-            fontSize = 9;
-            ctx.font = `bold ${fontSize}px -apple-system, sans-serif`;
-        }
-        textWidth = ctx.measureText(text).width;
-        if (textWidth > maxWidth) {
-            let truncated = text;
-            while (ctx.measureText(truncated + '...').width > maxWidth && truncated.length > 0) {
-                truncated = truncated.slice(0, -1);
-            }
-            return truncated + '...';
-        }
-        return text;
-    }
-
-    function draw3DBox(x,y,w,h,style,alpha=1){
-        ctx.save();ctx.globalAlpha=alpha;const d=Math.min(depth,Math.max(11,w*.14)),bevel=Math.min(7,Math.max(3,h*.18));
-        ctx.shadowColor='rgba(0,0,0,.30)';ctx.shadowBlur=13;ctx.shadowOffsetX=2;ctx.shadowOffsetY=5;
-        const top=ctx.createLinearGradient(x,y-d,x+w+d,y);top.addColorStop(0,style.light);top.addColorStop(.55,style.main);top.addColorStop(1,style.dark);
-        ctx.fillStyle=top;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+d,y-d);ctx.lineTo(x+w+d,y-d);ctx.lineTo(x+w,y);ctx.closePath();ctx.fill();
-        ctx.shadowColor='transparent';ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+d,y-d+.5);ctx.lineTo(x+w+d,y-d+.5);ctx.stroke();
-        const side=ctx.createLinearGradient(x+w,y,x+w+d,y);side.addColorStop(0,style.dark);side.addColorStop(1,'#16060B');
-        ctx.fillStyle=side;ctx.beginPath();ctx.moveTo(x+w,y);ctx.lineTo(x+w+d,y-d);ctx.lineTo(x+w+d,y+h-d);ctx.lineTo(x+w,y+h);ctx.closePath();ctx.fill();
-        const face=ctx.createLinearGradient(x,y,x,y+h);face.addColorStop(0,style.light);face.addColorStop(.16,style.main);face.addColorStop(.78,style.main);face.addColorStop(1,style.dark);
-        ctx.fillStyle=face;ctx.fillRect(x,y,w,h);ctx.fillStyle='rgba(255,255,255,.17)';ctx.fillRect(x+1,y+1,Math.max(0,w-2),Math.max(2,bevel*.55));
-        ctx.fillStyle='rgba(0,0,0,.10)';ctx.fillRect(x+1,y+h-bevel*.7,Math.max(0,w-2),bevel*.7);
-        // Мягкие края без контрастной обводки по периметру.
-        const edge=ctx.createLinearGradient(x,y,x,y+h);
-        edge.addColorStop(0,'rgba(255,255,255,.10)');edge.addColorStop(.35,'rgba(255,255,255,0)');edge.addColorStop(1,'rgba(25,5,12,.12)');
-        ctx.fillStyle=edge;ctx.fillRect(x,y,w,h);
-        if(w>42){const shine=ctx.createLinearGradient(x,y,x+w*.42,y+h);shine.addColorStop(0,'rgba(255,255,255,.12)');shine.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=shine;ctx.fillRect(x+1,y+bevel,w*.42,h-bevel);}
-        if(w>26){ctx.save();ctx.globalAlpha=.17;ctx.fillStyle='#FFFFFF';ctx.beginPath();ctx.arc(x+w*.22,y+h*.5,Math.min(4,w*.035),0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(x+w*.78,y+h*.5,Math.min(4,w*.035),0,Math.PI*2);ctx.fill();ctx.restore();}
-        ctx.restore();
-    }
-    function drawCloud(x,y,scale,alpha){
-        ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle='#FBE9EB';
-        ctx.beginPath();ctx.ellipse(x,y,34*scale,10*scale,0,0,Math.PI*2);ctx.ellipse(x-17*scale,y-6*scale,15*scale,13*scale,0,0,Math.PI*2);ctx.ellipse(x+2*scale,y-11*scale,19*scale,17*scale,0,0,Math.PI*2);ctx.ellipse(x+22*scale,y-5*scale,14*scale,11*scale,0,0,Math.PI*2);ctx.fill();ctx.restore();
-    }
-    function drawAtmosphere(){
-        const sky=ctx.createLinearGradient(0,0,0,canvasHeight);
-        sky.addColorStop(0,'#F5D8D7');sky.addColorStop(.25,'#D996A5');sky.addColorStop(.58,'#843A57');sky.addColorStop(1,'#260D20');
-        ctx.fillStyle=sky;ctx.fillRect(0,0,canvasWidth,canvasHeight);
-        const sunX=canvasWidth*.5,sunY=canvasHeight*.16,sunR=Math.min(canvasWidth*.25,75);
-        const halo=ctx.createRadialGradient(sunX,sunY,2,sunX,sunY,sunR*2.5);
-        halo.addColorStop(0,'rgba(255,244,207,.72)');halo.addColorStop(.35,'rgba(255,221,157,.25)');halo.addColorStop(1,'rgba(255,221,157,0)');
-        ctx.fillStyle=halo;ctx.fillRect(0,0,canvasWidth,canvasHeight);
-        ctx.fillStyle='rgba(255,239,195,.48)';ctx.beginPath();ctx.arc(sunX,sunY,sunR*.62,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle='rgba(83,34,48,.20)';ctx.beginPath();ctx.moveTo(0,canvasHeight*.57);ctx.quadraticCurveTo(canvasWidth*.25,canvasHeight*.48,canvasWidth*.48,canvasHeight*.57);ctx.quadraticCurveTo(canvasWidth*.77,canvasHeight*.46,canvasWidth,canvasHeight*.55);ctx.lineTo(canvasWidth,canvasHeight);ctx.lineTo(0,canvasHeight);ctx.fill();
-        const drift=(performance.now()*.008)%(canvasWidth+150);
-        drawCloud((drift+30)%(canvasWidth+100)-50,canvasHeight*.27,.72,.25);
-        drawCloud((canvasWidth-drift*.65+canvasWidth+80)%(canvasWidth+160)-70,canvasHeight*.43,.95,.19);
-        drawCloud((drift*.48+canvasWidth*.2)%(canvasWidth+130)-60,canvasHeight*.67,1.1,.12);
-        ambientParticles.forEach(p=>{ctx.globalAlpha=p.alpha*(.45+.25*Math.sin(p.phase));ctx.fillStyle='#FFF0F3';ctx.shadowColor='#F0B8C7';ctx.shadowBlur=4;ctx.beginPath();ctx.arc(p.x,p.y,p.r*.72,0,Math.PI*2);ctx.fill();});
-        ctx.globalAlpha=1;ctx.shadowBlur=0;
-        if(impactGlow>0){const flash=ctx.createRadialGradient(canvasWidth/2,canvasHeight*.52,0,canvasWidth/2,canvasHeight*.52,canvasWidth*.58);flash.addColorStop(0,'rgba(255,224,235,'+(impactGlow*.13)+')');flash.addColorStop(1,'rgba(255,226,161,0)');ctx.fillStyle=flash;ctx.fillRect(0,0,canvasWidth,canvasHeight);}
-        const path=ctx.createLinearGradient(0,0,0,canvasHeight);path.addColorStop(0,'rgba(255,240,246,.10)');path.addColorStop(.55,'rgba(255,224,235,.035)');path.addColorStop(1,'rgba(255,224,166,0)');ctx.fillStyle=path;ctx.fillRect(canvasWidth*.34,0,canvasWidth*.32,canvasHeight);
-    }
-    function drawTopTarget() {
-        let targetY = canvasHeight - (38 * 30) + cameraY;
-        if (targetY > -200 && targetY < canvasHeight + 200) {
-            ctx.save();
-            ctx.translate(canvasWidth / 2, targetY);
-            const crown=ctx.createRadialGradient(0,0,5,0,0,66);
-            crown.addColorStop(0,'rgba(255,239,190,.42)');crown.addColorStop(1,'rgba(255,239,190,0)');
-            ctx.fillStyle=crown;ctx.beginPath();ctx.arc(0,0,66,0,Math.PI*2);ctx.fill();
-            ctx.fillStyle='#FFF0F4';ctx.shadowColor='rgba(255,232,240,.8)';ctx.shadowBlur=16;
-            ctx.beginPath();ctx.moveTo(0,-35);ctx.lineTo(10,-12);ctx.lineTo(30,-12);ctx.lineTo(14,3);ctx.lineTo(20,27);ctx.lineTo(0,13);ctx.lineTo(-20,27);ctx.lineTo(-14,3);ctx.lineTo(-30,-12);ctx.lineTo(-10,-12);ctx.closePath();ctx.fill();ctx.shadowBlur=0;
-            ctx.restore();
-        }
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        drawAtmosphere();
-        ctx.save();
-        ctx.translate(canvasWidth / 2, canvasHeight);
-        ctx.scale(cameraScale, cameraScale);
-        ctx.translate(-canvasWidth / 2, -canvasHeight + cameraY);
-
-        drawTopTarget();
-
-        blocks.forEach(b => {
-            let squash = 0;
-            if (b.landingAnim > 0) squash = Math.sin((b.landingAnim / 10) * Math.PI) * 4;
-            draw3DBox(b.x, b.y + squash, b.width, blockHeight - squash, b.style);
-        });
+        blocks.forEach(b => drawIsoBlock(b, 1));
 
         fallingPieces.forEach(p => {
             if (p.type === 'block') {
@@ -657,15 +569,13 @@ body{background:radial-gradient(ellipse at 50% 8%,#572033 0%,#210914 58%,#10060c
         });
 
         if (currentBlock && !isGameOver) {
-            draw3DBox(currentBlock.x, currentBlock.y, currentBlock.width, blockHeight, currentBlock.style);
+            drawIsoBlock(currentBlock, 1);
             const prevBlock = blocks[blocks.length - 1];
-            const shadowLeft = Math.max(currentBlock.x, prevBlock.x);
-            const shadowRight = Math.min(currentBlock.x + currentBlock.width, prevBlock.x + prevBlock.width);
-            if (shadowRight > shadowLeft) {
-                const targetGlow=ctx.createLinearGradient(0,prevBlock.y,0,prevBlock.y+12);
-                targetGlow.addColorStop(0,'rgba(255,224,139,.42)');targetGlow.addColorStop(1,'rgba(212,175,55,0)');
-                ctx.fillStyle=targetGlow;ctx.fillRect(shadowLeft,prevBlock.y,shadowRight-shadowLeft,12);
-            }
+            const anchor = projectPoint(prevBlock.x, prevBlock.z, prevBlock.level);
+            const moving = projectPoint(currentBlock.x, currentBlock.z, currentBlock.level);
+            ctx.save();ctx.globalAlpha=.2;ctx.strokeStyle='#FFF2D9';ctx.lineWidth=1;ctx.setLineDash([4,5]);
+            ctx.beginPath();ctx.moveTo(anchor.x,anchor.y+8);ctx.lineTo(moving.x,moving.y+8);ctx.stroke();
+            ctx.setLineDash([]);ctx.restore();
         }
         ctx.restore();
     }
