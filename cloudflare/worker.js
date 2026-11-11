@@ -134,10 +134,10 @@ async function telegramReply(env, chatId, text, replyMarkup) {
 async function notifyAdminAboutAppeal(env, { source, role, category, message }) {
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID) return;
   const preview = String(message || "").slice(0, 3000);
-  const text = "🔔 НОВОЕ ОБРАЩЕНИЕ\\n\\n" +
-    "Источник: " + source + "\\n" +
-    "Кто: " + role + "\\n" +
-    "Категория: " + category + "\\n\\n" +
+  const text = "🔔 НОВОЕ ОБРАЩЕНИЕ\n\n" +
+    "Источник: " + source + "\n" +
+    "Кто: " + role + "\n" +
+    "Категория: " + category + "\n\n" +
     preview + (String(message || "").length > 3000 ? "…" : "");
   try {
     await telegramApi(env, "sendMessage", {
