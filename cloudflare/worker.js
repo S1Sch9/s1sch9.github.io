@@ -11,7 +11,7 @@ const MAX_MESSAGE = 1500;
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers }
+    headers: { ...securityHeaders(), "content-type": "application/json; charset=utf-8", ...headers }
   });
 }
 function securityHeaders() {
@@ -564,7 +564,13 @@ self.addEventListener("notificationclick", event => {
     }
 
     if (url.pathname === "/admin" || url.pathname === "/admin/") {
-      return new Response(adminPage(), { headers: { "content-type": "text/html; charset=utf-8", ...headers } });
+      return new Response(adminPage(), {
+        headers: {
+          ...headers,
+          "content-type": "text/html; charset=utf-8",
+          "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; font-src 'self' data:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+        }
+      });
     }
     if (url.pathname.startsWith("/api/") && request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: { ...cors(origin), ...headers } });
