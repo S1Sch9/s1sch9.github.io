@@ -10,6 +10,7 @@ on:
       - "cloudflare/admin-page.js"
       - "cloudflare/package.json"
       - "cloudflare/validate-source.mjs"
+      - "cloudflare/security-smoke-test.mjs"
       - "cloudflare/wrangler.jsonc"
       - ".github/workflows/deploy-telegram-webhook.yml"
 
@@ -36,6 +37,9 @@ jobs:
       - name: Install Worker dependencies
         working-directory: cloudflare
         run: npm install --no-package-lock --omit=dev
+      - name: Run security smoke tests
+        working-directory: cloudflare
+        run: node security-smoke-test.mjs
       - name: Deploy Worker
         working-directory: cloudflare
         env:
