@@ -499,28 +499,29 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         ctx.drawImage(image,(faceW-markW)/2,(h-markH)/2,markW,markH);
         ctx.restore();
     }
-    // Для каждого блока заранее выбирается одна грань и один знак:
-    // герб школы и логотип Движения Первых чередуются по уровням,
-    // а место появления меняется по псевдослучайному принципу.
+    // Фирменный узор башни: знаки чередуются, а позиции идут
+    // красивой последовательностью по верхней, левой и правой граням.
+    // Пустой оставляем только примерно каждый десятый блок — для воздуха.
+    const brandFacePattern=[0,1,2,0,2,1,0,1,2,0];
     function blockBrandPlacement(level){
-        const seed=Math.abs(Math.sin((level+1)*127.1)*43758.5453);
-        return Math.floor((seed-Math.floor(seed))*3); // 0 — верх, 1 — левая, 2 — правая грань
+        return level%10===9 ? -1 : brandFacePattern[level%10];
+        // 0 — верх, 1 — левая грань, 2 — правая грань, -1 — без знака
     }
     function drawCrestOnTop(a,b,c,q,level){
         if(level%2!==0||blockBrandPlacement(level)!==0)return;
-        drawBrandOnTop(schoolCrestImage,a,b,c,q,level,level%8,.23);
+        drawBrandOnTop(schoolCrestImage,a,b,c,q,level,level%8,.25);
     }
     function drawMovementOnTop(a,b,c,q,level){
         if(level%2===0||blockBrandPlacement(level)!==0)return;
-        drawBrandOnTop(movementLogoImage,a,b,c,q,level,level%8,.31);
+        drawBrandOnTop(movementLogoImage,a,b,c,q,level,level%8,.33);
     }
     function drawCrestOnSide(q,c,h,level,side){
         if(level%2!==0||blockBrandPlacement(level)!==(side==='left'?1:2))return;
-        drawBrandOnSide(schoolCrestImage,q,c,h,level,side,level%8,23);
+        drawBrandOnSide(schoolCrestImage,q,c,h,level,side,level%8,25);
     }
     function drawMovementOnSide(q,c,h,level,side){
         if(level%2===0||blockBrandPlacement(level)!==(side==='left'?1:2))return;
-        drawBrandOnSide(movementLogoImage,q,c,h,level,side,level%8,27);
+        drawBrandOnSide(movementLogoImage,q,c,h,level,side,level%8,29);
     }
     function drawBlockContours(a,b,c,q,h){
         // Контур подчёркивает реальные границы каждой грани, чтобы блоки
