@@ -449,8 +449,10 @@ export default {
     if (mediaMatch && request.method === "GET") {
       try {
         await ensureTelegramNews(env);
-        const item = await env.DB.prepare("SELECT media FROM telegram_news WHERE id = ?").bind(decodeURIComponent(mediaMatch[1])).first();
-        const media = item ? JSON.parse(item.media || "[]")[Number(mediaMatch[2])] : null;
+        const item = await env.DB.prepare("SELECT media, status, publish_at FROM telegram_news WHERE id = ?").bind(decodeURIComponent(mediaMatch[1])).first();
+        const nowIso = new Date().toISOString();
+        const isPublic = item && item.status === "published" && (!item.publish_at || item.publish_at <= nowIso);
+        const media = isPublic ? JSON.parse(item.media || "[]")[Number(mediaMatch[2])] : null;
         if (!media || !media.file_id || !env.TELEGRAM_BOT_TOKEN) return new Response("Not found", { status: 404, headers });
         const fileInfo = await telegramApi(env, "getFile", { file_id: media.file_id });
         const fileResponse = await fetch("https://api.telegram.org/file/bot" + env.TELEGRAM_BOT_TOKEN + "/" + fileInfo.file_path);
@@ -600,8 +602,8 @@ self.addEventListener("notificationclick", event => {
         const digest = new Uint8Array(await crypto.subtle.sign("HMAC", hmacKey, encoder.encode(checkString)));
         const expectedHash = [...digest].map(b => b.toString(16).padStart(2, "0")).join("");
         const now = Math.floor(Date.now() / 1000);
-        if (!receivedHash || !constantTimeEqual(receivedHash, expectedHash) ||
-            !Number.isSafeInteger(authDate) || authDate > now + 60 || now - authDate > 86400 ||
+        if (!/^[a-f0-9]{64}$/i.test(receivedHash) || !constantTimeEqual(receivedHash, expectedHash) ||
+            !Number.isSafeInteger(authDate) || authDate > now + 60 || now - authDate > 1800 ||
             !user || !Number.isSafeInteger(user.id) || user.is_bot) {
           return json({ error: "Не удалось подтвердить Telegram. Закройте приложение и откройте его заново из сообщения бота." }, 401, { ...headers, ...cors(origin) });
         }
