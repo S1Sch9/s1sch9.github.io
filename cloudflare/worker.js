@@ -4,6 +4,8 @@ import { buildPushPayload } from "@block65/webcrypto-web-push";
 // Combined appeals and news administration.
 const SITE_ORIGIN = "https://s1sch9.github.io";
 const MAX_BODY = 8192;
+const MAX_WEBHOOK_BODY = 256 * 1024;
+const MAX_UPLOAD_BODY = 22 * 1024 * 1024;
 const MAX_MESSAGE = 1500;
 
 function json(data, status = 200, headers = {}) {
@@ -14,11 +16,49 @@ function json(data, status = 200, headers = {}) {
 }
 function securityHeaders() {
   return {
+    "Strict-Transport-Security": "max-age=31536000",
     "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "no-referrer",
     "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "X-Permitted-Cross-Domain-Policies": "none",
     "Cache-Control": "no-store"
   };
+}
+async function readJsonBody(request, maxBytes = MAX_BODY) {
+  const declaredLength = Number(request.headers.get("Content-Length") || 0);
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    throw new Error("body-too-large");
+  }
+  if (!request.body) throw new Error("empty-body");
+  const reader = request.body.getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error("body-too-large");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    try { reader.releaseLock(); } catch {}
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  const body = JSON.parse(new TextDecoder().decode(bytes));
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw new Error("invalid-json-object");
+  }
+  return body;
 }
 function cors(origin) {
   if (origin !== SITE_ORIGIN) return {};
@@ -76,7 +116,7 @@ async function verifyTurnstile(token, request, env) {
     return { ok: false, reason: "invalid-siteverify-response" };
   }
   if (!result.success) return { ok: false, reason: "verification-failed" };
-  if (result.hostname && result.hostname !== "s1sch9.github.io") {
+  if (result.hostname !== "s1sch9.github.io") {
     return { ok: false, reason: "hostname-mismatch" };
   }
   return { ok: true };
@@ -234,7 +274,7 @@ async function telegramWebhook(request, env) {
     return json({ error: "Unauthorized" }, 401);
   }
   if (!env.TELEGRAM_BOT_TOKEN) return json({ error: "Bot is not configured" }, 503);
-  const update = await request.json();
+  const update = await readJsonBody(request, MAX_WEBHOOK_BODY);
   const callback = update && update.callback_query;
   const msg = update && update.message;
   const chat = callback?.message?.chat || msg?.chat;
@@ -287,7 +327,6 @@ async function telegramWebhook(request, env) {
   if (!msg) return json({ ok: true });
   const command = text.split(/\\s/)[0].toLowerCase();
   if (command === "/start") {
-    await clearTelegramCommands(env);
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     // Согласие с правилами сохраняется между запусками бота и новыми обращениями.
@@ -480,7 +519,7 @@ self.addEventListener("notificationclick", event => {
     if (url.pathname === "/api/admin/push/config" && request.method === "POST") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
-        const body = await request.json();
+        const body = await readJsonBody(request);
         const publicKey = cleanText(body.publicKey, 120);
         if (!/^[A-Za-z0-9_-]{80,100}$/.test(publicKey)) return json({ error: "Некорректный публичный ключ." }, 400, headers);
         await ensurePushTables(env);
@@ -491,7 +530,7 @@ self.addEventListener("notificationclick", event => {
     if (url.pathname === "/api/admin/push/subscribe" && request.method === "POST") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
-        const body = await request.json();
+        const body = await readJsonBody(request);
         const sub = body.subscription;
         if (!sub || typeof sub.endpoint !== "string" || !sub.endpoint.startsWith("https://") ||
             !sub.keys || typeof sub.keys.p256dh !== "string" || typeof sub.keys.auth !== "string") {
@@ -506,7 +545,7 @@ self.addEventListener("notificationclick", event => {
     if (url.pathname === "/api/admin/push/subscribe" && request.method === "DELETE") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
-        const body = await request.json();
+        const body = await readJsonBody(request);
         const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
         await ensurePushTables(env);
         await env.DB.prepare("DELETE FROM push_subscriptions WHERE endpoint = ?").bind(endpoint).run();
@@ -535,7 +574,7 @@ self.addEventListener("notificationclick", event => {
       const length = Number(request.headers.get("Content-Length") || 0);
       if (length > MAX_BODY) return json({ error: "Слишком большой запрос." }, 413, { ...headers, ...cors(origin) });
       let body;
-      try { body = await request.json(); } catch { return json({ error: "Некорректный запрос." }, 400, { ...headers, ...cors(origin) }); }
+      try { body = await readJsonBody(request); } catch { return json({ error: "Некорректный запрос." }, 400, { ...headers, ...cors(origin) }); }
       const initData = typeof body.initData === "string" ? body.initData : "";
       if (body.rulesAccepted !== true || body.rulesVersion !== "2026-11-12" || !initData || initData.length > 4096) {
         return json({ error: "Сначала прочитайте правила и подтвердите согласие." }, 400, { ...headers, ...cors(origin) });
@@ -562,6 +601,10 @@ self.addEventListener("notificationclick", event => {
         }
         const chatId = String(user.id);
         await ensureTelegramAppeals(env);
+        const blockedTelegramUser = await env.DB.prepare("SELECT chat_id FROM telegram_appeal_blocks WHERE chat_id = ?").bind(chatId).first();
+        if (blockedTelegramUser) {
+          return json({ error: "Доступ к отправке обращений в Telegram-боте заблокирован. Если вы считаете это ошибкой, обратитесь к Совету." }, 403, { ...headers, ...cors(origin) });
+        }
         await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at, rules_accepted) VALUES (?, 1, ?, 1) ON CONFLICT(chat_id) DO UPDATE SET awaiting=1, updated_at=excluded.updated_at, rules_accepted=1")
           .bind(chatId, now).run();
         await telegramReply(env, chatId,
@@ -578,7 +621,7 @@ self.addEventListener("notificationclick", event => {
       const length = Number(request.headers.get("Content-Length") || 0);
       if (length > MAX_BODY) return json({ error: "Слишком большой запрос." }, 413, { ...headers, ...cors(origin) });
       let body;
-      try { body = await request.json(); } catch { return json({ error: "Некорректный запрос." }, 400, { ...headers, ...cors(origin) }); }
+      try { body = await readJsonBody(request); } catch { return json({ error: "Некорректный запрос." }, 400, { ...headers, ...cors(origin) }); }
       const role = cleanText(body.role, 30);
       const category = cleanText(body.category, 60);
       const message = cleanText(body.message, MAX_MESSAGE);
@@ -627,11 +670,13 @@ self.addEventListener("notificationclick", event => {
     if (url.pathname === "/api/admin/news/upload" && request.method === "POST") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
+        const uploadLength = Number(request.headers.get("Content-Length") || 0);
+        if (Number.isFinite(uploadLength) && uploadLength > MAX_UPLOAD_BODY) return json({ error: "Файл слишком большой." }, 413, headers);
         const form = await request.formData();
         const file = form.get("file");
         if (!file || typeof file.arrayBuffer !== "function") return json({ error: "Выберите файл." }, 400, headers);
-        const isVideo = String(file.type || "").startsWith("video/");
-        const isImage = String(file.type || "").startsWith("image/");
+        const isVideo = file.type === "video/mp4";
+        const isImage = ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(String(file.type || "").toLowerCase());
         if (!isVideo && !isImage) return json({ error: "Можно загружать только фото и видео." }, 415, headers);
         const limit = isVideo ? 20 * 1024 * 1024 : 10 * 1024 * 1024;
         if (file.size > limit) return json({ error: isVideo ? "Видео должно быть не больше 20 МБ." : "Фото должно быть не больше 10 МБ." }, 413, headers);
@@ -675,7 +720,7 @@ self.addEventListener("notificationclick", event => {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
         await ensureTelegramNews(env);
-        const body = await request.json();
+        const body = await readJsonBody(request);
         const title = cleanText(body.title, 120);
         const description = cleanText(body.description, 3000);
         const date = /^\d{4}-\d{2}-\d{2}$/.test(body.date || "") ? body.date : new Date().toISOString().slice(0, 10);
@@ -700,7 +745,7 @@ self.addEventListener("notificationclick", event => {
           await env.DB.prepare("DELETE FROM telegram_news WHERE id = ?").bind(id).run();
           return json({ success: true }, 200, headers);
         }
-        const body = await request.json();
+        const body = await readJsonBody(request);
         const title = cleanText(body.title, 120);
         const description = cleanText(body.description, 3000);
         const date = /^\d{4}-\d{2}-\d{2}$/.test(body.date || "") ? body.date : new Date().toISOString().slice(0, 10);
@@ -739,7 +784,7 @@ self.addEventListener("notificationclick", event => {
     if (url.pathname === "/api/admin/security/blocks" && request.method === "POST") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
-        const body = await request.json(), hash = cleanText(body.hash, 64), note = cleanText(body.note, 160);
+        const body = await readJsonBody(request), hash = cleanText(body.hash, 64), note = cleanText(body.note, 160);
         if (!/^[a-f0-9]{64}$/.test(hash)) return json({ error: "Некорректный идентификатор отправителя." }, 400, headers);
         await ensureAppealSecurity(env);
         await env.DB.prepare("INSERT INTO appeal_ip_blocks (ip_hash, created_at, note) VALUES (?, ?, ?) ON CONFLICT(ip_hash) DO UPDATE SET note=excluded.note").bind(hash, Math.floor(Date.now() / 1000), note || "Блокировка из админки").run();
@@ -768,7 +813,7 @@ self.addEventListener("notificationclick", event => {
     if (url.pathname === "/api/admin/telegram-blocks" && request.method === "POST") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
-        const body = await request.json(), chatId = cleanText(body.chatId, 32), note = cleanText(body.note, 160);
+        const body = await readJsonBody(request), chatId = cleanText(body.chatId, 32), note = cleanText(body.note, 160);
         if (!/^\d{5,20}$/.test(chatId)) return json({ error: "Некорректный Telegram ID." }, 400, headers);
         await ensureTelegramAppeals(env);
         await env.DB.prepare("INSERT INTO telegram_appeal_blocks (chat_id, created_at, note) VALUES (?, ?, ?) ON CONFLICT(chat_id) DO UPDATE SET note=excluded.note").bind(chatId, Math.floor(Date.now() / 1000), note || "Блокировка из админки").run();
@@ -804,7 +849,7 @@ self.addEventListener("notificationclick", event => {
           await env.DB.prepare("DELETE FROM appeals WHERE id = ?").bind(id).run();
           return json({ success: true }, 200, headers);
         }
-        const body = await request.json();
+        const body = await readJsonBody(request);
         if (!["reviewed", "done"].includes(body.status)) return json({ error: "Некорректный статус." }, 400, headers);
         await env.DB.prepare("UPDATE appeals SET status = ? WHERE id = ?").bind(body.status, id).run();
         return json({ success: true }, 200, headers);
