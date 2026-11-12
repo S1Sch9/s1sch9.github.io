@@ -469,7 +469,8 @@ self.addEventListener("notificationclick", event => {
       const category = cleanText(body.category, 60);
       const message = cleanText(body.message, MAX_MESSAGE);
       const captchaToken = cleanText(body.turnstileToken, 2048);
-      if (!["Ученик", "Родитель", "Учитель"].includes(role) ||
+      if (body.rulesAccepted !== true ||
+          !["Ученик", "Родитель", "Учитель"].includes(role) ||
           !["Идея или предложение", "Новость школы", "Обратная связь"].includes(category) ||
           message.length < 5 || message.length > MAX_MESSAGE) {
         return json({ error: "Проверьте заполнение формы." }, 400, { ...headers, ...cors(origin) });
