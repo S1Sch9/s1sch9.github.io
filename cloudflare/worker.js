@@ -276,7 +276,7 @@ async function telegramWebhook(request, env) {
     await clearTelegramCommands(env);
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
-    await env.DB.prepare("UPDATE telegram_appeal_sessions SET awaiting=0, rules_accepted=0 WHERE chat_id=?").bind(chatId).run();
+    // Согласие с правилами сохраняется между запусками бота и новыми обращениями.
     await telegramReply(env, chatId,
       "💙 Добро пожаловать!\n\nЭто бот обратной связи Совета Первых школы № 9. Здесь можно поделиться идеей, предложением или задать вопрос.\n\nНажмите «Написать обращение», чтобы начать. Сначала бот предложит ознакомиться с правилами, а после подтверждения вы сможете написать обращение прямо здесь, в чате. 💙",
       keyboard);
@@ -289,11 +289,19 @@ async function telegramWebhook(request, env) {
     return json({ ok: true });
   }
   if (command === "/new" || text === "✍️ Написать обращение") {
-    await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at, rules_accepted) VALUES (?, 0, ?, 0) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at, rules_accepted=0")
-      .bind(chatId, Math.floor(Date.now() / 1000)).run();
-    await telegramReply(env, chatId,
-      "📖 Перед отправкой обращения, пожалуйста, прочитайте правила пользования.\n\nНажмите кнопку ниже. В приложении будут только правила и подтверждение согласия. После этого вы сможете написать своё обращение следующим сообщением в этом чате.",
-      { inline_keyboard: [[{ text: "📖 Прочитать правила", web_app: { url: "https://s1sch9.github.io/appeal-app.html?v=rules-only-2" } }]] });
+    const previous = await env.DB.prepare("SELECT rules_accepted FROM telegram_appeal_sessions WHERE chat_id = ?").bind(chatId).first();
+    const accepted = Number(previous?.rules_accepted) === 1;
+    await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at, rules_accepted) VALUES (?, ?, ?, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=excluded.awaiting, updated_at=excluded.updated_at")
+      .bind(chatId, accepted ? 1 : 0, Math.floor(Date.now() / 1000), accepted ? 1 : 0).run();
+    if (accepted) {
+      await telegramReply(env, chatId,
+        "💙 Вы уже ознакомились с правилами и подтвердили согласие. Повторно читать их не нужно.\n\nНапишите своё обращение следующим сообщением прямо здесь. Максимальная длина — 1500 символов. Если передумали, нажмите «Отменить отправку».",
+        cancelKeyboard);
+    } else {
+      await telegramReply(env, chatId,
+        "📖 Перед отправкой обращения, пожалуйста, прочитайте правила пользования.\n\nНажмите кнопку ниже. В приложении будут только правила и подтверждение согласия. После этого вы сможете написать своё обращение следующим сообщением в этом чате.",
+        { inline_keyboard: [[{ text: "📖 Прочитать правила", web_app: { url: "https://s1sch9.github.io/appeal-app.html?v=rules-only-2" } }]] });
+    }
     return json({ ok: true });
   }
   const session = await env.DB.prepare("SELECT awaiting, rules_accepted FROM telegram_appeal_sessions WHERE chat_id = ?").bind(chatId).first();
