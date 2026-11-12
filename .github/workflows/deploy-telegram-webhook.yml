@@ -3,6 +3,8 @@ name: Deploy site admin and news API
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
       - "cloudflare/worker.js"
       - "cloudflare/admin-page.js"
@@ -15,9 +17,12 @@ permissions:
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
