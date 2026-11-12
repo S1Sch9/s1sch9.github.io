@@ -629,6 +629,17 @@ self.addEventListener("notificationclick", event => {
       }
     }
 
+    if (url.pathname === "/api/appeal-status" && request.method === "GET") {
+      try {
+        const ipHash = await clientIpHash(request);
+        await ensureAppealSecurity(env);
+        const block = await env.DB.prepare("SELECT created_at, note FROM appeal_ip_blocks WHERE ip_hash = ?").bind(ipHash).first();
+        return json({ blocked: !!block, created_at: block?.created_at || null, note: block?.note || "" }, 200, { ...headers, ...cors(origin) });
+      } catch {
+        return json({ error: "Не удалось проверить доступ." }, 503, { ...headers, ...cors(origin) });
+      }
+    }
+
     if (url.pathname === "/api/appeals" && request.method === "POST") {
       if (origin !== SITE_ORIGIN) return json({ error: "Недопустимый источник запроса." }, 403, headers);
       const length = Number(request.headers.get("Content-Length") || 0);
@@ -834,8 +845,18 @@ self.addEventListener("notificationclick", event => {
         const body = await readJsonBody(request), chatId = cleanText(body.chatId, 32), note = cleanText(body.note, 160);
         if (!/^\d{5,20}$/.test(chatId)) return json({ error: "Некорректный Telegram ID." }, 400, headers);
         await ensureTelegramAppeals(env);
-        await env.DB.prepare("INSERT INTO telegram_appeal_blocks (chat_id, created_at, note) VALUES (?, ?, ?) ON CONFLICT(chat_id) DO UPDATE SET note=excluded.note").bind(chatId, Math.floor(Date.now() / 1000), note || "Блокировка из админки").run();
-        return json({ success: true }, 200, headers);
+        const previous = await env.DB.prepare("SELECT chat_id FROM telegram_appeal_blocks WHERE chat_id = ?").bind(chatId).first();
+        const reason = note || "Нарушение правил пользования";
+        await env.DB.prepare("INSERT INTO telegram_appeal_blocks (chat_id, created_at, note) VALUES (?, ?, ?) ON CONFLICT(chat_id) DO UPDATE SET note=excluded.note").bind(chatId, Math.floor(Date.now() / 1000), reason).run();
+        let notificationSent = false;
+        if (!previous && env.TELEGRAM_BOT_TOKEN) {
+          try {
+            await telegramReply(env, chatId,
+              "⛔ Уведомление от Совета Первых школы № 9\n\nДоступ к отправке обращений через Telegram-бот заблокирован из-за нарушения правил пользования.\n\nПричина: " + reason + "\n\nЕсли вы считаете, что блокировка произошла по ошибке, обратитесь к Совету.");
+            notificationSent = true;
+          } catch { /* Блокировка сохраняется, даже если пользователь запретил сообщения от бота. */ }
+        }
+        return json({ success: true, notificationSent }, 200, headers);
       } catch { return json({ error: "Не удалось заблокировать Telegram-аккаунт." }, 500, headers); }
     }
     const telegramUnblockMatch = url.pathname.match(/^\/api\/admin\/telegram-blocks\/(\d+)$/);
@@ -843,8 +864,18 @@ self.addEventListener("notificationclick", event => {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
         await ensureTelegramAppeals(env);
-        await env.DB.prepare("DELETE FROM telegram_appeal_blocks WHERE chat_id = ?").bind(telegramUnblockMatch[1]).run();
-        return json({ success: true }, 200, headers);
+        const chatId = telegramUnblockMatch[1];
+        const previous = await env.DB.prepare("SELECT chat_id FROM telegram_appeal_blocks WHERE chat_id = ?").bind(chatId).first();
+        await env.DB.prepare("DELETE FROM telegram_appeal_blocks WHERE chat_id = ?").bind(chatId).run();
+        let notificationSent = false;
+        if (previous && env.TELEGRAM_BOT_TOKEN) {
+          try {
+            await telegramReply(env, chatId,
+              "💙 Уведомление от Совета Первых школы № 9\n\nБлокировка снята. Доступ к отправке обращений через Telegram-бот восстановлен. Спасибо за понимание!");
+            notificationSent = true;
+          } catch { /* Разблокировка сохраняется, даже если сообщение доставить не удалось. */ }
+        }
+        return json({ success: true, notificationSent }, 200, headers);
       } catch { return json({ error: "Не удалось снять блокировку Telegram." }, 500, headers); }
     }
     if (url.pathname === "/api/admin/appeals" && request.method === "GET") {
