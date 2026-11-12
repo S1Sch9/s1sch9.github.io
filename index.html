@@ -85,8 +85,16 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:var(--red);box-sh
 textarea{min-height:160px;resize:vertical}label{font-weight:700;font-size:14px}
 .btn{font:inherit;font-weight:700;border:0;border-radius:18px;padding:16px 28px;background:var(--red);color:#fff;cursor:pointer;transition:transform .15s,opacity .2s}
 .btn.full{width:100%}.btn.ghost{background:#efe6e8;color:var(--ink)}.btn:disabled{opacity:.6}
-details.rules{margin-top:22px;padding:16px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--mut);font-size:14px}
+details.rules{margin-top:22px;padding:16px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--mut);font-size:14px;scroll-margin-top:76px}
 details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.rules p{margin-top:10px}
+.rules-consent{display:flex;align-items:flex-start;gap:10px;margin:12px 0 14px;padding:12px 14px;border:1px solid #eadfe1;border-radius:15px;background:#fffafb;color:var(--mut);font-size:12.5px;line-height:1.45;font-weight:400;cursor:pointer}
+.rules-consent input[type="checkbox"]{appearance:none;-webkit-appearance:none;position:relative;display:block;flex:0 0 19px;width:19px;height:19px;padding:0;margin:1px 0 0;border:1.5px solid #cdbbc0;border-radius:6px;background:#fff;box-shadow:none;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
+.rules-consent input[type="checkbox"]:checked{background:var(--red);border-color:var(--red)}
+.rules-consent input[type="checkbox"]:checked:after{content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.rules-consent:has(input:checked){border-color:#e2c4cb;background:#fff6f8}
+.rules-consent a{color:var(--red);font-weight:700;text-decoration:none;border-bottom:1px solid #d7aab5;text-underline-offset:3px}
+.rules-consent a:active{opacity:.7}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .ok{text-align:center;padding:40px 10px;animation:in .5s both}
 .ok svg{width:84px;height:84px;stroke:var(--red);fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
 .ok circle{stroke-dasharray:260;stroke-dashoffset:260;animation:dr .7s .1s forwards}.ok path{stroke-dasharray:60;stroke-dashoffset:60;animation:dr .4s .7s forwards}
@@ -162,9 +170,9 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
     <select id="kind" name="Тип"><option>Идея или предложение</option><option>Новость школы</option><option>Обратная связь</option></select>
     <label for="msg">Ваша идея или предложение *</label>
     <textarea id="msg" name="Сообщение" required minlength="5" maxlength="1500"></textarea>
-    <label for="rulesAgree" style="display:flex;align-items:flex-start;gap:9px;margin:12px 0 14px;font-size:13px;line-height:1.5;font-weight:400">
-      <input id="rulesAgree" name="Согласие с правилами" type="checkbox" required style="width:18px;height:18px;flex:0 0 18px;margin:2px 0 0;accent-color:#A1001F">
-      <span>Отправляя обращение, я подтверждаю, что ознакомился(ась) и согласен(на) с <a href="#appeal-rules" style="color:inherit;text-decoration:underline;text-underline-offset:3px">правилами пользования</a>.</span>
+    <label class="rules-consent" for="rulesAgree">
+      <input id="rulesAgree" name="Согласие с правилами" type="checkbox" required>
+      <span>Отправляя обращение, я подтверждаю, что ознакомился(ась) и согласен(на) с <a href="#appeal-rules">правилами пользования</a>.</span>
     </label>
     <div class="cf-turnstile" data-sitekey="0x4AAAAAAF6Yz9usYN7tJ3iQ" data-language="ru" style="margin:8px 0 16px"></div>
     <button class="btn full" id="send" type="submit">Отправить</button>
@@ -240,11 +248,18 @@ const photo = (p, i) => p
 
 function route(){
   const id = (location.hash || "#home").slice(1);
-  const page = document.getElementById(id) && id !== "sh" ? id : "home";
+  const target = document.getElementById(id);
+  const section = target && (target.matches("section") ? target : target.closest("section"));
+  const page = section ? section.id : "home";
   document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === page));
   document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.hash === "#" + page));
   document.querySelectorAll("#" + page + " .rv").forEach((e, i) => e.style.setProperty("--i", Math.min(i, 9)));
-  scrollTo(0, 0);
+  if (target && !target.matches("section")) {
+    if (target.id === "appeal-rules") target.open = true;
+    requestAnimationFrame(() => target.scrollIntoView({behavior:"smooth",block:"start"}));
+  } else {
+    scrollTo(0, 0);
+  }
 }
 addEventListener("hashchange", route);
 function openSh(h){ $("#pn").innerHTML = '<div class="grip"></div>' + h; $("#sh").classList.add("on"); document.body.style.overflow = "hidden"; }
