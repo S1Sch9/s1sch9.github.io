@@ -254,6 +254,8 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     ];
     const schoolCrestImage = new Image();
     schoolCrestImage.src = 'gerb.png';
+    const movementLogoImage = new Image();
+    movementLogoImage.src = 'strelka.png';
     function resizeCanvas() {
         const rect = canvas.parentElement.getBoundingClientRect();
         canvas.width = rect.width;
@@ -470,33 +472,42 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         ctx.strokeRect(4,4,Math.max(0,faceW-8),h-8);
         ctx.restore();
     }
-    function drawCrestOnTop(a,b,c,q,level){
-        if(level%6!==3 || !schoolCrestImage.complete || !schoolCrestImage.naturalWidth)return;
+    function drawBrandOnTop(image,a,b,c,q,level,showAt,size){
+        if(level%8!==showAt || !image.complete || !image.naturalWidth)return;
         const ux=b.x-a.x,uy=b.y-a.y,vx=q.x-a.x,vy=q.y-a.y;
-        const ratio=schoolCrestImage.naturalHeight/schoolCrestImage.naturalWidth;
-        const w=ratio>1?.23/ratio:.23,h=ratio>1?.23:.23*ratio;
+        const ratio=image.naturalHeight/image.naturalWidth;
+        const w=ratio>1?size/ratio:size,h=ratio>1?size:size*ratio;
         ctx.save();
         ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(q.x,q.y);ctx.closePath();ctx.clip();
         ctx.transform(ux,uy,vx,vy,a.x,a.y);
-        ctx.globalAlpha=.88;
-        // Герб всегда остаётся в правильном положении — как настоящая школьная печать.
-        ctx.drawImage(schoolCrestImage,.5-w/2,.5-h/2,w,h);
+        ctx.globalAlpha=.9;
+        ctx.drawImage(image,.5-w/2,.5-h/2,w,h);
         ctx.restore();
     }
-    function drawCrestOnSide(q,c,h,level,side){
-        if(level%6!==0 && level%6!==4)return;
-        if((side==='left' && level%6!==0)||(side==='right' && level%6!==4))return;
-        if(!schoolCrestImage.complete || !schoolCrestImage.naturalWidth)return;
+    function drawBrandOnSide(image,q,c,h,level,side,showAt,markMax){
+        if(level%8!==showAt)return;
+        if((side==='left' && showAt%8!==level%8)||(side==='right' && showAt%8!==level%8))return;
+        if(!image.complete || !image.naturalWidth)return;
         const ux=c.x-q.x,uy=c.y-q.y,faceW=Math.hypot(ux,uy);
         if(faceW<28||h<24)return;
-        const ratio=schoolCrestImage.naturalHeight/schoolCrestImage.naturalWidth;
-        const markW=Math.min(23,faceW*.24),markH=markW*ratio;
+        const ratio=image.naturalHeight/image.naturalWidth;
+        const markW=Math.min(markMax,faceW*.27),markH=markW*ratio;
         if(markH>h*.68)return;
         ctx.save();
         ctx.transform(ux/faceW,uy/faceW,0,1,q.x,q.y);
-        ctx.globalAlpha=.9;
-        ctx.drawImage(schoolCrestImage,(faceW-markW)/2,(h-markH)/2,markW,markH);
+        ctx.globalAlpha=.92;
+        ctx.drawImage(image,(faceW-markW)/2,(h-markH)/2,markW,markH);
         ctx.restore();
+    }
+    function drawCrestOnTop(a,b,c,q,level){drawBrandOnTop(schoolCrestImage,a,b,c,q,level,3,.23);}
+    function drawMovementOnTop(a,b,c,q,level){drawBrandOnTop(movementLogoImage,a,b,c,q,level,7,.31);}
+    function drawCrestOnSide(q,c,h,level,side){
+        if((side==='left'&&level%8!==0)||(side==='right'&&level%8!==4))return;
+        drawBrandOnSide(schoolCrestImage,q,c,h,level,side,level%8,23);
+    }
+    function drawMovementOnSide(q,c,h,level,side){
+        if((side==='left'&&level%8!==2)||(side==='right'&&level%8!==6))return;
+        drawBrandOnSide(movementLogoImage,q,c,h,level,side,level%8,27);
     }
     function drawTopTrim(a,b,c,q,level){
         const cx=(a.x+b.x+c.x+q.x)/4,cy=(a.y+b.y+c.y+q.y)/4;
@@ -510,7 +521,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(A.x+(B.x-A.x)*.16,A.y+(B.y-A.y)*.16);ctx.moveTo(C.x,C.y);ctx.lineTo(C.x+(Q.x-C.x)*.16,C.y+(Q.y-C.y)*.16);ctx.stroke();
         ctx.restore();
     }
-    function drawIsoBlock(block,alpha=1){const{x,z,width:w,depth:d,level,style}=block,a=projectPoint(x,z,level),b=projectPoint(x+w,z,level),c=projectPoint(x+w,z+d,level),q=projectPoint(x,z+d,level),h=blockHeight;const poly=(pts,fill)=>{ctx.fillStyle=fill;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();ctx.fill();};ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor='rgba(32,5,18,.28)';ctx.shadowBlur=13;ctx.shadowOffsetY=5;const s1=ctx.createLinearGradient(b.x,b.y,c.x,c.y+h);s1.addColorStop(0,style.dark);s1.addColorStop(1,'#32101F');poly([b,c,{x:c.x,y:c.y+h},{x:b.x,y:b.y+h}],s1);const s2=ctx.createLinearGradient(q.x,q.y,c.x,c.y+h);s2.addColorStop(0,style.main);s2.addColorStop(1,style.dark);poly([q,c,{x:c.x,y:c.y+h},{x:q.x,y:q.y+h}],s2);ctx.shadowColor='transparent';const top=ctx.createLinearGradient(a.x,a.y,c.x,c.y);top.addColorStop(0,style.light);top.addColorStop(.55,style.main);top.addColorStop(1,style.dark);poly([a,b,c,q],top);drawTopTrim(a,b,c,q,level);ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(q.x,q.y);ctx.closePath();ctx.stroke();drawSchoolFace(block,q,c,h);drawSchoolFace(block,b,c,h);drawCrestOnSide(q,c,h,level,'left');drawCrestOnSide(b,c,h,level,'right');drawCrestOnTop(a,b,c,q,level);ctx.restore();}
+    function drawIsoBlock(block,alpha=1){const{x,z,width:w,depth:d,level,style}=block,a=projectPoint(x,z,level),b=projectPoint(x+w,z,level),c=projectPoint(x+w,z+d,level),q=projectPoint(x,z+d,level),h=blockHeight;const poly=(pts,fill)=>{ctx.fillStyle=fill;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();ctx.fill();};ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor='rgba(32,5,18,.28)';ctx.shadowBlur=13;ctx.shadowOffsetY=5;const s1=ctx.createLinearGradient(b.x,b.y,c.x,c.y+h);s1.addColorStop(0,style.dark);s1.addColorStop(1,'#32101F');poly([b,c,{x:c.x,y:c.y+h},{x:b.x,y:b.y+h}],s1);const s2=ctx.createLinearGradient(q.x,q.y,c.x,c.y+h);s2.addColorStop(0,style.main);s2.addColorStop(1,style.dark);poly([q,c,{x:c.x,y:c.y+h},{x:q.x,y:q.y+h}],s2);ctx.shadowColor='transparent';const top=ctx.createLinearGradient(a.x,a.y,c.x,c.y);top.addColorStop(0,style.light);top.addColorStop(.55,style.main);top.addColorStop(1,style.dark);poly([a,b,c,q],top);drawTopTrim(a,b,c,q,level);ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(q.x,q.y);ctx.closePath();ctx.stroke();drawSchoolFace(block,q,c,h);drawSchoolFace(block,b,c,h);drawCrestOnSide(q,c,h,level,'left');drawCrestOnSide(b,c,h,level,'right');drawMovementOnSide(q,c,h,level,'left');drawMovementOnSide(b,c,h,level,'right');drawCrestOnTop(a,b,c,q,level);drawMovementOnTop(a,b,c,q,level);ctx.restore();}
         function drawCloud(x,y,scale,alpha){
         ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle='#FBE9EB';
         ctx.beginPath();ctx.ellipse(x,y,34*scale,10*scale,0,0,Math.PI*2);ctx.ellipse(x-17*scale,y-6*scale,15*scale,13*scale,0,0,Math.PI*2);ctx.ellipse(x+2*scale,y-11*scale,19*scale,17*scale,0,0,Math.PI*2);ctx.ellipse(x+22*scale,y-5*scale,14*scale,11*scale,0,0,Math.PI*2);ctx.fill();ctx.restore();
