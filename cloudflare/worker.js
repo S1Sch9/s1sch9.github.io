@@ -267,18 +267,7 @@ async function telegramWebhook(request, env) {
     if (!seen.meta.changes) return json({ ok: true });
   }
   if (callback) {
-    if (callback.data === "appeal_rules_accept") {
-      await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at, rules_accepted) VALUES (?, 0, ?, 1) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at, rules_accepted=1")
-        .bind(chatId, Math.floor(Date.now() / 1000)).run();
-      try {
-        await telegramApi(env, "answerCallbackQuery", { callback_query_id: callback.id, text: "Спасибо за подтверждение!" });
-      } catch {}
-      await telegramReply(env, chatId,
-        "✅ Спасибо! Вы ознакомились с правилами и подтвердили согласие.\n\nТеперь можно нажать «Написать обращение» — мы внимательно прочитаем ваше сообщение. 💙",
-        keyboard);
-    } else {
-      try { await telegramApi(env, "answerCallbackQuery", { callback_query_id: callback.id }); } catch {}
-    }
+    try { await telegramApi(env, "answerCallbackQuery", { callback_query_id: callback.id }); } catch {}
     return json({ ok: true });
   }
   if (!msg) return json({ ok: true });
@@ -287,8 +276,9 @@ async function telegramWebhook(request, env) {
     await clearTelegramCommands(env);
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
+    await env.DB.prepare("UPDATE telegram_appeal_sessions SET awaiting=0, rules_accepted=0 WHERE chat_id=?").bind(chatId).run();
     await telegramReply(env, chatId,
-      "💙 Добро пожаловать!\n\nЭто бот обратной связи Совета Первых школы № 9. Здесь можно поделиться идеей, предложением или задать вопрос.\n\nНажмите кнопку ниже — откроется небольшое приложение с формой обращения. Правила будут прямо внутри приложения, без длинных сообщений в чате. 💙",
+      "💙 Добро пожаловать!\n\nЭто бот обратной связи Совета Первых школы № 9. Здесь можно поделиться идеей, предложением или задать вопрос.\n\nНажмите «Написать обращение», чтобы начать. Сначала бот предложит ознакомиться с правилами, а после подтверждения вы сможете написать обращение прямо здесь, в чате. 💙",
       keyboard);
     return json({ ok: true });
   }
@@ -299,14 +289,16 @@ async function telegramWebhook(request, env) {
     return json({ ok: true });
   }
   if (command === "/new" || text === "✍️ Написать обращение") {
+    await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at, rules_accepted) VALUES (?, 0, ?, 0) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at, rules_accepted=0")
+      .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
-      "Откройте мини-приложение кнопкой «Написать обращение» внизу чата. Там можно ознакомиться с правилами и сразу заполнить форму. 💙",
-      keyboard);
+      "📖 Перед отправкой обращения, пожалуйста, прочитайте правила пользования.\n\nНажмите кнопку ниже. В приложении будут только правила и подтверждение согласия. После этого вы сможете написать своё обращение следующим сообщением в этом чате.",
+      { inline_keyboard: [[{ text: "📖 Прочитать правила", web_app: { url: "https://s1sch9.github.io/appeal-app.html" } }]] });
     return json({ ok: true });
   }
   const session = await env.DB.prepare("SELECT awaiting, rules_accepted FROM telegram_appeal_sessions WHERE chat_id = ?").bind(chatId).first();
   if (!session || !session.awaiting) {
-    await telegramReply(env, chatId, "💬 Хотите поделиться идеей или задать вопрос?\n\nНажмите «Написать обращение» — и ваше сообщение попадёт прямо в Совет Первых. 💙", keyboard);
+    await telegramReply(env, chatId, "💬 Чтобы начать новое обращение, нажмите «Написать обращение» внизу чата. Сначала откроются правила пользования.", keyboard);
     return json({ ok: true });
   }
   if (!session.rules_accepted) {
@@ -500,21 +492,15 @@ self.addEventListener("notificationclick", event => {
     if (url.pathname.startsWith("/api/") && request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: { ...cors(origin), ...headers } });
     }
-    if (url.pathname === "/api/telegram-miniapp/appeals" && request.method === "POST") {
+    if (url.pathname === "/api/telegram-miniapp/accept" && request.method === "POST") {
       if (origin !== SITE_ORIGIN) return json({ error: "Недопустимый источник запроса." }, 403, { ...headers, ...cors(origin) });
       const length = Number(request.headers.get("Content-Length") || 0);
       if (length > MAX_BODY) return json({ error: "Слишком большой запрос." }, 413, { ...headers, ...cors(origin) });
       let body;
       try { body = await request.json(); } catch { return json({ error: "Некорректный запрос." }, 400, { ...headers, ...cors(origin) }); }
-      const role = cleanText(body.role, 30);
-      const category = cleanText(body.category, 60);
-      const message = cleanText(body.message, MAX_MESSAGE);
       const initData = typeof body.initData === "string" ? body.initData : "";
-      if (body.rulesAccepted !== true || body.rulesVersion !== "2026-11-12" ||
-          !["Ученик", "Родитель", "Учитель"].includes(role) ||
-          !["Идея или предложение", "Новость школы", "Обратная связь"].includes(category) ||
-          message.length < 5 || message.length > MAX_MESSAGE || initData.length > 4096 || !initData) {
-        return json({ error: "Проверьте заполнение формы и подтвердите правила." }, 400, { ...headers, ...cors(origin) });
+      if (body.rulesAccepted !== true || body.rulesVersion !== "2026-11-12" || !initData || initData.length > 4096) {
+        return json({ error: "Сначала прочитайте правила и подтвердите согласие." }, 400, { ...headers, ...cors(origin) });
       }
       try {
         if (!env.TELEGRAM_BOT_TOKEN) return json({ error: "Telegram пока не настроен." }, 503, { ...headers, ...cors(origin) });
@@ -534,31 +520,18 @@ self.addEventListener("notificationclick", event => {
         if (!receivedHash || !constantTimeEqual(receivedHash, expectedHash) ||
             !Number.isSafeInteger(authDate) || authDate > now + 60 || now - authDate > 86400 ||
             !user || !Number.isSafeInteger(user.id) || user.is_bot) {
-          return json({ error: "Не удалось подтвердить Telegram. Закройте приложение и откройте его заново из бота." }, 401, { ...headers, ...cors(origin) });
+          return json({ error: "Не удалось подтвердить Telegram. Закройте приложение и откройте его заново из сообщения бота." }, 401, { ...headers, ...cors(origin) });
         }
-        const ipHash = await clientIpHash(request);
-        if (await isIpBlocked(env, ipHash)) {
-          return json({ error: "Отправка обращений с этого подключения временно ограничена." }, 403, { ...headers, ...cors(origin) });
-        }
-        const senderKey = await sha256("s1sch9-telegram-miniapp:" + String(user.id));
-        const limit = await rateAllowed(env, senderKey);
-        await logSecurityEvent(env, senderKey, limit.allowed ? "accepted" : "rate_limited");
-        if (!limit.allowed) return json({ error: "Слишком много обращений. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
-        const inserted = await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
-          .bind(role, "Telegram · " + category, message).run();
-        if (inserted.meta?.last_row_id) {
-          await env.DB.prepare("INSERT OR REPLACE INTO appeal_sender_keys (appeal_id, ip_hash) VALUES (?, ?)")
-            .bind(inserted.meta.last_row_id, ipHash).run();
-        }
-        await sendPushNotifications(env, {
-          title: "Совет Первых · Новое обращение",
-          body: "Поступило новое обращение из Telegram Mini App. Нажмите, чтобы открыть админку.",
-          url: "/admin#appeals",
-          tag: "new-appeal"
-        });
-        return json({ success: true }, 201, { ...headers, ...cors(origin) });
+        const chatId = String(user.id);
+        await ensureTelegramAppeals(env);
+        await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at, rules_accepted) VALUES (?, 1, ?, 1) ON CONFLICT(chat_id) DO UPDATE SET awaiting=1, updated_at=excluded.updated_at, rules_accepted=1")
+          .bind(chatId, now).run();
+        await telegramReply(env, chatId,
+          "✅ Спасибо! Вы ознакомились с правилами и подтвердили согласие.\n\nТеперь напишите своё обращение следующим сообщением прямо в этом чате. Можно подробно описать идею, предложение, новость или вопрос.\n\nМаксимальная длина — 1500 символов. Если передумали, нажмите «Отменить отправку». 💙",
+          { keyboard: [[{ text: "↩️ Отменить отправку" }]], resize_keyboard: true, is_persistent: true });
+        return json({ success: true }, 200, { ...headers, ...cors(origin) });
       } catch {
-        return json({ error: "Не удалось отправить обращение. Попробуйте ещё раз." }, 503, { ...headers, ...cors(origin) });
+        return json({ error: "Не удалось подтвердить согласие. Попробуйте закрыть приложение и открыть его ещё раз." }, 503, { ...headers, ...cors(origin) });
       }
     }
 
