@@ -14,7 +14,7 @@ button{font:inherit}
 .screen{position:relative;display:none;flex-direction:column;width:100%;height:100%;min-height:0;justify-content:center;animation:fadeIn .28s ease-out}
 .screen.active{display:flex}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.council-project-mark{display:block;width:58px;height:58px;object-fit:contain;border-radius:14px;background:#fff;margin:0 auto 10px}.logo-container{position:relative;display:flex;justify-content:center;align-items:center;gap:clamp(13px,4vw,22px);padding:13px 20px;margin:0 auto 19px;width:min(100%,330px);min-height:76px;background:linear-gradient(145deg,#3D000D 0%,#76001C 52%,#4A0011 100%);border:1px solid rgba(240,200,105,.72);border-radius:22px;box-shadow:0 10px 25px rgba(61,0,13,.2),inset 0 1px rgba(255,255,255,.14)}
+.logo-container{position:relative;display:flex;justify-content:center;align-items:center;gap:clamp(13px,4vw,22px);padding:13px 20px;margin:0 auto 19px;width:min(100%,330px);min-height:76px;background:linear-gradient(145deg,#3D000D 0%,#76001C 52%,#4A0011 100%);border:1px solid rgba(240,200,105,.72);border-radius:22px;box-shadow:0 10px 25px rgba(61,0,13,.2),inset 0 1px rgba(255,255,255,.14)}
 .logo-container:after{content:"";position:absolute;left:12%;right:12%;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,239,199,.65),transparent)}
 .logo-container img{display:block;flex:0 1 auto;width:auto;height:clamp(34px,10vw,43px);max-width:29%;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.24))}
 .logo-container img:first-child{height:clamp(39px,11vw,47px);max-width:31%}
@@ -109,7 +109,6 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 <div class="app-container">
 
     <div id="menu-screen" class="screen active">
-        <img class="council-project-mark" src="logo.jpg?v=20261113-1" alt="Логотип Совета Первых">
         <div class="logo-container" aria-label="Символика школы и Движения Первых">
             <img src="gerb.png" alt="Герб школы №9">
             <img src="strelka.png" alt="Движение Первых">
@@ -244,12 +243,12 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     // Фирменная палитра школы №9: бордо, рубиновый и редкие золотые акценты.
     // Орнаменты вдохновлены школьной символикой, английским профилем и школьной жизнью.
     const blockStyles = [
-        {main:'#A1001F',light:'#D52B52',dark:'#3D000D',motif:'nine'},
+        {main:'#A1001F',light:'#D52B52',dark:'#79001D',motif:'nine'},
         {main:'#8E0020',light:'#B3002A',dark:'#3D000D',motif:'book'},
         {main:'#A1001F',light:'#C51E43',dark:'#3D000D',motif:'letter'},
-        {main:'#3D000D',light:'#8E0020',dark:'#1D1215',motif:'lines'},
+        {main:'#3D000D',light:'#8E0020',dark:'#5C1B2A',motif:'lines'},
         {main:'#A1001F',light:'#D52B52',dark:'#3D000D',motif:'star'},
-        {main:'#B88725',light:'#F0C869',dark:'#76500D',motif:'dots'},
+        {main:'#B88725',light:'#F0C869',dark:'#A87920',motif:'dots'},
         {main:'#8E0020',light:'#B3002A',dark:'#3D000D',motif:'sport'},
         {main:'#3D000D',light:'#8E0020',dark:'#1D1215',motif:'plain'},
         {main:'#A1001F',light:'#D52B52',dark:'#3D000D',motif:'crest'}
@@ -501,8 +500,8 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         ctx.save();
         ctx.transform(ux/faceW,uy/faceW,0,1,q.x,q.y);
         const px=(faceW-markW)/2,py=(h-markH)/2;
-        ctx.globalAlpha=.84;
-        ctx.globalCompositeOperation='multiply';
+        ctx.globalAlpha=.98;
+        ctx.globalCompositeOperation='source-over';
         ctx.drawImage(image,px,py,markW,markH);
         ctx.restore();
     }
@@ -567,7 +566,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(A.x+(B.x-A.x)*.16,A.y+(B.y-A.y)*.16);ctx.moveTo(C.x,C.y);ctx.lineTo(C.x+(Q.x-C.x)*.16,C.y+(Q.y-C.y)*.16);ctx.stroke();
         ctx.restore();
     }
-    function drawIsoBlock(block,alpha=1){const{x,z,width:w,depth:d,level,style}=block,a=projectPoint(x,z,level),b=projectPoint(x+w,z,level),c=projectPoint(x+w,z+d,level),q=projectPoint(x,z+d,level),h=blockHeight;const poly=(pts,fill)=>{ctx.fillStyle=fill;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();ctx.fill();};ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor='rgba(32,5,18,.28)';ctx.shadowBlur=13;ctx.shadowOffsetY=5;const s1=ctx.createLinearGradient(b.x,b.y,c.x,c.y+h);s1.addColorStop(0,style.dark);s1.addColorStop(1,'#32101F');poly([b,c,{x:c.x,y:c.y+h},{x:b.x,y:b.y+h}],s1);const s2=ctx.createLinearGradient(q.x,q.y,c.x,c.y+h);s2.addColorStop(0,style.main);s2.addColorStop(1,style.dark);poly([q,c,{x:c.x,y:c.y+h},{x:q.x,y:q.y+h}],s2);ctx.shadowColor='transparent';const top=ctx.createLinearGradient(a.x,a.y,c.x,c.y);top.addColorStop(0,style.light);top.addColorStop(.55,style.main);top.addColorStop(1,style.dark);poly([a,b,c,q],top);drawTopTrim(a,b,c,q,level);ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(q.x,q.y);ctx.closePath();ctx.stroke();drawSchoolFace(block,q,c,h);drawSchoolFace(block,b,c,h);drawCrestOnSide(q,c,h,level,'left');drawCrestOnSide(b,c,h,level,'right');drawMovementOnSide(q,c,h,level,'left');drawMovementOnSide(b,c,h,level,'right');drawCrestOnTop(a,b,c,q,level);drawMovementOnTop(a,b,c,q,level);drawBlockContours(a,b,c,q,h);ctx.restore();}
+    function drawIsoBlock(block,alpha=1){const{x,z,width:w,depth:d,level,style}=block,a=projectPoint(x,z,level),b=projectPoint(x+w,z,level),c=projectPoint(x+w,z+d,level),q=projectPoint(x,z+d,level),h=blockHeight;const poly=(pts,fill)=>{ctx.fillStyle=fill;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();ctx.fill();};ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor='rgba(32,5,18,.28)';ctx.shadowBlur=13;ctx.shadowOffsetY=5;const s1=ctx.createLinearGradient(b.x,b.y,c.x,c.y+h);s1.addColorStop(0,style.dark);s1.addColorStop(1,'#74152D');poly([b,c,{x:c.x,y:c.y+h},{x:b.x,y:b.y+h}],s1);const s2=ctx.createLinearGradient(q.x,q.y,c.x,c.y+h);s2.addColorStop(0,style.main);s2.addColorStop(1,style.dark);poly([q,c,{x:c.x,y:c.y+h},{x:q.x,y:q.y+h}],s2);ctx.shadowColor='transparent';const top=ctx.createLinearGradient(a.x,a.y,c.x,c.y);top.addColorStop(0,style.light);top.addColorStop(.55,style.main);top.addColorStop(1,style.dark);poly([a,b,c,q],top);drawTopTrim(a,b,c,q,level);ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(q.x,q.y);ctx.closePath();ctx.stroke();drawSchoolFace(block,q,c,h);drawSchoolFace(block,b,c,h);drawCrestOnSide(q,c,h,level,'left');drawCrestOnSide(b,c,h,level,'right');drawMovementOnSide(q,c,h,level,'left');drawMovementOnSide(b,c,h,level,'right');drawCrestOnTop(a,b,c,q,level);drawMovementOnTop(a,b,c,q,level);drawBlockContours(a,b,c,q,h);ctx.restore();}
         function drawCloud(x,y,scale,alpha){
         ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle='#FBE9EB';
         ctx.beginPath();ctx.ellipse(x,y,34*scale,10*scale,0,0,Math.PI*2);ctx.ellipse(x-17*scale,y-6*scale,15*scale,13*scale,0,0,Math.PI*2);ctx.ellipse(x+2*scale,y-11*scale,19*scale,17*scale,0,0,Math.PI*2);ctx.ellipse(x+22*scale,y-5*scale,14*scale,11*scale,0,0,Math.PI*2);ctx.fill();ctx.restore();
