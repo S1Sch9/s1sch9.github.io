@@ -81,26 +81,47 @@ async function verifyTurnstile(token, request, env) {
   }
   return { ok: true };
 }
-async function rateAllowed(request, env) {
+async function ensureAppealSecurity(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS appeal_ip_blocks (
+    ip_hash TEXT PRIMARY KEY, created_at INTEGER NOT NULL, note TEXT NOT NULL DEFAULT ''
+  )`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS appeal_sender_keys (
+    appeal_id INTEGER PRIMARY KEY, ip_hash TEXT NOT NULL
+  )`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS appeal_security_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, ip_hash TEXT NOT NULL, event TEXT NOT NULL, created_at INTEGER NOT NULL
+  )`).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_appeal_security_events_time ON appeal_security_events(created_at)").run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_appeal_security_events_ip ON appeal_security_events(ip_hash, created_at)").run();
+}
+async function clientIpHash(request) {
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  return sha256("s1sch9-appeals-rate:" + ip);
+}
+async function isIpBlocked(env, hash) {
+  await ensureAppealSecurity(env);
+  return !!(await env.DB.prepare("SELECT ip_hash FROM appeal_ip_blocks WHERE ip_hash = ?").bind(hash).first());
+}
+async function logSecurityEvent(env, hash, event) {
+  await ensureAppealSecurity(env);
+  await env.DB.prepare("INSERT INTO appeal_security_events (ip_hash, event, created_at) VALUES (?, ?, ?)")
+    .bind(hash, event, Math.floor(Date.now() / 1000)).run();
+}
+async function rateAllowed(env, key) {
   await env.DB.prepare(`
     CREATE TABLE IF NOT EXISTS appeal_rate_limits (
-      ip_hash TEXT PRIMARY KEY,
-      window_start INTEGER NOT NULL,
-      attempts INTEGER NOT NULL
+      ip_hash TEXT PRIMARY KEY, window_start INTEGER NOT NULL, attempts INTEGER NOT NULL
     )
   `).run();
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-  const key = await sha256("s1sch9-appeals-rate:" + ip);
   const now = Math.floor(Date.now() / 1000);
   const row = await env.DB.prepare(`
-    INSERT INTO appeal_rate_limits (ip_hash, window_start, attempts)
-    VALUES (?, ?, 1)
+    INSERT INTO appeal_rate_limits (ip_hash, window_start, attempts) VALUES (?, ?, 1)
     ON CONFLICT(ip_hash) DO UPDATE SET
       attempts = CASE WHEN window_start <= ? THEN 1 ELSE attempts + 1 END,
       window_start = CASE WHEN window_start <= ? THEN ? ELSE window_start END
     RETURNING attempts
   `).bind(key, now, now - 3600, now - 3600, now).first();
-  return !!row && row.attempts <= 5;
+  return { allowed: !!row && row.attempts <= 5, attempts: row?.attempts || 0 };
 }
 async function ensureTelegramNews(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_news (
@@ -454,6 +475,10 @@ self.addEventListener("notificationclick", event => {
         return json({ error: "Проверьте заполнение формы." }, 400, { ...headers, ...cors(origin) });
       }
       try {
+        const ipHash = await clientIpHash(request);
+        if (await isIpBlocked(env, ipHash)) {
+          return json({ error: "Отправка обращений с этого подключения временно ограничена." }, 403, { ...headers, ...cors(origin) });
+        }
         const captchaCheck = await verifyTurnstile(captchaToken, request, env);
         if (!captchaCheck.ok) {
           return json({
@@ -461,11 +486,17 @@ self.addEventListener("notificationclick", event => {
             diagnostic: captchaCheck.reason
           }, 400, { ...headers, ...cors(origin) });
         }
-        if (!(await rateAllowed(request, env))) {
+        const limit = await rateAllowed(env, ipHash);
+        await logSecurityEvent(env, ipHash, limit.allowed ? "accepted" : "rate_limited");
+        if (!limit.allowed) {
           return json({ error: "Слишком много обращений. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
         }
-        await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
+        const inserted = await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
           .bind(role, category, message).run();
+        if (inserted.meta?.last_row_id) {
+          await env.DB.prepare("INSERT OR REPLACE INTO appeal_sender_keys (appeal_id, ip_hash) VALUES (?, ?)")
+            .bind(inserted.meta.last_row_id, ipHash).run();
+        }
         await sendPushNotifications(env, {
           title: "Совет Первых · Новое обращение",
           body: "Поступило новое обращение с сайта. Нажмите, чтобы открыть админку.",
@@ -569,10 +600,44 @@ self.addEventListener("notificationclick", event => {
       } catch { return json({ error: "Не удалось изменить новость." }, 500, headers); }
     }
 
+    if (url.pathname === "/api/admin/security" && request.method === "GET") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensureAppealSecurity(env);
+        const blocks = await env.DB.prepare(`SELECT b.ip_hash, b.created_at, b.note, COUNT(s.appeal_id) AS appeals_count FROM appeal_ip_blocks b LEFT JOIN appeal_sender_keys s ON s.ip_hash = b.ip_hash GROUP BY b.ip_hash ORDER BY b.created_at DESC LIMIT 100`).all();
+        const since = Math.floor(Date.now() / 1000) - 7 * 86400;
+        const events = await env.DB.prepare(`SELECT e.ip_hash, COUNT(*) AS attempts, MAX(e.created_at) AS last_seen, SUM(CASE WHEN e.event = 'rate_limited' THEN 1 ELSE 0 END) AS limited, CASE WHEN b.ip_hash IS NULL THEN 0 ELSE 1 END AS blocked FROM appeal_security_events e LEFT JOIN appeal_ip_blocks b ON b.ip_hash = e.ip_hash WHERE e.created_at >= ? GROUP BY e.ip_hash ORDER BY attempts DESC, last_seen DESC LIMIT 40`).bind(since).all();
+        const totals = await env.DB.prepare(`SELECT COUNT(*) AS attempts, SUM(CASE WHEN event = 'rate_limited' THEN 1 ELSE 0 END) AS limited FROM appeal_security_events WHERE created_at >= ?`).bind(since).first();
+        const count = await env.DB.prepare("SELECT COUNT(*) AS total FROM appeal_ip_blocks").first();
+        return json({ blocks: blocks.results || [], events: events.results || [], totals: totals || {}, blockedCount: count?.total || 0 }, 200, headers);
+      } catch { return json({ error: "Не удалось загрузить данные защиты." }, 500, headers); }
+    }
+    if (url.pathname === "/api/admin/security/blocks" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        const body = await request.json(), hash = cleanText(body.hash, 64), note = cleanText(body.note, 160);
+        if (!/^[a-f0-9]{64}$/.test(hash)) return json({ error: "Некорректный идентификатор отправителя." }, 400, headers);
+        await ensureAppealSecurity(env);
+        await env.DB.prepare("INSERT INTO appeal_ip_blocks (ip_hash, created_at, note) VALUES (?, ?, ?) ON CONFLICT(ip_hash) DO UPDATE SET note=excluded.note").bind(hash, Math.floor(Date.now() / 1000), note || "Блокировка из админки").run();
+        await logSecurityEvent(env, hash, "blocked");
+        return json({ success: true }, 200, headers);
+      } catch { return json({ error: "Не удалось заблокировать отправителя." }, 500, headers); }
+    }
+    const unblockMatch = url.pathname.match(/^\/api\/admin\/security\/blocks\/([a-f0-9]{64})$/);
+    if (unblockMatch && request.method === "DELETE") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensureAppealSecurity(env);
+        await env.DB.prepare("DELETE FROM appeal_ip_blocks WHERE ip_hash = ?").bind(unblockMatch[1]).run();
+        await logSecurityEvent(env, unblockMatch[1], "unblocked");
+        return json({ success: true }, 200, headers);
+      } catch { return json({ error: "Не удалось снять блокировку." }, 500, headers); }
+    }
     if (url.pathname === "/api/admin/appeals" && request.method === "GET") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
-        const result = await env.DB.prepare("SELECT id, role, category, message, status, created_at FROM appeals ORDER BY id DESC").all();
+        await ensureAppealSecurity(env);
+        const result = await env.DB.prepare("SELECT a.id, a.role, a.category, a.message, a.status, a.created_at, s.ip_hash, CASE WHEN b.ip_hash IS NULL THEN 0 ELSE 1 END AS sender_blocked FROM appeals a LEFT JOIN appeal_sender_keys s ON s.appeal_id = a.id LEFT JOIN appeal_ip_blocks b ON b.ip_hash = s.ip_hash ORDER BY a.id DESC").all();
         return json({ items: result.results || [] }, 200, headers);
       } catch { return json({ error: "Не удалось загрузить обращения." }, 500, headers); }
     }
