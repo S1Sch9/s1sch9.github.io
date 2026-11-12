@@ -233,7 +233,7 @@ async function telegramWebhook(request, env) {
   const chatId = String(chat.id);
   const text = cleanText(msg?.text, 64);
   const keyboard = {
-    keyboard: [[{ text: "✍️ Написать обращение", web_app: { url: "https://s1sch9.github.io/appeal-app.html" } }]],
+    keyboard: [[{ text: "✍️ Написать обращение" }]],
     resize_keyboard: true,
     is_persistent: true
   };
@@ -293,7 +293,7 @@ async function telegramWebhook(request, env) {
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
       "📖 Перед отправкой обращения, пожалуйста, прочитайте правила пользования.\n\nНажмите кнопку ниже. В приложении будут только правила и подтверждение согласия. После этого вы сможете написать своё обращение следующим сообщением в этом чате.",
-      { inline_keyboard: [[{ text: "📖 Прочитать правила", web_app: { url: "https://s1sch9.github.io/appeal-app.html" } }]] });
+      { inline_keyboard: [[{ text: "📖 Прочитать правила", web_app: { url: "https://s1sch9.github.io/appeal-app.html?v=rules-only-2" } }]] });
     return json({ ok: true });
   }
   const session = await env.DB.prepare("SELECT awaiting, rules_accepted FROM telegram_appeal_sessions WHERE chat_id = ?").bind(chatId).first();
