@@ -78,7 +78,7 @@ h1{font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin:1
 .photo-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;text-align:center;color:#fff;background:radial-gradient(circle at 50% 25%,#d52b52 0,#8e0020 55%,#3d000d 100%);font-weight:800}.photo-placeholder small{font-size:10px;line-height:1.25;letter-spacing:.07em}.big .photo-placeholder .camera{font-size:27px}.big .photo-placeholder small{font-size:8px}
 .card div.t{padding:12px 14px 14px;flex:1;display:flex;flex-direction:column;align-items:stretch}.card small{min-height:3.9em;display:flex;align-items:flex-start}.card b{min-height:2.5em}.card small{display:block;color:var(--mut);font-size:12.5px;line-height:1.3;margin-bottom:4px}
 .card b{display:block;line-height:1.25;font-size:15px}
-.row{padding:16px 18px;margin-bottom:12px}.row small{color:var(--red);font-weight:700}.row b{display:block;font-size:17px;line-height:1.25;margin:2px 0}.row em{font-style:normal;color:var(--mut);font-size:14px}
+.row{padding:16px 18px;margin-bottom:12px}.resource-caption{margin:18px 2px 10px;color:var(--red);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}.resource-secondary{margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}.row small{color:var(--red);font-weight:700}.row b{display:block;font-size:17px;line-height:1.25;margin:2px 0}.row em{font-style:normal;color:var(--mut);font-size:14px}
 .chip{display:inline-block;background:#f6e4e8;color:var(--red);font-weight:700;font-size:13px;padding:4px 12px;border-radius:99px}
 input,select,textarea{font:inherit;width:100%;padding:15px;border:1.5px solid var(--line);border-radius:16px;background:#fff;margin:6px 0 16px;transition:border-color .2s,box-shadow .2s}
 input:focus,select:focus,textarea:focus{outline:0;border-color:var(--red);box-shadow:0 0 0 4px #a1001f1f}
@@ -215,9 +215,14 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   </div>
 </section>
 <section id="links"><h1 class="rv">Наши ресурсы</h1>
-  <a class="row link rv" id="tg" href="#"><i style="background:#2aa3e0"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21.5 3.5 18.2 20c-.25 1.17-.9 1.46-1.82.91l-5.03-3.7-2.43 2.34c-.27.27-.5.5-1.02.5l.36-5.12 9.32-8.42c.4-.36-.09-.56-.62-.2L5.44 13.5.49 11.95c-1.08-.34-1.1-1.08.23-1.58L20.1 2.9c.9-.33 1.69.22 1.4.6Z" fill="white"/></svg></i>Телеграм-канал «Совет Первых школы №9!»</a>
-  <a class="row link rv" id="mx" href="#"><i style="background:#fff;padding:0"><img src="https://max.ru/s/img/big-logo.png" alt="Логотип MAX" loading="lazy"></i>Макс-канал «Совет Первых школы №9!»</a>
-  <a class="row link rv school" href="https://edu.tatar.ru/nsav/page2298.htm" target="_blank" rel="noopener"><i><img src="gerb.png" alt="Герб школы №9" loading="lazy"></i>Официальный сайт школы №9</a>
+  <p class="resource-caption rv">Совет Первых школы №9</p>
+  <a class="row link rv" id="tg" href="#"><i style="background:#2aa3e0"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21.5 3.5 18.2 20c-.25 1.17-.9 1.46-1.82.91l-5.03-3.7-2.43 2.34c-.27.27-.5.5-1.02.5l.36-5.12 9.32-8.42c.4-.36-.09-.56-.62-.2L5.44 13.5.49 11.95c-1.08-.34-1.1-1.08.23-1.58L20.1 2.9c.9-.33 1.69.22 1.4.6Z" fill="white"/></svg></i>Telegram-канал С1Шк9</a>
+  <a class="row link rv" id="mx" href="#"><i style="background:#fff;padding:0"><img src="https://max.ru/s/img/big-logo.png" alt="Логотип MAX" loading="lazy"></i>MAX-канал С1Шк9</a>
+  <a class="row link rv" href="https://s1sch9.github.io/" target="_blank" rel="noopener"><i style="background:#f6e4e8;color:#a1001f;font-size:23px">🌐</i>Сайт С1Шк9</a>
+  <a class="row link rv" href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener"><i style="background:#f6e4e8;color:#a1001f;font-size:22px">📨</i>ТГ-бот для приёма обращений</a>
+  <p class="resource-caption resource-secondary rv">Другие школьные ресурсы</p>
+  <a class="row link rv school" href="https://edu.tatar.ru/nsav/page2298.htm" target="_blank" rel="noopener"><i><img src="gerb.png" alt="Герб школы №9" loading="lazy"></i>Официальный сайт школы</a>
+  <a class="row link rv" href="https://max.ru/id1657021136_gos" target="_blank" rel="noopener"><i style="background:#fff;padding:0"><img src="https://max.ru/s/img/big-logo.png" alt="Логотип MAX" loading="lazy"></i>MAX-канал школы</a>
 </section>
 </main>
 <nav>
