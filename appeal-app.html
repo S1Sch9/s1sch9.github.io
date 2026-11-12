@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3D000D">
+<title>Обращение · Совет Первых</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{color-scheme:light;--red:#A1001F;--wine:#3D000D;--gold:#F0C869;--ink:#281a1d;--muted:#806f73;--line:#eadde0;--paper:#fffafb;--tg-bg:var(--tg-theme-bg-color,#fffafb);--tg-text:var(--tg-theme-text-color,#281a1d)}
+*{box-sizing:border-box}html{background:var(--tg-bg)}body{margin:0;min-height:100vh;padding:calc(14px + env(safe-area-inset-top)) 16px calc(22px + env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--tg-text);background:radial-gradient(circle at 90% 0,#f7e8eb 0,transparent 34%),var(--tg-bg)}
+.app{max-width:520px;margin:0 auto}.top{display:flex;align-items:center;gap:12px;margin:2px 0 20px}.mark{width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,var(--red),var(--wine));display:grid;place-items:center;color:#fff;font-size:22px;box-shadow:0 7px 18px #3d000d25}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.12em;font-weight:800}.brand b{display:block;font-size:14px;line-height:1.25;margin-top:3px}.intro{padding:19px 18px 17px;border-radius:22px;background:linear-gradient(135deg,var(--wine),#74102a);color:white;position:relative;overflow:hidden;box-shadow:0 12px 28px #3d000d20}.intro:after{content:"";position:absolute;width:150px;height:150px;border:1px solid #ffffff25;border-radius:50%;right:-48px;top:-72px;box-shadow:0 0 0 17px #ffffff09,0 0 0 35px #ffffff06}.eyebrow{font-size:10px;letter-spacing:.14em;color:#f0c869;font-weight:800}.intro h1{font-size:25px;line-height:1.1;margin:8px 0}.intro p{font-size:12px;line-height:1.5;color:#f8e9ec;margin:0;max-width:330px}.form{margin-top:18px;padding:17px 15px;border:1px solid var(--line);border-radius:21px;background:#fff;box-shadow:0 8px 24px #3d000d08}.field{margin-bottom:15px}.field:last-of-type{margin-bottom:0}label{display:block;margin:0 0 7px;font-size:12px;font-weight:750;color:#50383e}select,textarea{display:block;width:100%;font:inherit;color:#281a1d;background:#fffafb;border:1px solid #eadde0;border-radius:13px;padding:12px 13px;outline:none}select{height:45px}textarea{min-height:132px;resize:vertical;line-height:1.5}select:focus,textarea:focus{border-color:#b66a7b;box-shadow:0 0 0 3px #a1001f12}.counter{text-align:right;color:#9a888d;font-size:10px;margin-top:5px}.rules{display:flex;align-items:center;gap:10px;margin:16px 0 13px;padding:11px 12px;border:1px solid #eadfe0;border-radius:14px;background:#fff8f8}.rules-icon{width:32px;height:32px;flex:0 0 32px;border-radius:10px;background:#f5e5e9;display:grid;place-items:center}.rules-copy{flex:1;min-width:0}.rules-copy b{display:block;font-size:11.5px}.rules-copy span{display:block;font-size:10px;color:var(--muted);margin-top:2px}.text-btn{border:0;background:none;color:var(--red);font:700 11px inherit;cursor:pointer;padding:6px 0;white-space:nowrap}.rules.accepted{padding:8px 10px;border-color:#e6d8bb;background:#fffaf0}.rules.accepted .rules-icon,.rules.accepted .rules-copy span{display:none}.rules.accepted .rules-copy b{font-size:11px;color:#715a32}.rules.accepted .text-btn{font-size:10px;color:#715a32}.submit{width:100%;height:49px;border:0;border-radius:15px;background:linear-gradient(110deg,var(--red),var(--wine));color:#fff;font:750 14px inherit;box-shadow:0 8px 18px #a1001f25;cursor:pointer}.submit:disabled{opacity:.42;box-shadow:none}.hint{text-align:center;color:#96858a;font-size:10px;line-height:1.45;margin:10px 8px 0}.status{font-size:12px;line-height:1.5;text-align:center;margin:12px 0 0;color:var(--red)}.success{text-align:center;padding:24px 8px 10px}.success .check{width:66px;height:66px;border-radius:50%;display:grid;place-items:center;background:#f5e8d1;color:#85652b;font-size:30px;margin:0 auto 15px}.success h2{font-size:21px;margin:0 0 8px}.success p{font-size:12px;line-height:1.55;color:var(--muted);margin:0}.modal{position:fixed;inset:0;z-index:5;display:none;align-items:flex-end;justify-content:center;background:#16090c75;padding:12px 10px calc(10px + env(safe-area-inset-bottom))}.modal.open{display:flex}.sheet{width:min(100%,520px);max-height:88vh;overflow:auto;background:#fff;border-radius:23px;padding:20px 18px 16px;box-shadow:0 18px 60px #0003}.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.sheet h2{font-size:19px;margin:0}.close{width:32px;height:32px;border:0;border-radius:50%;background:#f4e9eb;color:#6b5057;font-size:19px}.rule-list{font-size:12px;line-height:1.55;color:#5f4b50}.rule-list p{margin:0 0 12px}.rule-list b{color:#301e23}.accept{width:100%;height:46px;border:0;border-radius:14px;background:var(--red);color:white;font-weight:750;margin-top:6px}.foot{text-align:center;color:#a28f94;font-size:9px;margin:15px 0 0}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top"><div class="mark">✦</div><div class="brand"><small>СОВЕТ ПЕРВЫХ · ШКОЛА №9</small><b>Форма обратной связи</b></div></header>
+  <section class="intro"><div class="eyebrow">ВАЖЕН КАЖДЫЙ ГОЛОС</div><h1>Есть идея?</h1><p>Поделитесь предложением, новостью или обратной связью. Мы внимательно прочитаем каждое сообщение.</p></section>
+  <form class="form" id="form">
+    <div class="field"><label for="role">Кто вы</label><select id="role"><option>Ученик</option><option>Родитель</option><option>Учитель</option></select></div>
+    <div class="field"><label for="category">Тип обращения</label><select id="category"><option>Идея или предложение</option><option>Новость школы</option><option>Обратная связь</option></select></div>
+    <div class="field"><label for="message">Ваше сообщение</label><textarea id="message" minlength="5" maxlength="1500" placeholder="Расскажите подробнее…" required></textarea><div class="counter" id="counter">0 / 1500</div></div>
+    <div class="rules" id="rules">
+      <div class="rules-icon">📋</div><div class="rules-copy"><b id="rulesTitle">Перед отправкой — правила</b><span>Ознакомьтесь с условиями публикации и рассмотрения.</span></div>
+      <button class="text-btn" type="button" id="readRules">Читать</button>
+    </div>
+    <button class="submit" id="send" type="submit" disabled>Сначала подтвердите правила</button>
+    <p class="hint">Обращения рассматриваются Советом Первых. Подходящие сообщения могут быть опубликованы анонимно.</p>
+    <p class="status" id="status" role="status"></p>
+  </form>
+  <p class="foot">СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ · 2026</p>
+</div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="rulesHeading">
+  <div class="sheet">
+    <div class="sheet-head"><h2 id="rulesHeading">Правила пользования</h2><button class="close" type="button" id="close">×</button></div>
+    <div class="rule-list">
+      <p><b>1. О чём можно написать</b><br>Идеи по улучшению школы, предложения мероприятий, конструктивную обратную связь, новости и интересные события школьной жизни.</p>
+      <p><b>2. Что недопустимо</b><br>Оскорбления, угрозы, нецензурная лексика, спам, реклама и сообщения, не относящиеся к проекту.</p>
+      <p><b>3. Конфиденциальность и публикация</b><br>Бот не запрашивает имя и контакты. Подходящие обращения могут быть опубликованы на сайте без указания автора. Личная информация не публикуется.</p>
+      <p><b>4. Рассмотрение обращений</b><br>Каждое сообщение мы рассматриваем отдельно и внимательно. Мы обсуждаем предложения и стараемся сделать всё, что в наших силах, чтобы полезные идеи воплотились в школьной жизни. Если реализовать предложение сразу не получится, мы оценим возможности и сможем вернуться к нему позже.</p>
+      <p><b>5. Важный момент</b><br>Отправка обращения не означает, что предложение обязательно будет реализовано. Всё зависит от возможностей, безопасности и необходимых согласований.</p>
+    </div>
+    <button class="accept" type="button" id="accept">✓ Я ознакомился(ась) и согласен(на)</button>
+  </div>
+</div>
+<script>
+(() => {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  const API = "https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/telegram-miniapp/appeals";
+  const VERSION = "2026-11-12";
+  const KEY = "s1sch9-miniapp-rules-" + VERSION;
+  const $ = id => document.getElementById(id);
+  const form = $("form"), rules = $("rules"), send = $("send"), status = $("status");
+  let accepted = localStorage.getItem(KEY) === "yes";
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor("#3D000D"); tg.setBackgroundColor("#fffafb"); } catch {} }
+  function renderRules(){
+    rules.classList.toggle("accepted", accepted);
+    $("rulesTitle").textContent = accepted ? "✓ Правила приняты" : "Перед отправкой — правила";
+    $("readRules").textContent = accepted ? "Изменить" : "Читать";
+    send.disabled = !accepted;
+    send.textContent = accepted ? "Отправить обращение" : "Сначала подтвердите правила";
+  }
+  function openModal(){ $("modal").classList.add("open"); }
+  function closeModal(){ $("modal").classList.remove("open"); }
+  $("readRules").addEventListener("click", openModal);
+  $("close").addEventListener("click", closeModal);
+  $("modal").addEventListener("click", e => { if(e.target === $("modal")) closeModal(); });
+  $("accept").addEventListener("click", () => { accepted = true; localStorage.setItem(KEY,"yes"); renderRules(); closeModal(); });
+  $("message").addEventListener("input", () => { $("counter").textContent = $("message").value.length + " / 1500"; });
+  renderRules();
+  form.addEventListener("submit", async e => {
+    e.preventDefault(); status.textContent = "";
+    const message = $("message").value.trim();
+    if (!tg || !tg.initData) { status.textContent = "Откройте форму через кнопку в Telegram-боте."; return; }
+    if (!accepted) { status.textContent = "Сначала ознакомьтесь с правилами и подтвердите согласие."; return; }
+    if (message.length < 5 || message.length > 1500) { status.textContent = "Сообщение должно содержать от 5 до 1500 символов."; return; }
+    send.disabled = true; send.textContent = "Отправляем…";
+    try {
+      const response = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({initData:tg.initData,role:$("role").value,category:$("category").value,message,rulesAccepted:true,rulesVersion:VERSION})});
+      const result = await response.json().catch(()=>null);
+      if(!response.ok || !result || !result.success) throw new Error(result && result.error ? result.error : "Не удалось отправить обращение.");
+      form.innerHTML = '<div class="success"><div class="check">✓</div><h2>Спасибо, что написали!</h2><p>Ваше обращение уже поступило в Совет Первых. Мы внимательно ознакомимся с ним и постараемся сделать всё возможное, чтобы полезные предложения получили развитие.</p></div>';
+    } catch(err) {
+      status.textContent = err.message || "Проверьте интернет и попробуйте ещё раз.";
+      renderRules();
+    }
+  });
+})();
+</script>
+</body>
+</html>
