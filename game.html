@@ -370,7 +370,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
             comboBonus = Math.max(0, combo - 1);
             score += comboBonus;
             feedbackEl.textContent = `КОМБО ×${combo}`;
-            const popX=Math.min(88,Math.max(12,landed.x/canvasWidth*100)),popY=Math.min(78,Math.max(14,landed.y/canvasHeight*100-8));
+            const popX=Math.min(88,Math.max(12,landed.x/canvasWidth*100)),popY=Math.min(72,Math.max(32,landed.y/canvasHeight*100-8));
             feedbackEl.style.left = `${popX}%`;
             feedbackEl.style.top = `${popY}%`;
             feedbackEl.classList.remove("show");
@@ -379,7 +379,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
             if (comboBonus > 0) {
                 bonusPopEl.textContent = `+${comboBonus} ${comboBonus === 1 ? "ОЧКО" : comboBonus < 5 ? "ОЧКА" : "ОЧКОВ"}`;
                 bonusPopEl.style.left = `${popX}%`;
-                bonusPopEl.style.top = `${Math.max(2, popY - 5)}%`;
+                bonusPopEl.style.top = `${Math.max(27, popY - 5)}%`;
                 bonusPopEl.classList.remove("show");
                 void bonusPopEl.offsetWidth;
                 bonusPopEl.classList.add("show");
