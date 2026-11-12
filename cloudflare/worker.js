@@ -233,18 +233,12 @@ async function telegramWebhook(request, env) {
   const chatId = String(chat.id);
   const text = cleanText(msg?.text, 64);
   const keyboard = {
-    keyboard: [
-      [{ text: "✍️ Написать обращение" }],
-      [{ text: "📋 Правила пользования" }]
-    ],
+    keyboard: [[{ text: "✍️ Написать обращение" }]],
     resize_keyboard: true,
     is_persistent: true
   };
   const cancelKeyboard = {
-    keyboard: [
-      [{ text: "↩️ Отменить отправку" }],
-      [{ text: "📋 Правила пользования" }]
-    ],
+    keyboard: [[{ text: "↩️ Отменить отправку" }]],
     resize_keyboard: true,
     is_persistent: true
   };
@@ -294,15 +288,8 @@ async function telegramWebhook(request, env) {
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
-      "💙 Добро пожаловать!\n\nЭто бот обратной связи Совета Первых школы № 9. Здесь можно поделиться идеей, предложением или задать вопрос.\n\nКаждое обращение мы рассматриваем отдельно и внимательно. Мы не оставляем предложения без внимания и стараемся сделать всё, что в наших силах, чтобы хорошие идеи воплотились в школьной жизни.\n\nПеред отправкой ознакомьтесь с правилами пользования и подтвердите согласие. Это нужно сделать один раз.",
+      "💙 Добро пожаловать!\n\nЭто бот обратной связи Совета Первых школы № 9. Здесь можно поделиться идеей, предложением или задать вопрос.\n\nКаждое обращение мы рассматриваем отдельно и внимательно. Мы не оставляем предложения без внимания и стараемся сделать всё, что в наших силах, чтобы хорошие идеи воплотились в школьной жизни.\n\nНажмите кнопку ниже, чтобы отправить обращение.",
       keyboard);
-    return json({ ok: true });
-  }
-  if (text === "📋 Правила пользования") {
-    await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
-      .bind(chatId, Math.floor(Date.now() / 1000)).run();
-    await telegramReply(env, chatId, rulesText,
-      { inline_keyboard: [[{ text: "✓ Я ознакомился(ась) и согласен(на)", callback_data: "appeal_rules_accept" }]] });
     return json({ ok: true });
   }
   if (command === "/cancel" || text === "Отмена" || text === "↩️ Отменить отправку") {
@@ -317,7 +304,7 @@ async function telegramWebhook(request, env) {
       await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
         .bind(chatId, Math.floor(Date.now() / 1000)).run();
       await telegramReply(env, chatId,
-        "Перед отправкой нужно один раз ознакомиться с правилами пользования. Прочитайте их и нажмите кнопку подтверждения ниже. 💙",
+        "Перед отправкой обращения нужно ознакомиться с правилами пользования и подтвердить согласие. Это займёт всего один раз. 💙",
         keyboard);
       await telegramReply(env, chatId, rulesText,
         { inline_keyboard: [[{ text: "✓ Я ознакомился(ась) и согласен(на)", callback_data: "appeal_rules_accept" }]] });
