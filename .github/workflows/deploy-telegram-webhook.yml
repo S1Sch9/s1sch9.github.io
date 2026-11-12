@@ -9,6 +9,7 @@ on:
       - "cloudflare/worker.js"
       - "cloudflare/admin-page.js"
       - "cloudflare/package.json"
+      - "cloudflare/validate-source.mjs"
       - "cloudflare/wrangler.jsonc"
       - ".github/workflows/deploy-telegram-webhook.yml"
 
@@ -26,6 +27,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Validate source syntax
+        working-directory: cloudflare
+        run: |
+          node --check worker.js
+          node --check admin-page.js
+          node validate-source.mjs
       - name: Install Worker dependencies
         working-directory: cloudflare
         run: npm install --no-package-lock --omit=dev
