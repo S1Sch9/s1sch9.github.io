@@ -727,7 +727,7 @@ self.addEventListener("notificationclick", event => {
         return json({ blocks: blocks.results || [], events: events.results || [], totals: totals || {}, blockedCount: count?.total || 0 }, 200, headers);
       } catch { return json({ error: "Не удалось загрузить данные защиты." }, 500, headers); }
     }
-    const clearSecurityEventMatch = url.pathname.match(/^\\/api\\/admin\\/security\\/events\\/([a-f0-9]{64})$/);
+    const clearSecurityEventMatch = url.pathname.match(/^\/api\/admin\/security\/events\/([a-f0-9]{64})$/);
     if (clearSecurityEventMatch && request.method === "DELETE") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
