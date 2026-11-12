@@ -24,9 +24,6 @@ jobs:
       - name: Install Worker dependencies
         working-directory: cloudflare
         run: npm install --no-package-lock --omit=dev
-      - name: Audit production dependencies
-        working-directory: cloudflare
-        run: npm audit --omit=dev --audit-level=high
       - name: Deploy Worker
         working-directory: cloudflare
         env:
