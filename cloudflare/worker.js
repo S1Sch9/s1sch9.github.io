@@ -544,8 +544,12 @@ self.addEventListener("notificationclick", event => {
         const limit = await rateAllowed(env, senderKey);
         await logSecurityEvent(env, senderKey, limit.allowed ? "accepted" : "rate_limited");
         if (!limit.allowed) return json({ error: "Слишком много обращений. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
-        await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
+        const inserted = await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
           .bind(role, "Telegram · " + category, message).run();
+        if (inserted.meta?.last_row_id) {
+          await env.DB.prepare("INSERT OR REPLACE INTO appeal_sender_keys (appeal_id, ip_hash) VALUES (?, ?)")
+            .bind(inserted.meta.last_row_id, ipHash).run();
+        }
         await sendPushNotifications(env, {
           title: "Совет Первых · Новое обращение",
           body: "Поступило новое обращение из Telegram Mini App. Нажмите, чтобы открыть админку.",
