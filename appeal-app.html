@@ -19,6 +19,7 @@ h1{font-size:21px;line-height:1.25;margin:0 0 16px;color:var(--wine)}
 button{display:block;width:100%;min-height:50px;margin:20px 0 0;padding:12px 15px;border:0;border-radius:14px;background:linear-gradient(110deg,var(--red),var(--wine));color:#fff;font:inherit;font-size:14px;font-weight:750;cursor:pointer}
 button:disabled{opacity:.6}
 .status{min-height:18px;margin:10px 3px 0;text-align:center;color:var(--red);font-size:12px;line-height:1.45}
+.scroll-cue{position:fixed;right:16px;bottom:calc(82px + env(safe-area-inset-bottom));z-index:5;width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:rgba(255,255,255,.96);color:var(--red);font-size:19px;font-weight:800;box-shadow:0 3px 12px rgba(61,0,13,.12);pointer-events:none;animation:cueBounce 1.5s ease-in-out infinite;transition:opacity .2s}.scroll-cue.is-hidden{opacity:0;visibility:hidden}@keyframes cueBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
 </style>
 </head>
 <body>
@@ -29,12 +30,13 @@ button:disabled{opacity:.6}
     <p><b>1. О чём можно написать</b><br>Идеи по улучшению школы, предложения мероприятий, конструктивную обратную связь, новости и интересные события школьной жизни.</p>
     <p><b>2. Что недопустимо</b><br>Оскорбления, угрозы, нецензурная лексика, спам, реклама и сообщения, не относящиеся к проекту.</p>
     <p><b>3. Конфиденциальность и публикация</b><br>Форма не запрашивает имя и контакты. Подходящие обращения могут быть опубликованы на сайте без указания автора. Личная информация не публикуется.</p>
-    <p><b>4. Как мы рассматриваем обращения</b><br>Каждое сообщение мы рассматриваем отдельно и внимательно. Мы не оставляем предложения без внимания: обсуждаем их и стараемся сделать всё, что в наших силах, чтобы полезные идеи воплотились в школьной жизни. Если реализовать предложение сразу не получится, мы оценим возможности и сможем вернуться к нему позже.</p>
+    <p><b>4. Как мы рассматриваем обращения</b><br>Мы внимательно читаем каждое обращение, обсуждаем предложения и стараемся воплощать полезные идеи в школьной жизни. Если сделать это сразу не получится, вернёмся к вопросу, когда появится такая возможность.</p>
     <p><b>5. Важный момент</b><br>Отправка обращения не означает, что предложение обязательно будет реализовано. Всё зависит от возможностей, безопасности и необходимых согласований.</p>
   </section>
   <button id="accept" type="button">✓ Я ознакомился(ась) и согласен(на)</button>
   <p class="status" id="status" role="status"></p>
 </main>
+<div class="scroll-cue" id="scrollCue" aria-hidden="true">↓</div>
 <script>
 (() => {
   const tg = window.Telegram && window.Telegram.WebApp;
@@ -42,6 +44,11 @@ button:disabled{opacity:.6}
   const VERSION = "2026-11-12";
   const button = document.getElementById("accept");
   const status = document.getElementById("status");
+  const scrollCue = document.getElementById("scrollCue");
+  const updateScrollCue = () => scrollCue.classList.toggle("is-hidden", window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 24);
+  window.addEventListener("scroll", updateScrollCue, {passive:true});
+  window.addEventListener("resize", updateScrollCue);
+  requestAnimationFrame(updateScrollCue);
   if (tg) {
     tg.ready();
     tg.expand();
