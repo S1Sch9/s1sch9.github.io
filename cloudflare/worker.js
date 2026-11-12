@@ -760,13 +760,13 @@ self.addEventListener("notificationclick", event => {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
         const body = await request.json(), chatId = cleanText(body.chatId, 32), note = cleanText(body.note, 160);
-        if (!/^\\d{5,20}$/.test(chatId)) return json({ error: "Некорректный Telegram ID." }, 400, headers);
+        if (!/^\d{5,20}$/.test(chatId)) return json({ error: "Некорректный Telegram ID." }, 400, headers);
         await ensureTelegramAppeals(env);
         await env.DB.prepare("INSERT INTO telegram_appeal_blocks (chat_id, created_at, note) VALUES (?, ?, ?) ON CONFLICT(chat_id) DO UPDATE SET note=excluded.note").bind(chatId, Math.floor(Date.now() / 1000), note || "Блокировка из админки").run();
         return json({ success: true }, 200, headers);
       } catch { return json({ error: "Не удалось заблокировать Telegram-аккаунт." }, 500, headers); }
     }
-    const telegramUnblockMatch = url.pathname.match(/^\\/api\\/admin\\/telegram-blocks\\/(\\d+)$/);
+    const telegramUnblockMatch = url.pathname.match(/^\/api\/admin\/telegram-blocks\/(\d+)$/);
     if (telegramUnblockMatch && request.method === "DELETE") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
