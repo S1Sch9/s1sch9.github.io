@@ -233,7 +233,7 @@ async function telegramWebhook(request, env) {
   const chatId = String(chat.id);
   const text = cleanText(msg?.text, 64);
   const keyboard = {
-    keyboard: [[{ text: "✍️ Написать обращение" }]],
+    keyboard: [[{ text: "✍️ Написать обращение", web_app: { url: "https://s1sch9.github.io/appeal-app.html" } }]],
     resize_keyboard: true,
     is_persistent: true
   };
@@ -288,7 +288,7 @@ async function telegramWebhook(request, env) {
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
-      "💙 Добро пожаловать!\n\nЭто бот обратной связи Совета Первых школы № 9. Здесь можно поделиться идеей, предложением или задать вопрос.\n\nКаждое обращение мы рассматриваем отдельно и внимательно. Мы не оставляем предложения без внимания и стараемся сделать всё, что в наших силах, чтобы хорошие идеи воплотились в школьной жизни.\n\nНажмите кнопку ниже, чтобы отправить обращение.",
+      "💙 Добро пожаловать!\n\nЭто бот обратной связи Совета Первых школы № 9. Здесь можно поделиться идеей, предложением или задать вопрос.\n\nНажмите кнопку ниже — откроется небольшое приложение с формой обращения. Правила будут прямо внутри приложения, без длинных сообщений в чате. 💙",
       keyboard);
     return json({ ok: true });
   }
@@ -299,22 +299,9 @@ async function telegramWebhook(request, env) {
     return json({ ok: true });
   }
   if (command === "/new" || text === "✍️ Написать обращение") {
-    const session = await env.DB.prepare("SELECT awaiting, rules_accepted FROM telegram_appeal_sessions WHERE chat_id = ?").bind(chatId).first();
-    if (!session?.rules_accepted) {
-      await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
-        .bind(chatId, Math.floor(Date.now() / 1000)).run();
-      await telegramReply(env, chatId,
-        "Перед отправкой обращения нужно ознакомиться с правилами пользования и подтвердить согласие. Это займёт всего один раз. 💙",
-        keyboard);
-      await telegramReply(env, chatId, rulesText,
-        { inline_keyboard: [[{ text: "✓ Я ознакомился(ась) и согласен(на)", callback_data: "appeal_rules_accept" }]] });
-      return json({ ok: true });
-    }
-    await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 1, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=1, updated_at=excluded.updated_at")
-      .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId,
-      "✍️ Мы готовы вас выслушать!\n\nНапишите обращение одним сообщением — от 5 до 1500 символов. Это может быть идея, предложение, вопрос или обратная связь.\n\nКаждое сообщение мы рассматриваем отдельно и внимательно. Подходящие обращения могут быть опубликованы на сайте без указания автора. Личная информация не публикуется.\n\nЕсли передумали, нажмите «Отменить отправку».",
-      { ...cancelKeyboard, one_time_keyboard: true });
+      "Откройте мини-приложение кнопкой «Написать обращение» внизу чата. Там можно ознакомиться с правилами и сразу заполнить форму. 💙",
+      keyboard);
     return json({ ok: true });
   }
   const session = await env.DB.prepare("SELECT awaiting, rules_accepted FROM telegram_appeal_sessions WHERE chat_id = ?").bind(chatId).first();
@@ -513,6 +500,64 @@ self.addEventListener("notificationclick", event => {
     if (url.pathname.startsWith("/api/") && request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: { ...cors(origin), ...headers } });
     }
+    if (url.pathname === "/api/telegram-miniapp/appeals" && request.method === "POST") {
+      if (origin !== SITE_ORIGIN) return json({ error: "Недопустимый источник запроса." }, 403, { ...headers, ...cors(origin) });
+      const length = Number(request.headers.get("Content-Length") || 0);
+      if (length > MAX_BODY) return json({ error: "Слишком большой запрос." }, 413, { ...headers, ...cors(origin) });
+      let body;
+      try { body = await request.json(); } catch { return json({ error: "Некорректный запрос." }, 400, { ...headers, ...cors(origin) }); }
+      const role = cleanText(body.role, 30);
+      const category = cleanText(body.category, 60);
+      const message = cleanText(body.message, MAX_MESSAGE);
+      const initData = typeof body.initData === "string" ? body.initData : "";
+      if (body.rulesAccepted !== true || body.rulesVersion !== "2026-11-12" ||
+          !["Ученик", "Родитель", "Учитель"].includes(role) ||
+          !["Идея или предложение", "Новость школы", "Обратная связь"].includes(category) ||
+          message.length < 5 || message.length > MAX_MESSAGE || initData.length > 4096 || !initData) {
+        return json({ error: "Проверьте заполнение формы и подтвердите правила." }, 400, { ...headers, ...cors(origin) });
+      }
+      try {
+        if (!env.TELEGRAM_BOT_TOKEN) return json({ error: "Telegram пока не настроен." }, 503, { ...headers, ...cors(origin) });
+        const params = new URLSearchParams(initData);
+        const receivedHash = params.get("hash") || "";
+        const authDate = Number(params.get("auth_date") || 0);
+        const user = JSON.parse(params.get("user") || "null");
+        params.delete("hash");
+        const checkString = [...params.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => k + "=" + v).join("\n");
+        const encoder = new TextEncoder();
+        const webAppKey = await crypto.subtle.importKey("raw", encoder.encode("WebAppData"), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+        const secret = await crypto.subtle.sign("HMAC", webAppKey, encoder.encode(env.TELEGRAM_BOT_TOKEN));
+        const hmacKey = await crypto.subtle.importKey("raw", secret, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+        const digest = new Uint8Array(await crypto.subtle.sign("HMAC", hmacKey, encoder.encode(checkString)));
+        const expectedHash = [...digest].map(b => b.toString(16).padStart(2, "0")).join("");
+        const now = Math.floor(Date.now() / 1000);
+        if (!receivedHash || !constantTimeEqual(receivedHash, expectedHash) ||
+            !Number.isSafeInteger(authDate) || authDate > now + 60 || now - authDate > 86400 ||
+            !user || !Number.isSafeInteger(user.id) || user.is_bot) {
+          return json({ error: "Не удалось подтвердить Telegram. Закройте приложение и откройте его заново из бота." }, 401, { ...headers, ...cors(origin) });
+        }
+        const ipHash = await clientIpHash(request);
+        if (await isIpBlocked(env, ipHash)) {
+          return json({ error: "Отправка обращений с этого подключения временно ограничена." }, 403, { ...headers, ...cors(origin) });
+        }
+        const senderKey = await sha256("s1sch9-telegram-miniapp:" + String(user.id));
+        const limit = await rateAllowed(env, senderKey);
+        await logSecurityEvent(env, senderKey, limit.allowed ? "accepted" : "rate_limited");
+        if (!limit.allowed) return json({ error: "Слишком много обращений. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
+        await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
+          .bind(role, "Telegram · " + category, message).run();
+        await sendPushNotifications(env, {
+          title: "Совет Первых · Новое обращение",
+          body: "Поступило новое обращение из Telegram Mini App. Нажмите, чтобы открыть админку.",
+          url: "/admin#appeals",
+          tag: "new-appeal"
+        });
+        return json({ success: true }, 201, { ...headers, ...cors(origin) });
+      } catch {
+        return json({ error: "Не удалось отправить обращение. Попробуйте ещё раз." }, 503, { ...headers, ...cors(origin) });
+      }
+    }
+
     if (url.pathname === "/api/appeals" && request.method === "POST") {
       if (origin !== SITE_ORIGIN) return json({ error: "Недопустимый источник запроса." }, 403, headers);
       const length = Number(request.headers.get("Content-Length") || 0);
