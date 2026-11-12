@@ -121,7 +121,7 @@ async function rateAllowed(env, key) {
       window_start = CASE WHEN window_start <= ? THEN ? ELSE window_start END
     RETURNING attempts
   `).bind(key, now, now - 3600, now - 3600, now).first();
-  return { allowed: !!row && row.attempts <= 5, attempts: row?.attempts || 0 };
+  return { allowed: !!row && row.attempts <= 10, attempts: row?.attempts || 0 };
 }
 async function ensureTelegramNews(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_news (
