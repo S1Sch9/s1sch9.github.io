@@ -458,67 +458,36 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     }
 
     function draw3DBox(x,y,w,h,style,alpha=1){ctx.save();ctx.globalAlpha=alpha;const d=Math.min(depth,Math.max(8,w*.14)),top=ctx.createLinearGradient(x,y-d,x+w+d,y);top.addColorStop(0,style.light);top.addColorStop(.55,style.main);top.addColorStop(1,style.dark);ctx.shadowColor='rgba(32,5,18,.25)';ctx.shadowBlur=10;ctx.shadowOffsetY=4;ctx.fillStyle=top;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+d,y-d);ctx.lineTo(x+w+d,y-d);ctx.lineTo(x+w,y);ctx.closePath();ctx.fill();ctx.shadowColor='transparent';ctx.fillStyle=style.dark;ctx.fillRect(x+w,y,d,h);const face=ctx.createLinearGradient(x,y,x,y+h);face.addColorStop(0,style.light);face.addColorStop(1,style.dark);ctx.fillStyle=face;ctx.fillRect(x,y,w,h);ctx.restore();}
-    function drawSchoolFace(block,q,c,h,motifOverride,scaleFactor=1){
+    function drawSchoolFace(block,q,c,h){
         const ux=c.x-q.x,uy=c.y-q.y,faceW=Math.hypot(ux,uy);
         if(faceW<24||block.width<20)return;
         ctx.save();
         ctx.transform(ux/faceW,uy/faceW,0,1,q.x,q.y);
         ctx.lineJoin='round';
-        ctx.strokeStyle='rgba(255,231,183,.34)';
-        ctx.lineWidth=1;
+        // Тонкая золотая рамка — остаётся главным украшением боковых граней.
+        ctx.strokeStyle='rgba(255,218,139,.62)';
+        ctx.lineWidth=1.15;
         ctx.strokeRect(4,4,Math.max(0,faceW-8),h-8);
-        const motif=motifOverride||block.style.motif||'plain',cx=faceW*(scaleFactor<1?.72:.5),cy=h*(scaleFactor<1?.34:.5);
-        if(motif==='plain'){
-            ctx.fillStyle='rgba(255,226,166,.52)';
-            [-5,0,5].forEach(dx=>{ctx.beginPath();ctx.arc(cx+dx,cy,1.1,0,Math.PI*2);ctx.fill();});
-        }else if(motif==='crest'&&schoolCrestImage.complete&&schoolCrestImage.naturalWidth>0){
-            const iw=schoolCrestImage.naturalWidth,ih=schoolCrestImage.naturalHeight;
-            const logoW=Math.min(21,faceW*.24)*scaleFactor,logoH=Math.min(25,h*.68)*scaleFactor;
-            ctx.globalAlpha=.94;
-            ctx.drawImage(schoolCrestImage,cx-logoW/2,cy-logoH/2,logoW,logoH);
-        }else{
-            const r=Math.min(10,Math.max(5,faceW*.13),h*.29)*scaleFactor;
-            ctx.fillStyle='rgba(61,0,13,.28)';
-            ctx.strokeStyle='rgba(255,226,166,.82)';
-            ctx.lineWidth=1.15;
-            ctx.beginPath();ctx.arc(cx,cy,r+2,0,Math.PI*2);ctx.fill();ctx.stroke();
-            ctx.fillStyle='#FFE7B7';
-            ctx.textAlign='center';ctx.textBaseline='middle';
-            if(motif==='book'){
-                ctx.strokeStyle='#FFE7B7';ctx.lineWidth=1.35;
-                ctx.beginPath();ctx.moveTo(cx,cy-r*.58);ctx.quadraticCurveTo(cx-r*.55,cy-r*.8,cx-r*.72,cy-r*.45);ctx.lineTo(cx-r*.72,cy+r*.55);ctx.quadraticCurveTo(cx-r*.35,cy+r*.28,cx,cy+r*.62);ctx.quadraticCurveTo(cx+r*.35,cy+r*.28,cx+r*.72,cy+r*.55);ctx.lineTo(cx+r*.72,cy-r*.45);ctx.quadraticCurveTo(cx+r*.55,cy-r*.8,cx,cy-r*.58);ctx.stroke();
-                ctx.beginPath();ctx.moveTo(cx,cy-r*.55);ctx.lineTo(cx,cy+r*.55);ctx.stroke();
-            }else if(motif==='star'){
-                ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2===0?r*.72:r*.31;const px=cx+Math.cos(a)*rr,py=cy+Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.closePath();ctx.fill();
-            }else if(motif==='letter'){
-                ctx.font='900 '+Math.max(10,r*1.55)+'px Arial,sans-serif';ctx.fillText('A',cx,cy+.5);
-            }else if(motif==='sport'){
-                ctx.beginPath();ctx.arc(cx,cy,r*.48,0,Math.PI*2);ctx.strokeStyle='#FFE7B7';ctx.stroke();
-                ctx.beginPath();ctx.moveTo(cx-r*.45,cy);ctx.lineTo(cx+r*.45,cy);ctx.moveTo(cx,cy-r*.45);ctx.lineTo(cx,cy+r*.45);ctx.stroke();
-            }else if(motif==='lines'){
-                ctx.strokeStyle='#FFE7B7';ctx.lineWidth=1.5;
-                for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(cx-r*.62,cy+i*3);ctx.lineTo(cx+r*.62,cy+i*3);ctx.stroke();}
-            }else if(motif==='dots'){
-                ctx.fillStyle='#5A0015';
-                for(let i=-1;i<=1;i++){ctx.beginPath();ctx.arc(cx+i*4,cy,1.6,0,Math.PI*2);ctx.fill();}
-            }else{
-                ctx.font='900 '+Math.max(11,r*1.65)+'px Arial,sans-serif';ctx.fillText('9',cx,cy+.5);
-            }
-        }
         ctx.restore();
     }
-    function drawIsoBlock(block,alpha=1){const{x,z,width:w,depth:d,level,style}=block,a=projectPoint(x,z,level),b=projectPoint(x+w,z,level),c=projectPoint(x+w,z+d,level),q=projectPoint(x,z+d,level),h=blockHeight;const poly=(pts,fill)=>{ctx.fillStyle=fill;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();ctx.fill();};ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor='rgba(32,5,18,.28)';ctx.shadowBlur=13;ctx.shadowOffsetY=5;const s1=ctx.createLinearGradient(b.x,b.y,c.x,c.y+h);s1.addColorStop(0,style.dark);s1.addColorStop(1,'#32101F');poly([b,c,{x:c.x,y:c.y+h},{x:b.x,y:b.y+h}],s1);const s2=ctx.createLinearGradient(q.x,q.y,c.x,c.y+h);s2.addColorStop(0,style.main);s2.addColorStop(1,style.dark);poly([q,c,{x:c.x,y:c.y+h},{x:q.x,y:q.y+h}],s2);ctx.shadowColor='transparent';const top=ctx.createLinearGradient(a.x,a.y,c.x,c.y);top.addColorStop(0,style.light);top.addColorStop(.55,style.main);top.addColorStop(1,style.dark);poly([a,b,c,q],top);ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(q.x,q.y);ctx.closePath();ctx.stroke();const schoolMotifs=['nine','book','letter','lines','star','dots','sport','plain','crest'];
-        const primary=style.motif||'nine';
-        const secondary=schoolMotifs[(Math.max(0,level)+3)%schoolMotifs.length];
-        if(level%2===0){
-            drawSchoolFace(block,q,c,h,primary,1);
-            drawSchoolFace(block,b,c,h,secondary,.68);
-        }else{
-            drawSchoolFace(block,b,c,h,primary,1);
-            drawSchoolFace(block,q,c,h,secondary,.68);
-        }
-        ctx.restore();}
-    function drawCloud(x,y,scale,alpha){
+    function drawCrestOnTop(a,b,c,q,level){
+        // Герб появляется редко, чтобы оставаться особенной деталью башни.
+        if(level%5!==2 && level%7!==4)return;
+        if(!schoolCrestImage.complete||schoolCrestImage.naturalWidth===0)return;
+        const ux=b.x-a.x,uy=b.y-a.y,vx=q.x-a.x,vy=q.y-a.y;
+        const logoW=.34,logoH=logoW*(schoolCrestImage.naturalHeight/schoolCrestImage.naturalWidth);
+        ctx.save();
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(q.x,q.y);ctx.closePath();ctx.clip();
+        ctx.transform(ux,uy,vx,vy,a.x,a.y);
+        // Небольшая мягкая подложка помогает настоящему гербу читаться на фактуре блока.
+        ctx.fillStyle='rgba(61,0,13,.20)';
+        ctx.beginPath();ctx.ellipse(.5,.5,.205,.19,0,0,Math.PI*2);ctx.fill();
+        ctx.globalAlpha=.96;
+        ctx.drawImage(schoolCrestImage,.5-logoW/2,.5-logoH/2,logoW,logoH);
+        ctx.restore();
+    }
+    function drawIsoBlock(block,alpha=1){const{x,z,width:w,depth:d,level,style}=block,a=projectPoint(x,z,level),b=projectPoint(x+w,z,level),c=projectPoint(x+w,z+d,level),q=projectPoint(x,z+d,level),h=blockHeight;const poly=(pts,fill)=>{ctx.fillStyle=fill;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();ctx.fill();};ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor='rgba(32,5,18,.28)';ctx.shadowBlur=13;ctx.shadowOffsetY=5;const s1=ctx.createLinearGradient(b.x,b.y,c.x,c.y+h);s1.addColorStop(0,style.dark);s1.addColorStop(1,'#32101F');poly([b,c,{x:c.x,y:c.y+h},{x:b.x,y:b.y+h}],s1);const s2=ctx.createLinearGradient(q.x,q.y,c.x,c.y+h);s2.addColorStop(0,style.main);s2.addColorStop(1,style.dark);poly([q,c,{x:c.x,y:c.y+h},{x:q.x,y:q.y+h}],s2);ctx.shadowColor='transparent';const top=ctx.createLinearGradient(a.x,a.y,c.x,c.y);top.addColorStop(0,style.light);top.addColorStop(.55,style.main);top.addColorStop(1,style.dark);poly([a,b,c,q],top);ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(q.x,q.y);ctx.closePath();ctx.stroke();drawSchoolFace(block,q,c,h);drawSchoolFace(block,b,c,h);drawCrestOnTop(a,b,c,q,level);ctx.restore();}
+        function drawCloud(x,y,scale,alpha){
         ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle='#FBE9EB';
         ctx.beginPath();ctx.ellipse(x,y,34*scale,10*scale,0,0,Math.PI*2);ctx.ellipse(x-17*scale,y-6*scale,15*scale,13*scale,0,0,Math.PI*2);ctx.ellipse(x+2*scale,y-11*scale,19*scale,17*scale,0,0,Math.PI*2);ctx.ellipse(x+22*scale,y-5*scale,14*scale,11*scale,0,0,Math.PI*2);ctx.fill();ctx.restore();
     }
