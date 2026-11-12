@@ -4,72 +4,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#3D000D">
-<title>Правила пользования · Совет Первых</title>
+<title>Правила пользования</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-:root{color-scheme:light;--red:#A1001F;--wine:#3D000D;--gold:#F0C869;--ink:#281a1d;--muted:#806f73;--line:#eadde0;--paper:#fffafb;--tg-bg:var(--tg-theme-bg-color,#fffafb);--tg-text:var(--tg-theme-text-color,#281a1d)}
+:root{color-scheme:light;--red:#A1001F;--wine:#3D000D;--gold:#F0C869;--ink:#281a1d;--muted:#806f73;--line:#eadde0;--tg-bg:var(--tg-theme-bg-color,#fffafb);--tg-text:var(--tg-theme-text-color,#281a1d)}
 *{box-sizing:border-box}
 html{min-height:100%;background:var(--tg-bg)}
-body{margin:0;min-height:100vh;padding:calc(18px + env(safe-area-inset-top)) 16px calc(22px + env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--tg-text);background:radial-gradient(circle at 92% 0,#f7e8eb 0,transparent 36%),var(--tg-bg)}
-.app{max-width:520px;margin:0 auto}
-.brand{display:flex;align-items:center;gap:12px;margin:2px 0 22px}
-.mark{width:44px;height:44px;flex:0 0 44px;border-radius:14px;background:linear-gradient(145deg,var(--red),var(--wine));display:grid;place-items:center;color:#fff;font-size:21px;box-shadow:0 7px 18px #3d000d25}
-.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.12em;font-weight:800}
-.brand b{display:block;font-size:14px;line-height:1.25;margin-top:3px}
-.hero{padding:20px 19px 19px;border-radius:22px;background:linear-gradient(135deg,var(--wine),#74102a);color:#fff;position:relative;overflow:hidden;box-shadow:0 12px 28px #3d000d20}
-.hero:after{content:"";position:absolute;width:150px;height:150px;border:1px solid #ffffff25;border-radius:50%;right:-48px;top:-72px;box-shadow:0 0 0 17px #ffffff09,0 0 0 35px #ffffff06}
-.eyebrow{font-size:10px;letter-spacing:.14em;color:var(--gold);font-weight:800}
-h1{font-size:25px;line-height:1.12;margin:8px 0}
-.hero p{font-size:12px;line-height:1.55;color:#f8e9ec;margin:0;max-width:350px}
-.rules{margin-top:16px;padding:18px 16px 5px;border:1px solid var(--line);border-radius:21px;background:#fff;box-shadow:0 8px 24px #3d000d08}
-.rule{display:flex;gap:12px;margin:0 0 17px}
-.num{width:27px;height:27px;flex:0 0 27px;border-radius:9px;background:#f7e9ec;color:var(--red);display:grid;place-items:center;font-size:11px;font-weight:800}
-.rule h2{font-size:13px;line-height:1.3;margin:1px 0 5px;color:#38252a}
-.rule p{font-size:12px;line-height:1.6;margin:0;color:#705e63}
-.notice{margin:14px 2px 0;padding:12px 13px;border-radius:14px;background:#fff8e9;border:1px solid #f0e2c2;color:#735c2f;font-size:11px;line-height:1.5}
-.accept{width:100%;min-height:50px;margin-top:17px;padding:12px 16px;border:0;border-radius:15px;background:linear-gradient(110deg,var(--red),var(--wine));color:#fff;font:inherit;font-size:13px;font-weight:750;box-shadow:0 8px 18px #a1001f25;cursor:pointer}
-.accept:disabled{opacity:.55;cursor:default}
-.status{min-height:18px;margin:10px 5px 0;text-align:center;color:var(--red);font-size:11px;line-height:1.45}
-.foot{text-align:center;color:#a28f94;font-size:9px;letter-spacing:.08em;margin:14px 0 0}
+body{margin:0;min-height:100vh;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--tg-text);background:var(--tg-bg)}
+main{width:100%;max-width:520px;margin:0 auto}
+h1{font-size:21px;line-height:1.25;margin:0 0 16px;color:var(--wine)}
+.rules{font-size:14px;line-height:1.6;color:var(--ink)}
+.rules p{margin:0 0 15px}
+.rules b{font-weight:750;color:var(--wine)}
+button{display:block;width:100%;min-height:50px;margin:20px 0 0;padding:12px 15px;border:0;border-radius:14px;background:linear-gradient(110deg,var(--red),var(--wine));color:#fff;font:inherit;font-size:14px;font-weight:750;cursor:pointer}
+button:disabled{opacity:.6}
+.status{min-height:18px;margin:10px 3px 0;text-align:center;color:var(--red);font-size:12px;line-height:1.45}
 </style>
 </head>
 <body>
-<main class="app">
-  <header class="brand">
-    <div class="mark">✦</div>
-    <div><small>СОВЕТ ПЕРВЫХ · ШКОЛА №9</small><b>Обратная связь</b></div>
-  </header>
-  <section class="hero">
-    <div class="eyebrow">ВАЖЕН КАЖДЫЙ ГОЛОС</div>
-    <h1>Правила пользования</h1>
-    <p>Пожалуйста, внимательно ознакомьтесь с правилами. После подтверждения вы сможете написать обращение прямо в чате с ботом.</p>
+<main>
+  <h1>Правила пользования</h1>
+  <section class="rules">
+    <p>Пожалуйста, ознакомьтесь перед отправкой обращения.</p>
+    <p><b>1. О чём можно написать</b><br>Идеи по улучшению школы, предложения мероприятий, конструктивную обратную связь, новости и интересные события школьной жизни.</p>
+    <p><b>2. Что недопустимо</b><br>Оскорбления, угрозы, нецензурная лексика, спам, реклама и сообщения, не относящиеся к проекту.</p>
+    <p><b>3. Конфиденциальность и публикация</b><br>Форма не запрашивает имя и контакты. Подходящие обращения могут быть опубликованы на сайте без указания автора. Личная информация не публикуется.</p>
+    <p><b>4. Как мы рассматриваем обращения</b><br>Каждое сообщение мы рассматриваем отдельно и внимательно. Мы не оставляем предложения без внимания: обсуждаем их и стараемся сделать всё, что в наших силах, чтобы полезные идеи воплотились в школьной жизни. Если реализовать предложение сразу не получится, мы оценим возможности и сможем вернуться к нему позже.</p>
+    <p><b>5. Важный момент</b><br>Отправка обращения не означает, что предложение обязательно будет реализовано. Всё зависит от возможностей, безопасности и необходимых согласований.</p>
   </section>
-  <section class="rules" aria-label="Правила пользования">
-    <article class="rule">
-      <div class="num">1</div>
-      <div><h2>О чём можно написать</h2><p>Идеи по улучшению школы, предложения мероприятий, конструктивную обратную связь, новости и интересные события школьной жизни.</p></div>
-    </article>
-    <article class="rule">
-      <div class="num">2</div>
-      <div><h2>Что недопустимо</h2><p>Оскорбления, угрозы, нецензурная лексика, спам, реклама и сообщения, не относящиеся к проекту.</p></div>
-    </article>
-    <article class="rule">
-      <div class="num">3</div>
-      <div><h2>Конфиденциальность и публикация</h2><p>Бот не запрашивает имя и контакты. Подходящие обращения могут быть опубликованы на сайте без указания автора. Личная информация не публикуется.</p></div>
-    </article>
-    <article class="rule">
-      <div class="num">4</div>
-      <div><h2>Как мы рассматриваем обращения</h2><p>Каждое сообщение мы рассматриваем отдельно и внимательно. Мы не оставляем предложения без внимания: обсуждаем их и стараемся сделать всё, что в наших силах, чтобы полезные идеи воплотились в школьной жизни. Если реализовать предложение сразу не получится, мы оценим возможности и сможем вернуться к нему позже.</p></div>
-    </article>
-    <article class="rule">
-      <div class="num">5</div>
-      <div><h2>Важный момент</h2><p>Отправка обращения не означает, что предложение обязательно будет реализовано. Всё зависит от возможностей, безопасности и необходимых согласований.</p></div>
-    </article>
-  </section>
-  <div class="notice">Отправляя обращение, вы подтверждаете, что ознакомились с этими правилами и согласны с ними.</div>
-  <button class="accept" id="accept" type="button">✓ Я ознакомился(ась) и согласен(на)</button>
+  <button id="accept" type="button">✓ Я ознакомился(ась) и согласен(на)</button>
   <p class="status" id="status" role="status"></p>
-  <p class="foot">СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ · 2026</p>
 </main>
 <script>
 (() => {
@@ -81,12 +45,12 @@ h1{font-size:25px;line-height:1.12;margin:8px 0}
   if (tg) {
     tg.ready();
     tg.expand();
-    try { tg.setHeaderColor("#3D000D"); tg.setBackgroundColor("#fffafb"); } catch {}
+    try { tg.setHeaderColor("#fffafb"); tg.setBackgroundColor("#fffafb"); } catch {}
   }
   button.addEventListener("click", async () => {
     status.textContent = "";
     if (!tg || !tg.initData) {
-      status.textContent = "Пожалуйста, откройте правила через кнопку в Telegram-боте.";
+      status.textContent = "Откройте правила через кнопку в Telegram-боте.";
       return;
     }
     button.disabled = true;
@@ -100,9 +64,9 @@ h1{font-size:25px;line-height:1.12;margin:8px 0}
       const result = await response.json().catch(() => null);
       if (!response.ok || !result || !result.success) throw new Error(result && result.error ? result.error : "Не удалось подтвердить согласие.");
       button.textContent = "✓ Правила приняты";
-      status.textContent = "Готово! Вернитесь в чат с ботом — теперь можно написать обращение.";
+      status.textContent = "Согласие подтверждено.";
       if (tg.HapticFeedback) { try { tg.HapticFeedback.notificationOccurred("success"); } catch {} }
-      if (tg.close) setTimeout(() => tg.close(), 900);
+      if (tg.close) setTimeout(() => tg.close(), 700);
     } catch (error) {
       button.disabled = false;
       button.textContent = "✓ Я ознакомился(ась) и согласен(на)";
