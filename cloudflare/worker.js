@@ -606,8 +606,8 @@ self.addEventListener("notificationclick", event => {
         await ensureAppealSecurity(env);
         const blocks = await env.DB.prepare(`SELECT b.ip_hash, b.created_at, b.note, COUNT(s.appeal_id) AS appeals_count FROM appeal_ip_blocks b LEFT JOIN appeal_sender_keys s ON s.ip_hash = b.ip_hash GROUP BY b.ip_hash ORDER BY b.created_at DESC LIMIT 100`).all();
         const since = Math.floor(Date.now() / 1000) - 7 * 86400;
-        const events = await env.DB.prepare(`SELECT e.ip_hash, COUNT(*) AS attempts, MAX(e.created_at) AS last_seen, SUM(CASE WHEN e.event = 'rate_limited' THEN 1 ELSE 0 END) AS limited, CASE WHEN b.ip_hash IS NULL THEN 0 ELSE 1 END AS blocked FROM appeal_security_events e LEFT JOIN appeal_ip_blocks b ON b.ip_hash = e.ip_hash WHERE e.created_at >= ? GROUP BY e.ip_hash ORDER BY attempts DESC, last_seen DESC LIMIT 40`).bind(since).all();
-        const totals = await env.DB.prepare(`SELECT COUNT(*) AS attempts, SUM(CASE WHEN event = 'rate_limited' THEN 1 ELSE 0 END) AS limited FROM appeal_security_events WHERE created_at >= ?`).bind(since).first();
+        const events = await env.DB.prepare(`SELECT e.ip_hash, COUNT(*) AS attempts, MAX(e.created_at) AS last_seen, SUM(CASE WHEN e.event = 'rate_limited' THEN 1 ELSE 0 END) AS limited, CASE WHEN b.ip_hash IS NULL THEN 0 ELSE 1 END AS blocked FROM appeal_security_events e LEFT JOIN appeal_ip_blocks b ON b.ip_hash = e.ip_hash WHERE e.created_at >= ? AND e.event IN ('accepted','rate_limited') GROUP BY e.ip_hash ORDER BY attempts DESC, last_seen DESC LIMIT 40`).bind(since).all();
+        const totals = await env.DB.prepare(`SELECT COUNT(*) AS attempts, SUM(CASE WHEN event = 'rate_limited' THEN 1 ELSE 0 END) AS limited FROM appeal_security_events WHERE created_at >= ? AND event IN ('accepted','rate_limited')`).bind(since).first();
         const count = await env.DB.prepare("SELECT COUNT(*) AS total FROM appeal_ip_blocks").first();
         return json({ blocks: blocks.results || [], events: events.results || [], totals: totals || {}, blockedCount: count?.total || 0 }, 200, headers);
       } catch { return json({ error: "Не удалось загрузить данные защиты." }, 500, headers); }
