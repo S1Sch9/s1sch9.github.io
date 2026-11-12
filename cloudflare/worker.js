@@ -25,7 +25,7 @@ function securityHeaders() {
     "Cache-Control": "no-store"
   };
 }
-async function readJsonBody(request, maxBytes = MAX_BODY) {
+async function readRequestBytes(request, maxBytes = MAX_BODY) {
   const declaredLength = Number(request.headers.get("Content-Length") || 0);
   if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
     throw new Error("body-too-large");
@@ -54,6 +54,10 @@ async function readJsonBody(request, maxBytes = MAX_BODY) {
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
   }
+  return bytes;
+}
+async function readJsonBody(request, maxBytes = MAX_BODY) {
+  const bytes = await readRequestBytes(request, maxBytes);
   const body = JSON.parse(new TextDecoder().decode(bytes));
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     throw new Error("invalid-json-object");
@@ -681,7 +685,11 @@ self.addEventListener("notificationclick", event => {
       try {
         const uploadLength = Number(request.headers.get("Content-Length") || 0);
         if (Number.isFinite(uploadLength) && uploadLength > MAX_UPLOAD_BODY) return json({ error: "Файл слишком большой." }, 413, headers);
-        const form = await request.formData();
+        const uploadBytes = await readRequestBytes(request, MAX_UPLOAD_BODY);
+        const uploadHeaders = new Headers(request.headers);
+        uploadHeaders.delete("Content-Length");
+        const boundedRequest = new Request(request.url, { method: "POST", headers: uploadHeaders, body: uploadBytes });
+        const form = await boundedRequest.formData();
         const file = form.get("file");
         if (!file || typeof file.arrayBuffer !== "function") return json({ error: "Выберите файл." }, 400, headers);
         const isVideo = file.type === "video/mp4";
@@ -705,6 +713,7 @@ self.addEventListener("notificationclick", event => {
         } catch {}
         return json({ media: { type: isVideo ? "video" : "image", file_id: uploaded.file_id } }, 200, headers);
       } catch (error) {
+        if (error?.message === "body-too-large") return json({ error: "Файл слишком большой." }, 413, headers);
         return json({ error: "Ошибка загрузки медиафайла." }, 500, headers);
       }
     }
