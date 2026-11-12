@@ -87,6 +87,15 @@ textarea{min-height:160px;resize:vertical}label{font-weight:700;font-size:14px}
 .btn.full{width:100%}.btn.ghost{background:#efe6e8;color:var(--ink)}.btn:disabled{opacity:.6}
 details.rules{margin-top:22px;padding:16px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--mut);font-size:14px;scroll-margin-top:76px}
 details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.rules p{margin-top:10px}
+.rules-gate{display:grid;grid-template-columns:38px minmax(0,1fr);gap:8px 11px;align-items:center;margin:16px 0;padding:14px;border:1px solid #eadfe1;border-radius:18px;background:linear-gradient(135deg,#fff 0%,#fff7f8 100%)}
+.rules-gate-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#f6e4e8;font-size:19px}
+.rules-gate-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rules-gate-copy b{font-size:13px;color:var(--ink)}
+.rules-gate-copy span{font-size:11.5px;line-height:1.4;color:var(--mut)}
+.rules-gate .btn{grid-column:1/-1;margin-top:3px}
+.rules-gate .note{grid-column:1/-1;margin:0;text-align:center;font-size:11px}
+.rules-gate.is-accepted{border-color:#d8c5a0;background:linear-gradient(135deg,#fff 0%,#fffaf0 100%)}
+.rules-gate.is-accepted .rules-gate-icon{background:#f8efd9}
 .rules-consent{display:flex;align-items:flex-start;gap:10px;margin:12px 0 14px;padding:12px 14px;border:1px solid #eadfe1;border-radius:15px;background:#fffafb;color:var(--mut);font-size:12.5px;line-height:1.45;font-weight:400;cursor:pointer}
 .rules-consent input[type="checkbox"]{appearance:none;-webkit-appearance:none;position:relative;display:block;flex:0 0 19px;width:19px;height:19px;padding:0;margin:1px 0 0;border:1.5px solid #cdbbc0;border-radius:6px;background:#fff;box-shadow:none;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
 .rules-consent input[type="checkbox"]:checked{background:var(--red);border-color:var(--red)}
@@ -162,7 +171,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   <div id="newsList"></div>
 </section>
 <section id="appeal"><img class="rv" src="appeal.jpg" alt="Приём обращений" style="display:block;width:100%;max-width:200px;margin:14px auto 4px;border-radius:30px"><h1 class="rv">Обращение</h1>
-  <p class="rv">Друзья, поделитесь идеями и предложениями, как сделать школьную жизнь интереснее. Или новостями нашей школы, о которых вы хотите рассказать!</p>
+  <p class="rv">Друзья, поделитесь идеями и предложениями, как сделать школьную жизнь интереснее. Или новостями нашей школы, о которых вы хотите рассказать! Каждое обращение мы рассматриваем отдельно, внимательно читаем и стараемся сделать всё, что в наших силах, чтобы хорошие идеи воплотились в жизнь.</p>
   <form id="form" style="margin-top:22px" class="rv">
     <label for="who">Кто вы</label>
     <select id="who" name="Кто"><option>Ученик</option><option>Родитель</option><option>Учитель</option></select>
@@ -170,22 +179,19 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
     <select id="kind" name="Тип"><option>Идея или предложение</option><option>Новость школы</option><option>Обратная связь</option></select>
     <label for="msg">Ваша идея или предложение *</label>
     <textarea id="msg" name="Сообщение" required minlength="5" maxlength="1500"></textarea>
-    <label class="rules-consent" for="rulesAgree">
-      <input id="rulesAgree" name="Согласие с правилами" type="checkbox" required>
-      <span>Отправляя обращение, я подтверждаю, что ознакомился(ась) и согласен(на) с <a href="#appeal-rules">правилами пользования</a>.</span>
-    </label>
+    <div class="rules-gate rv" id="rulesGate">
+      <div class="rules-gate-icon">📋</div>
+      <div class="rules-gate-copy"><b>Один короткий шаг перед отправкой</b><span>Откройте правила пользования и подтвердите, что ознакомились с ними.</span></div>
+      <button class="btn ghost full" id="openAppealRules" type="button">Открыть правила пользования</button>
+      <p id="rulesGateStatus" class="note" role="status">После подтверждения можно будет отправить обращение.</p>
+    </div>
     <div class="cf-turnstile" data-sitekey="0x4AAAAAAF6Yz9usYN7tJ3iQ" data-language="ru" style="margin:8px 0 16px"></div>
-    <button class="btn full" id="send" type="submit">Отправить</button>
+    <button class="btn full" id="send" type="submit" disabled>Сначала ознакомьтесь с правилами</button>
     <p id="status" class="note" role="status" style="margin-top:12px;text-align:center"></p>
   </form>
   <p class="rv" style="margin:8px 0 0;text-align:center;font-size:11px;line-height:1.5;opacity:.58">Обращения конфиденциальны. Личная информация не публикуется.</p>
   <p class="rv" style="margin:16px 0;text-align:center;font-size:13px;line-height:1.6"><a href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;font-weight:400">Можно написать нам и в Telegram.</a></p>
-  <details class="rules rv" id="appeal-rules"><summary>Правила пользования</summary>
-    <p><b>Разрешены:</b> идеи по улучшению школы, предложения мероприятий, конструктивная обратная связь, новости и интересные события школьной жизни.</p>
-    <p><b>Запрещены:</b> оскорбления, угрозы, нецензурная лексика, спам, реклама и сообщения не по теме проекта.</p>
-    <p><b>Анонимность и публикация:</b> форма не запрашивает имя и контакты, поэтому автор обращения нам неизвестен. Подходящие обращения могут быть опубликованы на сайте без указания автора.</p>
-    <p><b>Рассмотрение предложений:</b> обращения рассматриваются Советом Первых. Идеи обсуждаются, а те, которые будут признаны подходящими и реализуемыми, могут получить дальнейшее развитие и воплощение в школьной жизни. Отправка предложения не гарантирует его реализацию.</p>
-  </details>
+
 
 </section>
 <section id="games"><h1 class="rv">Мини-игры</h1>
@@ -264,6 +270,40 @@ function route(){
 addEventListener("hashchange", route);
 function openSh(h){ $("#pn").innerHTML = '<div class="grip"></div>' + h; $("#sh").classList.add("on"); document.body.style.overflow = "hidden"; }
 function closeSh(){ $("#sh").classList.remove("on"); document.body.style.overflow = ""; }
+const APPEAL_RULES_VERSION = "2026-11-12";
+const APPEAL_RULES_KEY = "s1sch9-appeal-rules-" + APPEAL_RULES_VERSION;
+const appealRulesHTML = `
+  <div class="c">
+    <div style="font-size:34px;margin:2px 0 8px">📋</div>
+    <h3>Правила пользования</h3>
+    <p class="note" style="margin:0 0 16px">Пожалуйста, ознакомьтесь перед отправкой обращения.</p>
+  </div>
+  <p><b>1. О чём можно написать</b><br>Идеи по улучшению школы, предложения мероприятий, конструктивную обратную связь, новости и интересные события школьной жизни.</p>
+  <p><b>2. Что недопустимо</b><br>Оскорбления, угрозы, нецензурная лексика, спам, реклама и сообщения, не относящиеся к проекту.</p>
+  <p><b>3. Конфиденциальность и публикация</b><br>Форма не запрашивает имя и контакты. Подходящие обращения могут быть опубликованы на сайте без указания автора. Личная информация не публикуется.</p>
+  <p><b>4. Как мы рассматриваем обращения</b><br>Каждое сообщение мы рассматриваем отдельно и внимательно. Мы не оставляем предложения без внимания: обсуждаем их и стараемся сделать всё, что в наших силах, чтобы полезные идеи воплотились в школьной жизни. Если реализовать предложение сразу не получится, мы оценим возможности и сможем вернуться к нему позже.</p>
+  <p><b>5. Важный момент</b><br>Отправка обращения не означает, что предложение обязательно будет реализовано. Всё зависит от возможностей, безопасности и необходимых согласований.</p>
+  <button class="btn full" id="acceptAppealRules" type="button" style="margin-top:20px">✓ Я ознакомился(ась) и согласен(на)</button>
+`;
+function setAppealRulesAccepted(){
+  const accepted = localStorage.getItem(APPEAL_RULES_KEY) === "yes";
+  const gate = $("#rulesGate"), button = $("#openAppealRules"), send = $("#send");
+  if(!gate || !button || !send) return;
+  send.disabled = !accepted;
+  send.textContent = accepted ? "Отправить обращение" : "Сначала ознакомьтесь с правилами";
+  gate.classList.toggle("is-accepted", accepted);
+  button.textContent = accepted ? "✓ Правила прочитаны · открыть ещё раз" : "Открыть правила пользования";
+  $("#rulesGateStatus").textContent = accepted ? "Спасибо! Согласие сохранено на этом устройстве." : "После подтверждения можно будет отправить обращение.";
+}
+$("#openAppealRules").addEventListener("click", () => {
+  openSh(appealRulesHTML);
+  $("#acceptAppealRules").addEventListener("click", () => {
+    localStorage.setItem(APPEAL_RULES_KEY, "yes");
+    setAppealRulesAccepted();
+    closeSh();
+  });
+});
+setAppealRulesAccepted();
 addEventListener("keydown", e => e.key === "Escape" && (closeSh(), closeGame()));
 function csv(t){const r=[];let a=[],c="",q=false;for(let i=0;i<t.length;i++){const h=t[i];
   if(q){if(h=='"'&&t[i+1]=='"'){c+='"';i++}else if(h=='"')q=false;else c+=h}
@@ -332,6 +372,8 @@ $("#form").addEventListener("submit", async e => {
   e.preventDefault();
   const st = $("#status"), b = $("#send");
   const message = $("#msg").value.trim();
+  const rulesAccepted = localStorage.getItem(APPEAL_RULES_KEY) === "yes";
+  if (!rulesAccepted) { st.textContent = "Сначала откройте правила пользования и подтвердите согласие."; return; }
   const role = $("#who").value;
   const category = $("#kind").value;
   const captcha = e.target.querySelector('[name="cf-turnstile-response"]');
@@ -351,13 +393,13 @@ $("#form").addEventListener("submit", async e => {
     const response = await fetch(C.appealsApi, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({ role, category, message, turnstileToken })
+      body: JSON.stringify({ role, category, message, turnstileToken, rulesAccepted: true, rulesVersion: APPEAL_RULES_VERSION })
     });
     const result = await response.json().catch(() => null);
     if (!response.ok || !result || !result.success) {
       throw new Error(result && result.error ? result.error + (result.diagnostic ? " Код: " + result.diagnostic : "") : ("Сервис вернул ошибку (HTTP " + response.status + ")."));
     }
-    e.target.innerHTML = '<div class="ok"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/><path d="M30 52l14 14 27-30"/></svg><h3 style="margin-top:14px">Спасибо, что написали! 💙</h3><p class="note">Мы получили ваше обращение.</p><button class="btn full" type="button" style="margin-top:22px" onclick="location.reload()">Написать ещё одно обращение</button></div>';
+    e.target.innerHTML = '<div class="ok"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/><path d="M30 52l14 14 27-30"/></svg><h3 style="margin-top:14px">Спасибо, что написали! 💙</h3><p class="note">Мы получили ваше обращение. Совет Первых внимательно ознакомится с ним и постарается сделать всё возможное, чтобы полезные предложения получили развитие.</p><button class="btn full" type="button" style="margin-top:22px" onclick="location.reload()">Написать ещё одно обращение</button></div>';
   } catch (error) {
     console.error("Ошибка отправки обращения:", error);
     st.textContent = error && error.message
