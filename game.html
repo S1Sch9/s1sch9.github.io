@@ -485,18 +485,24 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         ctx.restore();
     }
     function drawBrandOnSide(image,q,c,h,level,side,showAt,markMax){
-        if(level%8!==showAt)return;
-        if((side==='left' && showAt%8!==level%8)||(side==='right' && showAt%8!==level%8))return;
-        if(!image.complete || !image.naturalWidth)return;
+        if(level%8!==showAt || !image.complete || !image.naturalWidth)return;
         const ux=c.x-q.x,uy=c.y-q.y,faceW=Math.hypot(ux,uy);
-        if(faceW<28||h<24)return;
+        // Боковая грань в изометрии уже верхней: прежний порог 28 px
+        // не позволял эмблемам появляться на боковых сторонах блоков.
+        if(faceW<6 || h<22)return;
         const ratio=image.naturalHeight/image.naturalWidth;
-        const markW=Math.min(markMax,faceW*.27),markH=markW*ratio;
-        if(markH>h*.68)return;
+        const maxW=Math.min(markMax,faceW*.82);
+        const maxH=h*.72;
+        const markW=Math.min(maxW,maxH/ratio);
+        const markH=markW*ratio;
+        if(markW<4 || markH<4)return;
         ctx.save();
         ctx.transform(ux/faceW,uy/faceW,0,1,q.x,q.y);
-        ctx.globalAlpha=.92;
-        ctx.drawImage(image,(faceW-markW)/2,(h-markH)/2,markW,markH);
+        const px=(faceW-markW)/2,py=(h-markH)/2;
+        ctx.fillStyle='rgba(255,239,197,.16)';
+        ctx.fillRect(px-1.5,py-1.5,markW+3,markH+3);
+        ctx.globalAlpha=.98;
+        ctx.drawImage(image,px,py,markW,markH);
         ctx.restore();
     }
     // Фирменный узор башни: знаки чередуются, а позиции идут
