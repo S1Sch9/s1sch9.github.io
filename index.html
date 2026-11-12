@@ -88,6 +88,11 @@ textarea{min-height:160px;resize:vertical}label{font-weight:700;font-size:14px}
 details.rules{margin-top:22px;padding:16px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--mut);font-size:14px;scroll-margin-top:76px}
 details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.rules p{margin-top:10px}
 .rules-gate{display:grid;grid-template-columns:38px minmax(0,1fr);gap:8px 11px;align-items:center;margin:16px 0;padding:14px;border:1px solid #eadfe1;border-radius:18px;background:linear-gradient(135deg,#fff 0%,#fff7f8 100%)}
+/* Единая аккуратная ширина для проверки Cloudflare и кнопки отправки */
+.cf-turnstile{display:flex;justify-content:center;align-items:center;width:100%;min-height:82px;margin:10px auto 14px!important;padding:8px;border:1px solid #eadfe1;border-radius:18px;background:linear-gradient(135deg,#fff 0%,#fffafb 100%);overflow:hidden}
+.cf-turnstile iframe{max-width:100%!important}
+#send.btn.full{display:block;width:100%;min-height:64px;margin:0 auto;border-radius:18px;font-size:15px;font-weight:750;box-shadow:0 7px 18px rgba(161,0,31,.12)}
+@media(max-width:420px){.cf-turnstile{min-height:76px;padding:5px}#send.btn.full{min-height:60px}}
 .rules-gate-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#f6e4e8;font-size:19px}
 .rules-gate-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
 .rules-gate-copy b{font-size:13px;color:var(--ink)}
