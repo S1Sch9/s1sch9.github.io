@@ -499,9 +499,8 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         ctx.save();
         ctx.transform(ux/faceW,uy/faceW,0,1,q.x,q.y);
         const px=(faceW-markW)/2,py=(h-markH)/2;
-        ctx.fillStyle='rgba(255,239,197,.16)';
-        ctx.fillRect(px-1.5,py-1.5,markW+3,markH+3);
-        ctx.globalAlpha=.98;
+        ctx.globalAlpha=.96;
+        ctx.globalCompositeOperation='multiply';
         ctx.drawImage(image,px,py,markW,markH);
         ctx.restore();
     }
@@ -519,7 +518,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     }
     function drawMovementOnTop(a,b,c,q,level){
         if(level%2===0||blockBrandPlacement(level)!==0)return;
-        drawBrandOnTop(movementLogoImage,a,b,c,q,level,level%8,.33);
+        drawBrandOnTop(movementLogoImage,a,b,c,q,level,level%8,.27);
     }
     function drawCrestOnSide(q,c,h,level,side){
         if(level%2!==0||blockBrandPlacement(level)!==(side==='left'?1:2))return;
@@ -527,7 +526,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     }
     function drawMovementOnSide(q,c,h,level,side){
         if(level%2===0||blockBrandPlacement(level)!==(side==='left'?1:2))return;
-        drawBrandOnSide(movementLogoImage,q,c,h,level,side,level%8,29);
+        drawBrandOnSide(movementLogoImage,q,c,h,level,side,level%8,24);
     }
     function drawBlockContours(a,b,c,q,h){
         // Контур подчёркивает реальные границы каждой грани, чтобы блоки
@@ -610,7 +609,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         }
     }
 
-    function draw(){ctx.clearRect(0,0,canvasWidth,canvasHeight);drawAtmosphere();ctx.save();ctx.translate(canvasWidth/2,canvasHeight);ctx.scale(cameraScale,cameraScale);ctx.translate(-canvasWidth/2,-canvasHeight+cameraY);drawTopTarget();blocks.forEach(b=>drawIsoBlock(b,1));fallingPieces.forEach(p=>{if(p.type==='block'){ctx.save();const cx=p.x+p.width/2,cy=p.y+p.height/2;ctx.translate(cx,cy);ctx.rotate(p.rotation);ctx.translate(-cx,-cy);draw3DBox(p.x,p.y,p.width,p.height,p.style,p.alpha);ctx.restore();}else{ctx.fillStyle=p.color;ctx.globalAlpha=p.alpha;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}});if(currentBlock&&!isGameOver){drawIsoBlock(currentBlock,1);const prev=blocks[blocks.length-1],a=projectPoint(prev.x,prev.z,prev.level),m=projectPoint(currentBlock.x,currentBlock.z,currentBlock.level);ctx.save();ctx.globalAlpha=.2;ctx.strokeStyle='#FFF2D9';ctx.setLineDash([4,5]);ctx.beginPath();ctx.moveTo(a.x,a.y+8);ctx.lineTo(m.x,m.y+8);ctx.stroke();ctx.setLineDash([]);ctx.restore();}ctx.restore();}
+    function draw(){ctx.clearRect(0,0,canvasWidth,canvasHeight);drawAtmosphere();ctx.save();ctx.translate(canvasWidth/2,canvasHeight);ctx.scale(cameraScale,cameraScale);ctx.translate(-canvasWidth/2,-canvasHeight+cameraY);drawTopTarget();blocks.forEach(b=>drawIsoBlock(b,1));fallingPieces.forEach(p=>{if(p.type==='block'){ctx.save();const cx=p.x+p.width/2,cy=p.y+p.height/2;ctx.translate(cx,cy);ctx.rotate(p.rotation);ctx.translate(-cx,-cy);draw3DBox(p.x,p.y,p.width,p.height,p.style,p.alpha);ctx.restore();}else{ctx.fillStyle=p.color;ctx.globalAlpha=p.alpha;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}});if(currentBlock&&!isGameOver){drawIsoBlock(currentBlock,1);}ctx.restore();}
 
     canvas.addEventListener('mousedown', (e) => { e.preventDefault(); dropBlock(); });
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); dropBlock(); }, {passive: false});
