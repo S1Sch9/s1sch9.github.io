@@ -354,7 +354,7 @@ $("#share").onclick = () => { const u = location.href.split("#")[0];
   navigator.share ? navigator.share({title: document.title, url: u}).catch(() => {}) : navigator.clipboard?.writeText(u).then(() => alert("Ссылка скопирована")); };
 route();
 </script>
-<footer class="site-credit" aria-label="Информация о создателе сайта">Создатель сайта — Михеев Д. А. · 9 «А» класс</footer>
+<footer class="site-credit" aria-label="Важен каждый"><img src="vazhen.png" alt="Важен каждый" style="display:inline-block;width:auto;height:28px;max-width:180px;object-fit:contain;vertical-align:middle"></footer>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </body>
 </html>
