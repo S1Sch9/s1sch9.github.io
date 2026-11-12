@@ -562,7 +562,7 @@ self.addEventListener("notificationclick", event => {
       try {
         const ipHash = await clientIpHash(request);
         if (await isIpBlocked(env, ipHash)) {
-          return json({ error: "Отправка обращений с этого подключения временно ограничена." }, 403, { ...headers, ...cors(origin) });
+          return json({ error: "Доступ к отправке обращений с этого подключения заблокирован из-за нарушения правил пользования ботом для обращений Совета. Если вы считаете, что блокировка произошла по ошибке, обратитесь к администрации Совета." }, 403, { ...headers, ...cors(origin) });
         }
         const captchaCheck = await verifyTurnstile(captchaToken, request, env);
         if (!captchaCheck.ok) {
@@ -574,7 +574,7 @@ self.addEventListener("notificationclick", event => {
         const limit = await rateAllowed(env, ipHash);
         await logSecurityEvent(env, ipHash, limit.allowed ? "accepted" : "rate_limited");
         if (!limit.allowed) {
-          return json({ error: "Слишком много обращений. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
+          return json({ error: "В целях безопасности с одного подключения можно отправить не более 10 обращений в час. Пожалуйста, попробуйте позже." }, 429, { ...headers, ...cors(origin) });
         }
         const inserted = await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
           .bind(role, category, message).run();
