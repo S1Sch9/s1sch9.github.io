@@ -94,8 +94,12 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .rules-gate-copy span{font-size:11.5px;line-height:1.4;color:var(--mut)}
 .rules-gate .btn{grid-column:1/-1;margin-top:3px}
 .rules-gate .note{grid-column:1/-1;margin:0;text-align:center;font-size:11px}
-.rules-gate.is-accepted{border-color:#d8c5a0;background:linear-gradient(135deg,#fff 0%,#fffaf0 100%)}
-.rules-gate.is-accepted .rules-gate-icon{background:#f8efd9}
+.rules-gate.is-accepted{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0;padding:7px 10px;border-color:#e5d8bb;border-radius:13px;background:#fffaf0}
+.rules-gate.is-accepted .rules-gate-icon,.rules-gate.is-accepted .rules-gate-copy span,.rules-gate.is-accepted .note{display:none}
+.rules-gate.is-accepted .rules-gate-copy{flex:1}
+.rules-gate.is-accepted .rules-gate-copy b{font-size:11.5px;color:#77613a;font-weight:700}
+.rules-gate.is-accepted .btn{width:auto;grid-column:auto;margin:0;padding:7px 10px;border-radius:10px;font-size:11px;white-space:nowrap;background:#f4ead3;color:#715a32}
+@media(max-width:420px){.rules-gate.is-accepted{gap:5px;padding:6px 8px}.rules-gate.is-accepted .btn{padding:6px 8px;font-size:10px}}
 .rules-consent{display:flex;align-items:flex-start;gap:10px;margin:12px 0 14px;padding:12px 14px;border:1px solid #eadfe1;border-radius:15px;background:#fffafb;color:var(--mut);font-size:12.5px;line-height:1.45;font-weight:400;cursor:pointer}
 .rules-consent input[type="checkbox"]{appearance:none;-webkit-appearance:none;position:relative;display:block;flex:0 0 19px;width:19px;height:19px;padding:0;margin:1px 0 0;border:1.5px solid #cdbbc0;border-radius:6px;background:#fff;box-shadow:none;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
 .rules-consent input[type="checkbox"]:checked{background:var(--red);border-color:var(--red)}
@@ -292,8 +296,10 @@ function setAppealRulesAccepted(){
   send.disabled = !accepted;
   send.textContent = accepted ? "Отправить обращение" : "Сначала ознакомьтесь с правилами";
   gate.classList.toggle("is-accepted", accepted);
-  button.textContent = accepted ? "✓ Правила прочитаны · открыть ещё раз" : "Открыть правила пользования";
-  $("#rulesGateStatus").textContent = accepted ? "Спасибо! Согласие сохранено на этом устройстве." : "После подтверждения можно будет отправить обращение.";
+  gate.querySelector(".rules-gate-copy b").textContent = accepted ? "✓ Правила приняты" : "Один короткий шаг перед отправкой";
+  button.textContent = accepted ? "Изменить" : "Открыть правила";
+  button.setAttribute("aria-label", accepted ? "Повторно открыть правила пользования" : "Открыть правила пользования");
+  $("#rulesGateStatus").textContent = accepted ? "Согласие сохранено на этом устройстве." : "После подтверждения можно будет отправить обращение.";
 }
 $("#openAppealRules").addEventListener("click", () => {
   openSh(appealRulesHTML);
