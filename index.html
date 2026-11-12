@@ -162,14 +162,18 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
     <select id="kind" name="Тип"><option>Идея или предложение</option><option>Новость школы</option><option>Обратная связь</option></select>
     <label for="msg">Ваша идея или предложение *</label>
     <textarea id="msg" name="Сообщение" required minlength="5" maxlength="1500"></textarea>
+    <label for="rulesAgree" style="display:flex;align-items:flex-start;gap:9px;margin:12px 0 14px;font-size:13px;line-height:1.5;font-weight:400">
+      <input id="rulesAgree" name="Согласие с правилами" type="checkbox" required style="width:18px;height:18px;flex:0 0 18px;margin:2px 0 0;accent-color:#A1001F">
+      <span>Отправляя обращение, я подтверждаю, что ознакомился(ась) и согласен(на) с <a href="#appeal-rules" style="color:inherit;text-decoration:underline;text-underline-offset:3px">правилами пользования</a>.</span>
+    </label>
     <div class="cf-turnstile" data-sitekey="0x4AAAAAAF6Yz9usYN7tJ3iQ" data-language="ru" style="margin:8px 0 16px"></div>
     <button class="btn full" id="send" type="submit">Отправить</button>
     <p id="status" class="note" role="status" style="margin-top:12px;text-align:center"></p>
   </form>
   <p class="rv" style="margin:8px 0 0;text-align:center;font-size:11px;line-height:1.5;opacity:.58">Обращения конфиденциальны. Личная информация не публикуется.</p>
   <p class="rv" style="margin:16px 0;text-align:center;font-size:13px;line-height:1.6"><a href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;font-weight:400">Можно написать нам и в Telegram.</a></p>
-  <details class="rules rv"><summary>Правила пользования</summary>
-    <p><b>Разрешены:</b> идеи по улучшению школы, предложения мероприятий, конструктивная обратная связь.</p>
+  <details class="rules rv" id="appeal-rules"><summary>Правила пользования</summary>
+    <p><b>Разрешены:</b> идеи по улучшению школы, предложения мероприятий, конструктивная обратная связь, новости и интересные события школьной жизни.</p>
     <p><b>Запрещены:</b> нецензурная лексика, оскорбления, спам, сообщения не по теме проекта.</p>
     <p><b>Цель проекта:</b> дать каждому ученику возможность внести свой вклад в развитие нашей школы.</p>
     <p><b>Как это работает:</b><br>1. Вы отправляете обращение.<br>2. Оно проходит модерацию на соответствие правилам.<br>3. Все обращения обсуждаются на Совете Первых.</p>
