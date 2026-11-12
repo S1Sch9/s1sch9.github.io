@@ -158,6 +158,7 @@ nav a.on{background:var(--red);color:#fff}nav a.on i{transform:scale(1.14)}
 a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
 .site-credit{margin:18px 0 92px;padding:0 16px;text-align:center;color:var(--mut);font-size:11px;line-height:1.5;letter-spacing:.02em;opacity:.58}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+#appealBlockNotice{display:none;margin:18px 0;padding:17px 18px;border:1px solid #e8b7c0;border-radius:18px;background:linear-gradient(135deg,#fff4f5,#fff);color:#4b1220;box-shadow:0 8px 24px rgba(100,0,24,.07);line-height:1.55}#appealBlockNotice.on{display:block}#appealBlockNotice strong{display:block;font-size:15px;margin-bottom:6px}#appealBlockNotice p{margin:5px 0;font-size:13px}
 </style>
   <meta name="google-site-verification" content="OeqPg6QGqLsGVY-m0d_avxqMQK16st13n9Bg8HKyTgY" />
   <meta name="yandex-verification" content="11d02a95d88a1d8a" />
@@ -185,6 +186,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 </section>
 <section id="appeal"><img class="rv" src="appeal.jpg" alt="Приём обращений" style="display:block;width:100%;max-width:200px;margin:14px auto 4px;border-radius:30px"><h1 class="rv">Обращение</h1>
   <p class="rv">Друзья, поделитесь идеями, предложениями или новостями нашей школы! Каждое обращение мы читаем, обсуждаем и стараемся находить полезным идеям место в школьной жизни.</p>
+  <div id="appealBlockNotice" role="alert" aria-live="polite"><strong>⛔ Доступ к отправке обращений ограничен</strong><p>Доступ с этого подключения временно заблокирован.</p><p id="appealBlockReason"></p><p>Если вы считаете, что блокировка произошла по ошибке, обратитесь к Совету.</p></div>
   <form id="form" style="margin-top:22px" class="rv">
     <label for="who">Кто вы</label>
     <select id="who" name="Кто"><option>Ученик</option><option>Родитель</option><option>Учитель</option></select>
@@ -328,6 +330,22 @@ $("#openAppealRules").addEventListener("click", () => {
   });
 });
 setAppealRulesAccepted();
+let appealSenderBlocked = false;
+async function refreshAppealBlockStatus(){
+  try{
+    const response=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/appeal-status",{cache:"no-store"});
+    if(!response.ok)return appealSenderBlocked;
+    const data=await response.json();
+    appealSenderBlocked=!!data.blocked;
+    const notice=$("#appealBlockNotice"), form=$("#form");
+    notice.classList.toggle("on",appealSenderBlocked);
+    form.hidden=appealSenderBlocked;
+    $("#appealBlockReason").textContent=appealSenderBlocked?(data.note?"Причина: "+data.note:"Причина: нарушение правил пользования."):"";
+    return appealSenderBlocked;
+  }catch{return appealSenderBlocked}
+}
+refreshAppealBlockStatus();
+setInterval(refreshAppealBlockStatus,30000);
 addEventListener("keydown", e => e.key === "Escape" && (closeSh(), closeGame()));
 function csv(t){const r=[];let a=[],c="",q=false;for(let i=0;i<t.length;i++){const h=t[i];
   if(q){if(h=='"'&&t[i+1]=='"'){c+='"';i++}else if(h=='"')q=false;else c+=h}
@@ -395,6 +413,10 @@ if (C.teamCsv) load(C.teamCsv).then(r => { if (r.length) { TEAM = r.map(x => [x[
 $("#form").addEventListener("submit", async e => {
   e.preventDefault();
   const st = $("#status"), b = $("#send");
+  if(await refreshAppealBlockStatus()){
+    st.textContent = "Доступ к отправке обращений с этого подключения заблокирован.";
+    return;
+  }
   const message = $("#msg").value.trim();
   const rulesAccepted = localStorage.getItem(APPEAL_RULES_KEY) === "yes";
   if (!rulesAccepted) { st.textContent = "Сначала откройте правила пользования и подтвердите согласие."; return; }
