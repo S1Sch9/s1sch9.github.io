@@ -570,6 +570,7 @@ self.addEventListener("notificationclick", event => {
         headers: {
           ...headers,
           "content-type": "text/html; charset=utf-8",
+          "X-Robots-Tag": "noindex, nofollow",
           "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; font-src 'self' data:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         }
       });
