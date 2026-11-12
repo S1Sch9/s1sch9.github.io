@@ -214,6 +214,15 @@ async function ensureTelegramAppeals(env) {
     update_id INTEGER PRIMARY KEY,
     created_at INTEGER NOT NULL
   )`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_appeal_sender_keys (
+    appeal_id INTEGER PRIMARY KEY, chat_id TEXT NOT NULL
+  )`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_appeal_blocks (
+    chat_id TEXT PRIMARY KEY, created_at INTEGER NOT NULL, note TEXT NOT NULL DEFAULT ''
+  )`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_appeal_rate_limits (
+    chat_id TEXT PRIMARY KEY, window_start INTEGER NOT NULL, attempts INTEGER NOT NULL
+  )`).run();
 }
 async function clearTelegramCommands(env) {
   // Убираем старое меню slash-команд: бот работает через понятные кнопки.
@@ -261,6 +270,11 @@ async function telegramWebhook(request, env) {
 5. ВАЖНЫЙ МОМЕНТ
 Отправка обращения не означает, что предложение обязательно будет реализовано. Всё зависит от возможностей, безопасности и необходимых согласований.`;
   await ensureTelegramAppeals(env);
+  const telegramBlock = await env.DB.prepare("SELECT chat_id FROM telegram_appeal_blocks WHERE chat_id = ?").bind(chatId).first();
+  if (telegramBlock) {
+    await telegramReply(env, chatId, "⛔ Доступ к отправке обращений в Telegram-боте заблокирован из-за нарушения правил пользования ботом Совета. Если вы считаете, что блокировка произошла по ошибке, обратитесь к Совету.");
+    return json({ ok: true });
+  }
   if (Number.isSafeInteger(update.update_id)) {
     const seen = await env.DB.prepare("INSERT OR IGNORE INTO telegram_appeal_updates (update_id, created_at) VALUES (?, ?)")
       .bind(update.update_id, Math.floor(Date.now() / 1000)).run();
@@ -326,8 +340,24 @@ async function telegramWebhook(request, env) {
     await telegramReply(env, chatId, "💙 Кажется, сообщение получилось слишком коротким.\n\nДобавьте немного подробностей — нужно хотя бы 5 символов. Если передумали, нажмите «Отменить отправку».", cancelKeyboard);
     return json({ ok: true });
   }
-  await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
+  const rateNow = Math.floor(Date.now() / 1000);
+  const rateRow = await env.DB.prepare(`
+    INSERT INTO telegram_appeal_rate_limits (chat_id, window_start, attempts) VALUES (?, ?, 1)
+    ON CONFLICT(chat_id) DO UPDATE SET
+      attempts = CASE WHEN window_start <= ? THEN 1 ELSE attempts + 1 END,
+      window_start = CASE WHEN window_start <= ? THEN ? ELSE window_start END
+    RETURNING attempts
+  `).bind(chatId, rateNow, rateNow - 3600, rateNow - 3600, rateNow).first();
+  if (!rateRow || rateRow.attempts > 10) {
+    await telegramReply(env, chatId, "🛡 В целях безопасности с одного аккаунта можно отправить не более 10 обращений в час. Пожалуйста, попробуйте позже.", keyboard);
+    return json({ ok: true });
+  }
+  const insertedAppeal = await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
     .bind("Telegram", "Через Telegram-бота", message).run();
+  if (insertedAppeal.meta?.last_row_id) {
+    await env.DB.prepare("INSERT OR REPLACE INTO telegram_appeal_sender_keys (appeal_id, chat_id) VALUES (?, ?)")
+      .bind(insertedAppeal.meta.last_row_id, chatId).run();
+  }
   await sendPushNotifications(env, {
     title: "Совет Первых · Новое обращение",
     body: "Поступило обращение из Telegram-бота. Нажмите, чтобы открыть админку.",
@@ -718,11 +748,39 @@ self.addEventListener("notificationclick", event => {
         return json({ success: true }, 200, headers);
       } catch { return json({ error: "Не удалось снять блокировку." }, 500, headers); }
     }
+    if (url.pathname === "/api/admin/telegram-blocks" && request.method === "GET") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensureTelegramAppeals(env);
+        const result = await env.DB.prepare("SELECT chat_id, created_at, note FROM telegram_appeal_blocks ORDER BY created_at DESC LIMIT 100").all();
+        return json({ blocks: result.results || [] }, 200, headers);
+      } catch { return json({ error: "Не удалось загрузить блокировки Telegram." }, 500, headers); }
+    }
+    if (url.pathname === "/api/admin/telegram-blocks" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        const body = await request.json(), chatId = cleanText(body.chatId, 32), note = cleanText(body.note, 160);
+        if (!/^\\d{5,20}$/.test(chatId)) return json({ error: "Некорректный Telegram ID." }, 400, headers);
+        await ensureTelegramAppeals(env);
+        await env.DB.prepare("INSERT INTO telegram_appeal_blocks (chat_id, created_at, note) VALUES (?, ?, ?) ON CONFLICT(chat_id) DO UPDATE SET note=excluded.note").bind(chatId, Math.floor(Date.now() / 1000), note || "Блокировка из админки").run();
+        return json({ success: true }, 200, headers);
+      } catch { return json({ error: "Не удалось заблокировать Telegram-аккаунт." }, 500, headers); }
+    }
+    const telegramUnblockMatch = url.pathname.match(/^\\/api\\/admin\\/telegram-blocks\\/(\\d+)$/);
+    if (telegramUnblockMatch && request.method === "DELETE") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensureTelegramAppeals(env);
+        await env.DB.prepare("DELETE FROM telegram_appeal_blocks WHERE chat_id = ?").bind(telegramUnblockMatch[1]).run();
+        return json({ success: true }, 200, headers);
+      } catch { return json({ error: "Не удалось снять блокировку Telegram." }, 500, headers); }
+    }
     if (url.pathname === "/api/admin/appeals" && request.method === "GET") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
         await ensureAppealSecurity(env);
-        const result = await env.DB.prepare("SELECT a.id, a.role, a.category, a.message, a.status, a.created_at, s.ip_hash, CASE WHEN b.ip_hash IS NULL THEN 0 ELSE 1 END AS sender_blocked FROM appeals a LEFT JOIN appeal_sender_keys s ON s.appeal_id = a.id LEFT JOIN appeal_ip_blocks b ON b.ip_hash = s.ip_hash ORDER BY a.id DESC").all();
+        await ensureTelegramAppeals(env);
+        const result = await env.DB.prepare("SELECT a.id, a.role, a.category, a.message, a.status, a.created_at, s.ip_hash, CASE WHEN b.ip_hash IS NULL THEN 0 ELSE 1 END AS sender_blocked, ts.chat_id AS telegram_chat_id, CASE WHEN tb.chat_id IS NULL THEN 0 ELSE 1 END AS telegram_sender_blocked FROM appeals a LEFT JOIN appeal_sender_keys s ON s.appeal_id = a.id LEFT JOIN appeal_ip_blocks b ON b.ip_hash = s.ip_hash LEFT JOIN telegram_appeal_sender_keys ts ON ts.appeal_id = a.id LEFT JOIN telegram_appeal_blocks tb ON tb.chat_id = ts.chat_id ORDER BY a.id DESC").all();
         return json({ items: result.results || [] }, 200, headers);
       } catch { return json({ error: "Не удалось загрузить обращения." }, 500, headers); }
     }
