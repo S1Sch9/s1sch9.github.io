@@ -516,8 +516,8 @@ $("#share").onclick = shareSite;
 route();
 
 // Календарь мероприятий Совета Первых — карточка дня + компактный календарь
-let PUBLIC_EVENTS=[],calendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1),selectedEventDay=localDateKey(new Date());
 const localDateKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+let PUBLIC_EVENTS=[],calendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1),selectedEventDay=localDateKey(new Date());
 const eventDateFromKey=key=>new Date(key+'T12:00:00');
 function shiftSelectedDay(amount){const d=eventDateFromKey(selectedEventDay);d.setDate(d.getDate()+amount);selectedEventDay=localDateKey(d);calendarCursor=new Date(d.getFullYear(),d.getMonth(),1);renderPublicCalendar();renderPublicEvents()}
 function renderPublicCalendar(){
