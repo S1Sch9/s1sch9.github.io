@@ -423,6 +423,12 @@ addEventListener("hashchange", route);
     targetW = el.offsetWidth;
     if(!indicatorReady){indicatorX=targetX;indicatorW=targetW;indicatorReady=true;}
     indicator.style.opacity = "1";
+    if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+      if(indicatorFrame) cancelAnimationFrame(indicatorFrame);
+      indicatorFrame=0; indicatorX=targetX; indicatorW=targetW; indicatorVX=indicatorVW=0;
+      indicator.style.transform="translate3d("+indicatorX+"px,0,0)"; indicator.style.width=indicatorW+"px";
+      return;
+    }
     if(!indicatorFrame) indicatorFrame = requestAnimationFrame(animateIndicator);
   };
   window.syncNavIndicator = () => moveIndicator(nav.querySelector(".on"));
