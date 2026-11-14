@@ -800,8 +800,11 @@ self.addEventListener("notificationclick", event => {
         const newsId = cleanText(url.searchParams.get("news_id"), 180);
         if (!newsId) return json({ error: "Не указана новость." }, 400, { ...headers, ...cors(origin) });
         const likes = await env.DB.prepare("SELECT COUNT(*) AS count FROM news_likes WHERE news_id = ?").bind(newsId).first();
+        const visitorId = cleanText(url.searchParams.get("visitor_id"), 100);
+        const visitorHash = /^[a-zA-Z0-9_-]{12,100}$/.test(visitorId) ? await sha256("s1sch9-news-like:" + visitorId) : "";
+        const liked = visitorHash ? !!(await env.DB.prepare("SELECT 1 FROM news_likes WHERE news_id = ? AND visitor_hash = ?").bind(newsId, visitorHash).first()) : false;
         const comments = await env.DB.prepare("SELECT id, author, message, created_at FROM news_comments WHERE news_id = ? AND status = 'published' ORDER BY created_at ASC LIMIT 100").bind(newsId).all();
-        return json({ likes: Number(likes?.count || 0), comments: comments.results || [] }, 200, { ...headers, ...cors(origin) });
+        return json({ likes: Number(likes?.count || 0), liked, comments: comments.results || [] }, 200, { ...headers, ...cors(origin) });
       } catch { return json({ error: "Не удалось загрузить обсуждение." }, 500, { ...headers, ...cors(origin) }); }
     }
     if (url.pathname === "/api/news-like" && request.method === "POST") {
