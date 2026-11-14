@@ -171,7 +171,7 @@ async function logSecurityEvent(env, hash, event) {
   await env.DB.prepare("INSERT INTO appeal_security_events (ip_hash, event, created_at) VALUES (?, ?, ?)")
     .bind(hash, event, Math.floor(Date.now() / 1000)).run();
 }
-async function rateAllowed(env, key) {
+async function rateAllowed(env, key, maxAttempts = 10) {
   await env.DB.prepare(`
     CREATE TABLE IF NOT EXISTS appeal_rate_limits (
       ip_hash TEXT PRIMARY KEY, window_start INTEGER NOT NULL, attempts INTEGER NOT NULL
@@ -185,7 +185,7 @@ async function rateAllowed(env, key) {
       window_start = CASE WHEN window_start <= ? THEN ? ELSE window_start END
     RETURNING attempts
   `).bind(key, now, now - 3600, now - 3600, now).first();
-  return { allowed: !!row && row.attempts <= 10, attempts: row?.attempts || 0 };
+  return { allowed: !!row && row.attempts <= maxAttempts, attempts: row?.attempts || 0 };
 }
 async function ensureEvents(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS events (
@@ -818,10 +818,14 @@ self.addEventListener("notificationclick", event => {
       } catch { return json({ error: "Не удалось загрузить обсуждение." }, 500, { ...headers, ...cors(origin) }); }
     }
     if (url.pathname === "/api/news-like" && request.method === "POST") {
+      if (origin !== SITE_ORIGIN) return json({ error: "Недопустимый источник запроса." }, 403, headers);
       try {
         await ensureNewsSocial(env);
         const body = await readJsonBody(request), newsId = cleanText(body.news_id, 180), visitorId = cleanText(body.visitor_id, 100);
         if (!newsId || !/^[a-zA-Z0-9_-]{12,100}$/.test(visitorId)) return json({ error: "Некорректный запрос." }, 400, { ...headers, ...cors(origin) });
+        const ipHash = await clientIpHash(request);
+        const ipLimit = await rateAllowed(env, "news-like:" + ipHash, 120);
+        if (!ipLimit.allowed) return json({ error: "Слишком много реакций с этого подключения. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
         const visitorHash = await sha256("s1sch9-news-like:" + visitorId);
         const existing = await env.DB.prepare("SELECT 1 FROM news_likes WHERE news_id = ? AND visitor_hash = ?").bind(newsId, visitorHash).first();
         if (existing) await env.DB.prepare("DELETE FROM news_likes WHERE news_id = ? AND visitor_hash = ?").bind(newsId, visitorHash).run();
@@ -831,6 +835,7 @@ self.addEventListener("notificationclick", event => {
       } catch { return json({ error: "Не удалось изменить реакцию." }, 500, { ...headers, ...cors(origin) }); }
     }
     if (url.pathname === "/api/news-comments" && request.method === "POST") {
+      if (origin !== SITE_ORIGIN) return json({ error: "Недопустимый источник запроса." }, 403, headers);
       try {
         await ensureNewsSocial(env);
         const body = await readJsonBody(request), newsId = cleanText(body.news_id, 180), visitorId = cleanText(body.visitor_id, 100);
@@ -839,6 +844,9 @@ self.addEventListener("notificationclick", event => {
         const visitorHash = await sha256("s1sch9-news-comment:" + visitorId);
         const recent = await env.DB.prepare("SELECT COUNT(*) AS count FROM news_comments WHERE visitor_hash = ? AND created_at > ?").bind(visitorHash, new Date(Date.now()-600000).toISOString()).first();
         if (Number(recent?.count || 0) >= 3) return json({ error: "Слишком часто. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
+        const ipHash = await clientIpHash(request);
+        const ipLimit = await rateAllowed(env, "news-comment:" + ipHash, 10);
+        if (!ipLimit.allowed) return json({ error: "С этого подключения можно отправить не более 10 комментариев в час. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
         const profanityFlag = containsProfanity(author + " " + message) ? 1 : 0, status = profanityFlag ? "moderation" : "published", id = crypto.randomUUID();
         await env.DB.prepare("INSERT INTO news_comments (id, news_id, author, message, status, visitor_hash, created_at, profanity_flag) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(id, newsId, author, message, status, visitorHash, new Date().toISOString(), profanityFlag).run();
         return json({ success: true, status, flagged: !!profanityFlag, message: profanityFlag ? "Комментарий скрыт до проверки: обнаружены слова из стоп-листа." : "Комментарий опубликован." }, 201, { ...headers, ...cors(origin) });
@@ -846,12 +854,16 @@ self.addEventListener("notificationclick", event => {
     }
     const ownerCommentMatch = url.pathname.match(/^\/api\/news-comments\/([^/]+)\/(edit|delete)$/);
     if (ownerCommentMatch && request.method === "POST") {
+      if (origin !== SITE_ORIGIN) return json({ error: "Недопустимый источник запроса." }, 403, headers);
       try {
         await ensureNewsSocial(env);
         const body = await readJsonBody(request);
         const id = decodeURIComponent(ownerCommentMatch[1]);
         const visitorId = cleanText(body.visitor_id, 100);
         if (!/^[a-zA-Z0-9_-]{12,100}$/.test(visitorId)) return json({ error: "Не удалось подтвердить автора комментария." }, 403, { ...headers, ...cors(origin) });
+        const ipHash = await clientIpHash(request);
+        const ipLimit = await rateAllowed(env, "news-comment-owner:" + ipHash, 30);
+        if (!ipLimit.allowed) return json({ error: "Слишком много изменений комментариев с этого подключения. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
         const visitorHash = await sha256("s1sch9-news-comment:" + visitorId);
         const current = await env.DB.prepare("SELECT author, message, status FROM news_comments WHERE id = ? AND visitor_hash = ?").bind(id, visitorHash).first();
         if (!current) return json({ error: "Комментарий не найден или он принадлежит другому автору." }, 404, { ...headers, ...cors(origin) });
