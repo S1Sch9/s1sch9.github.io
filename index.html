@@ -181,7 +181,7 @@ nav a i,nav button i{display:block;font-style:normal;font-size:19px;line-height:
 nav a.on,nav button.on{background:var(--red);color:#fff}nav a.on i,nav button.on i{transform:scale(1.14)}
 /* iOS-inspired navigation: springy feedback + long-press scrubbing */
 nav{isolation:isolate;touch-action:pan-y; -webkit-user-select:none;user-select:none}
-nav a,nav button{position:relative;z-index:1;will-change:transform,background-color;color;transition:background-color .34s cubic-bezier(.2,.9,.25,1.25),color .24s,transform .34s cubic-bezier(.2,.9,.25,1.35),box-shadow .3s}
+nav a,nav button{position:relative;z-index:1;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none;will-change:transform,background-color;color;transition:background-color .34s cubic-bezier(.2,.9,.25,1.25),color .24s,transform .34s cubic-bezier(.2,.9,.25,1.35),box-shadow .3s}
 nav a i,nav button i{transition:transform .38s cubic-bezier(.2,.9,.25,1.35),filter .25s}
 nav a:active,nav button:active{transform:scale(.91)}
 nav a.on,nav button.on{box-shadow:0 4px 12px rgba(161,0,31,.2)}
@@ -403,6 +403,8 @@ addEventListener("hashchange", route);
     candidate = el;
     candidate.classList.add("scrub-target");
   };
+  nav.addEventListener("contextmenu", e => { if(e.target.closest("a[href^='#'],button[data-more='true']")) e.preventDefault(); });
+  nav.addEventListener("dragstart", e => { if(e.target.closest("a[href^='#'],button[data-more='true']")) e.preventDefault(); });
   nav.addEventListener("pointerdown", e => {
     if(e.pointerType === "mouse" && e.button !== 0) return;
     const item = e.target.closest("a[href^='#'],button[data-more='true']");
