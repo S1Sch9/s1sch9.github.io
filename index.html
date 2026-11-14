@@ -277,6 +277,18 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .news-comment-compose-row .btn{flex:none;min-height:42px;padding:9px 14px;border-radius:13px;font-size:12px}
 .news-comments-list{padding-bottom:18px}
 .news-comments-empty{text-align:center;padding:25px 12px;color:var(--mut);font-size:13px}
+.news-comment-tools{display:flex;gap:7px;margin-top:7px}
+.news-comment-tools button{border:1px solid #eee3e6;background:#fff;border-radius:9px;padding:5px 9px;color:#78666c;font:700 11px Onest,system-ui}
+.news-comment-tools button[data-comment-delete]{color:#a13b4d}
+.news-comment-editor{display:grid;gap:8px;margin-top:9px}
+.news-comment-editor input,.news-comment-editor textarea{width:100%;min-width:0;padding:9px 11px;border:1px solid #e9dfe1;border-radius:10px;font:16px/1.4 Onest,system-ui;background:#fff}
+.news-comment-editor textarea{min-height:76px;resize:vertical}
+.news-comment-editor-actions{display:flex;gap:8px;justify-content:flex-end}
+.news-comment-editor-actions button{border:1px solid #eadde0;border-radius:10px;background:#fff;padding:8px 12px;font:700 12px Onest,system-ui}
+.news-comment-editor-actions button[type=submit]{background:var(--red);color:#fff;border-color:var(--red)}
+.news-comment-pending{margin:12px 0;padding:11px 12px;border:1px solid #f0e1c9;border-radius:13px;background:#fffaf2}
+.news-comment-pending>small{display:block;margin-bottom:5px;color:#946a2c;font-size:10px;font-weight:800}
+.news-comment-pending .news-comment{border:0;padding-bottom:0}
 @media(min-width:700px){.news-comments-modal{max-width:640px;margin-left:auto;margin-right:auto}.news-comments-compose{padding-left:26px;padding-right:26px}}
 @media(max-width:420px){.news-comments-compose{padding-left:17px;padding-right:17px}.news-comments-modal{padding-left:17px;padding-right:17px}.news-comments-title h3{font-size:19px}}
 </style></head>
@@ -744,7 +756,30 @@ function drawNews(){
 }
 function newsSocialId(n){if(n.id)return String(n.id);let h=2166136261;for(const ch of String(n.t||"Новость")){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return "static-"+(h>>>0).toString(36)}
 function newsVisitorId(){const key="s1sch9_news_visitor";let id=localStorage.getItem(key);if(!id){id=Array.from(crypto.getRandomValues(new Uint8Array(18)),b=>b.toString(16).padStart(2,"0")).join("");localStorage.setItem(key,id)}return id}
-async function loadNewsSocial(newsId){const roots=Array.from(document.querySelectorAll("[data-news-social]")).filter(r=>r.dataset.newsSocial===String(newsId));if(!roots.length)return;try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-social?news_id="+encodeURIComponent(newsId)+"&visitor_id="+encodeURIComponent(newsVisitorId()));const d=await r.json();if(!r.ok)throw Error();roots.forEach(root=>{const like=root.querySelector("[data-news-like]");if(like){like.classList.toggle("is-liked",!!d.liked);like.innerHTML=(d.liked?"♥ Нравится ":"♡ Нравится ")+'<span data-like-count>'+d.likes+'</span>'}const list=root.querySelector("[data-comments-list]");if(list)list.innerHTML=d.comments.length?d.comments.map(c=>'<article class="news-comment"><b>'+esc(c.author)+'</b><p>'+esc(c.message)+'</p><small>'+esc(new Date(c.created_at).toLocaleString("ru-RU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))+'</small></article>').join(""):'<p class="note">Пока нет комментариев. Будьте первым!</p>';const count=root.querySelector("[data-comment-count]");if(count)count.textContent=d.comments.length?'· '+d.comments.length:''})}catch{roots.forEach(root=>{const list=root.querySelector("[data-comments-list]");if(list)list.textContent="Не удалось загрузить обсуждение."})}}
+function renderNewsComment(c){
+  const date=esc(new Date(c.created_at).toLocaleString("ru-RU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}));
+  const tools=c.is_mine?'<div class="news-comment-tools"><button type="button" data-comment-edit>Изменить</button><button type="button" data-comment-delete>Удалить</button></div>':"";
+  return '<article class="news-comment" data-comment-id="'+esc(c.id)+'"><b>'+esc(c.author)+'</b><p>'+esc(c.message)+'</p><small>'+date+'</small>'+tools+'</article>';
+}
+async function loadNewsSocial(newsId){
+  const roots=Array.from(document.querySelectorAll("[data-news-social]")).filter(r=>r.dataset.newsSocial===String(newsId));
+  if(!roots.length)return;
+  try{
+    const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-social?news_id="+encodeURIComponent(newsId)+"&visitor_id="+encodeURIComponent(newsVisitorId()));
+    const d=await r.json();if(!r.ok)throw Error();
+    roots.forEach(root=>{
+      const like=root.querySelector("[data-news-like]");
+      if(like){like.classList.toggle("is-liked",!!d.liked);like.innerHTML=(d.liked?"♥ Нравится ":"♡ Нравится ")+'<span data-like-count>'+d.likes+'</span>'}
+      const list=root.querySelector("[data-comments-list]");
+      if(list){
+        const visible=d.comments||[], hidden=(d.my_comments||[]).filter(c=>c.status!=="published");
+        list.innerHTML=(visible.length?visible.map(renderNewsComment).join(""):'<p class="note">Пока нет комментариев. Будьте первым!</p>')+
+          hidden.map(c=>'<div class="news-comment-pending"><small>ВАШ КОММЕНТАРИЙ · НА ПРОВЕРКЕ</small>'+renderNewsComment({...c,is_mine:true})+'</div>').join("");
+      }
+      const count=root.querySelector("[data-comment-count]");if(count)count.textContent=(d.comments||[]).length?'· '+d.comments.length:'';
+    });
+  }catch{roots.forEach(root=>{const list=root.querySelector("[data-comments-list]");if(list)list.textContent="Не удалось загрузить обсуждение."})}
+}
 function newsCommentName(){return (localStorage.getItem("s1sch9_comment_name")||"Аноним").trim().slice(0,32)||"Аноним"}
 function openNewsComments(newsId){
   const name=newsCommentName();
@@ -765,6 +800,39 @@ document.addEventListener("input",e=>{
   }
 });
 document.addEventListener("click",async e=>{const like=e.target.closest("[data-news-like]");if(!like)return;const root=like.closest("[data-news-social]");if(!root)return;like.disabled=true;try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({news_id:root.dataset.newsSocial,visitor_id:newsVisitorId()})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось поставить лайк");document.querySelectorAll("[data-news-social]").forEach(r=>{if(r.dataset.newsSocial===root.dataset.newsSocial){const b=r.querySelector("[data-news-like]");if(b){b.classList.toggle("is-liked",d.liked);b.innerHTML=(d.liked?"♥ Нравится ":"♡ Нравится ")+'<span data-like-count>'+d.likes+'</span>'}}})}catch(err){alert(err.message)}finally{like.disabled=false}});
+document.addEventListener("click",async e=>{
+  const editButton=e.target.closest("[data-comment-edit]");
+  if(editButton){
+    const article=editButton.closest("[data-comment-id]");if(!article)return;
+    const oldAuthor=article.querySelector("b")?.textContent||"Аноним",oldMessage=article.querySelector("p")?.textContent||"";
+    article.innerHTML='<form class="news-comment-editor" data-own-comment-form><input name="author" maxlength="32" minlength="2" required aria-label="Имя автора" value="'+esc(oldAuthor)+'"><textarea name="message" maxlength="600" minlength="2" required aria-label="Текст комментария">'+esc(oldMessage)+'</textarea><div class="news-comment-editor-actions"><button type="button" data-comment-cancel>Отмена</button><button type="submit">Сохранить</button></div></form>';
+    return;
+  }
+  const cancel=e.target.closest("[data-comment-cancel]");
+  if(cancel){const root=cancel.closest("[data-news-social]");if(root)await loadNewsSocial(root.dataset.newsSocial);return}
+  const deleteButton=e.target.closest("[data-comment-delete]");
+  if(deleteButton){
+    const article=deleteButton.closest("[data-comment-id]"),root=deleteButton.closest("[data-news-social]");
+    if(!article||!root||!confirm("Удалить свой комментарий?"))return;
+    deleteButton.disabled=true;
+    try{
+      const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comments/"+encodeURIComponent(article.dataset.commentId)+"/delete",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:newsVisitorId()})});
+      const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось удалить комментарий");
+      await loadNewsSocial(root.dataset.newsSocial);
+    }catch(err){alert(err.message);deleteButton.disabled=false}
+  }
+});
+document.addEventListener("submit",async e=>{
+  const form=e.target.closest("[data-own-comment-form]");if(!form)return;e.preventDefault();
+  const article=form.closest("[data-comment-id]"),root=form.closest("[data-news-social]"),button=form.querySelector('button[type="submit"]');
+  if(!article||!root)return;
+  button.disabled=true;button.textContent="Сохраняем…";
+  try{
+    const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comments/"+encodeURIComponent(article.dataset.commentId)+"/edit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:newsVisitorId(),author:form.elements.author.value.trim(),message:form.elements.message.value.trim()})});
+    const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось изменить комментарий");
+    await loadNewsSocial(root.dataset.newsSocial);
+  }catch(err){alert(err.message);button.disabled=false;button.textContent="Сохранить"}
+});
 document.addEventListener("submit",async e=>{const form=e.target.closest("[data-comment-form]");if(!form)return;e.preventDefault();const root=form.closest("[data-news-social]"),status=form.querySelector("[data-comment-status]"),button=form.querySelector("button[type=submit]");const edit=document.querySelector("[data-name-edit]"),author=(edit&&edit.value.trim())||newsCommentName(),message=form.elements.message.value.trim();button.disabled=true;status.textContent="Отправляем…";try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({news_id:root.dataset.newsSocial,visitor_id:newsVisitorId(),author,message})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось отправить комментарий");status.textContent=d.message;form.reset();const nameEdit=document.querySelector("[data-name-edit]");if(nameEdit)nameEdit.value=newsCommentName();if(d.status==="published")await loadNewsSocial(root.dataset.newsSocial)}catch(err){status.textContent=err.message}finally{button.disabled=false}});
 
 $("#q").addEventListener("input", drawNews);
