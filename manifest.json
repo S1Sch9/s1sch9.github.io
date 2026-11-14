@@ -1,0 +1,25 @@
+{
+  "id": "./",
+  "name": "Совет Первых школы №9",
+  "short_name": "Совет Первых",
+  "description": "Официальный сайт Совета Первых школы №9 города Казани",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3d000d",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
