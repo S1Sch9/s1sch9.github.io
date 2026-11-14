@@ -196,6 +196,13 @@ async function ensureEvents(env) {
     created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
   )`).run();
 }
+async function ensureNewsSocial(env) {
+  await ensureTelegramNews(env);
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_likes (news_id TEXT NOT NULL, visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (news_id, visitor_hash))`).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_likes_news ON news_likes(news_id)").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_comments (id TEXT PRIMARY KEY, news_id TEXT NOT NULL, author TEXT NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'published', visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_comments_news ON news_comments(news_id, status, created_at)").run();
+}
 async function ensureTelegramNews(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_news (
     id TEXT PRIMARY KEY, date TEXT NOT NULL, text TEXT NOT NULL, media TEXT NOT NULL DEFAULT '[]'
@@ -785,6 +792,68 @@ self.addEventListener("notificationclick", event => {
         if (error?.message === "body-too-large") return json({ error: "Файл слишком большой." }, 413, headers);
         return json({ error: "Ошибка загрузки медиафайла." }, 500, headers);
       }
+    }
+
+    if (url.pathname === "/api/news-social" && request.method === "GET") {
+      try {
+        await ensureNewsSocial(env);
+        const newsId = cleanText(url.searchParams.get("news_id"), 180);
+        if (!newsId) return json({ error: "Не указана новость." }, 400, { ...headers, ...cors(origin) });
+        const likes = await env.DB.prepare("SELECT COUNT(*) AS count FROM news_likes WHERE news_id = ?").bind(newsId).first();
+        const comments = await env.DB.prepare("SELECT id, author, message, created_at FROM news_comments WHERE news_id = ? AND status = 'published' ORDER BY created_at ASC LIMIT 100").bind(newsId).all();
+        return json({ likes: Number(likes?.count || 0), comments: comments.results || [] }, 200, { ...headers, ...cors(origin) });
+      } catch { return json({ error: "Не удалось загрузить обсуждение." }, 500, { ...headers, ...cors(origin) }); }
+    }
+    if (url.pathname === "/api/news-like" && request.method === "POST") {
+      try {
+        await ensureNewsSocial(env);
+        const body = await readJsonBody(request), newsId = cleanText(body.news_id, 180), visitorId = cleanText(body.visitor_id, 100);
+        if (!newsId || !/^[a-zA-Z0-9_-]{12,100}$/.test(visitorId)) return json({ error: "Некорректный запрос." }, 400, { ...headers, ...cors(origin) });
+        const visitorHash = await sha256("s1sch9-news-like:" + visitorId);
+        const existing = await env.DB.prepare("SELECT 1 FROM news_likes WHERE news_id = ? AND visitor_hash = ?").bind(newsId, visitorHash).first();
+        if (existing) await env.DB.prepare("DELETE FROM news_likes WHERE news_id = ? AND visitor_hash = ?").bind(newsId, visitorHash).run();
+        else await env.DB.prepare("INSERT OR IGNORE INTO news_likes (news_id, visitor_hash, created_at) VALUES (?, ?, ?)").bind(newsId, visitorHash, new Date().toISOString()).run();
+        const count = await env.DB.prepare("SELECT COUNT(*) AS count FROM news_likes WHERE news_id = ?").bind(newsId).first();
+        return json({ liked: !existing, likes: Number(count?.count || 0) }, 200, { ...headers, ...cors(origin) });
+      } catch { return json({ error: "Не удалось изменить реакцию." }, 500, { ...headers, ...cors(origin) }); }
+    }
+    if (url.pathname === "/api/news-comments" && request.method === "POST") {
+      try {
+        await ensureNewsSocial(env);
+        const body = await readJsonBody(request), newsId = cleanText(body.news_id, 180), visitorId = cleanText(body.visitor_id, 100);
+        const author = cleanText(body.author, 32), message = cleanText(body.message, 600);
+        if (!newsId || !/^[a-zA-Z0-9_-]{12,100}$/.test(visitorId) || author.length < 2 || message.length < 2) return json({ error: "Проверьте имя и текст комментария." }, 400, { ...headers, ...cors(origin) });
+        const visitorHash = await sha256("s1sch9-news-comment:" + visitorId);
+        const recent = await env.DB.prepare("SELECT COUNT(*) AS count FROM news_comments WHERE visitor_hash = ? AND created_at > ?").bind(visitorHash, new Date(Date.now()-600000).toISOString()).first();
+        if (Number(recent?.count || 0) >= 3) return json({ error: "Слишком часто. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
+        const status = containsProfanity(author + " " + message) ? "moderation" : "published", id = crypto.randomUUID();
+        await env.DB.prepare("INSERT INTO news_comments (id, news_id, author, message, status, visitor_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(id, newsId, author, message, status, visitorHash, new Date().toISOString()).run();
+        return json({ success: true, status, message: status === "moderation" ? "Комментарий отправлен на проверку." : "Комментарий опубликован." }, 201, { ...headers, ...cors(origin) });
+      } catch { return json({ error: "Не удалось отправить комментарий." }, 500, { ...headers, ...cors(origin) }); }
+    }
+    if (url.pathname === "/api/admin/news-comments" && request.method === "GET") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensureNewsSocial(env);
+        const status = url.searchParams.get("status"), result = ["published","moderation"].includes(status)
+          ? await env.DB.prepare("SELECT id, news_id, author, message, status, created_at FROM news_comments WHERE status = ? ORDER BY created_at DESC LIMIT 300").bind(status).all()
+          : await env.DB.prepare("SELECT id, news_id, author, message, status, created_at FROM news_comments ORDER BY created_at DESC LIMIT 300").all();
+        return json({ items: result.results || [] }, 200, headers);
+      } catch { return json({ error: "Не удалось загрузить комментарии." }, 500, headers); }
+    }
+    const commentAdminMatch = url.pathname.match(/^\/api\/admin\/news-comments\/([^/]+)$/);
+    if (commentAdminMatch && (request.method === "PATCH" || request.method === "DELETE")) {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensureNewsSocial(env);
+        const id = decodeURIComponent(commentAdminMatch[1]);
+        if (request.method === "DELETE") { await env.DB.prepare("DELETE FROM news_comments WHERE id = ?").bind(id).run(); return json({ success: true }, 200, headers); }
+        const body = await readJsonBody(request), status = body.status === "published" ? "published" : body.status === "moderation" ? "moderation" : "";
+        if (!status) return json({ error: "Некорректный статус." }, 400, headers);
+        const result = await env.DB.prepare("UPDATE news_comments SET status = ? WHERE id = ?").bind(status, id).run();
+        if (!result.meta.changes) return json({ error: "Комментарий не найден." }, 404, headers);
+        return json({ success: true }, 200, headers);
+      } catch { return json({ error: "Не удалось изменить комментарий." }, 500, headers); }
     }
 
     if (url.pathname === "/api/admin/news" && request.method === "GET") {
