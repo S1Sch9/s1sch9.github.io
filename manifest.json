@@ -10,9 +10,9 @@
   "theme_color": "#3d000d",
   "icons": [
     {
-      "src": "logo-soveta-pervykh.png?v=20261114-final",
+      "src": "official-logo.svg?v=20261114-final",
       "sizes": "256x256",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]
