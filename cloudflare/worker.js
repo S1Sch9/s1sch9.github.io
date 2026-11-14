@@ -802,10 +802,19 @@ self.addEventListener("notificationclick", event => {
         if (!newsId) return json({ error: "Не указана новость." }, 400, { ...headers, ...cors(origin) });
         const likes = await env.DB.prepare("SELECT COUNT(*) AS count FROM news_likes WHERE news_id = ?").bind(newsId).first();
         const visitorId = cleanText(url.searchParams.get("visitor_id"), 100);
-        const visitorHash = /^[a-zA-Z0-9_-]{12,100}$/.test(visitorId) ? await sha256("s1sch9-news-like:" + visitorId) : "";
-        const liked = visitorHash ? !!(await env.DB.prepare("SELECT 1 FROM news_likes WHERE news_id = ? AND visitor_hash = ?").bind(newsId, visitorHash).first()) : false;
-        const comments = await env.DB.prepare("SELECT id, author, message, created_at FROM news_comments WHERE news_id = ? AND status = 'published' ORDER BY created_at ASC LIMIT 100").bind(newsId).all();
-        return json({ likes: Number(likes?.count || 0), liked, comments: comments.results || [] }, 200, { ...headers, ...cors(origin) });
+        const validVisitor = /^[a-zA-Z0-9_-]{12,100}$/.test(visitorId);
+        const likeHash = validVisitor ? await sha256("s1sch9-news-like:" + visitorId) : "";
+        const commentHash = validVisitor ? await sha256("s1sch9-news-comment:" + visitorId) : "";
+        const liked = likeHash ? !!(await env.DB.prepare("SELECT 1 FROM news_likes WHERE news_id = ? AND visitor_hash = ?").bind(newsId, likeHash).first()) : false;
+        const comments = await env.DB.prepare("SELECT id, author, message, created_at, visitor_hash FROM news_comments WHERE news_id = ? AND status = 'published' ORDER BY created_at ASC LIMIT 100").bind(newsId).all();
+        const myComments = commentHash
+          ? await env.DB.prepare("SELECT id, author, message, status, created_at, profanity_flag FROM news_comments WHERE news_id = ? AND visitor_hash = ? ORDER BY created_at ASC LIMIT 100").bind(newsId, commentHash).all()
+          : { results: [] };
+        return json({
+          likes: Number(likes?.count || 0), liked,
+          comments: (comments.results || []).map(({ visitor_hash, ...comment }) => ({ ...comment, is_mine: !!commentHash && visitor_hash === commentHash })),
+          my_comments: myComments.results || []
+        }, 200, { ...headers, ...cors(origin) });
       } catch { return json({ error: "Не удалось загрузить обсуждение." }, 500, { ...headers, ...cors(origin) }); }
     }
     if (url.pathname === "/api/news-like" && request.method === "POST") {
@@ -835,6 +844,31 @@ self.addEventListener("notificationclick", event => {
         return json({ success: true, status, flagged: !!profanityFlag, message: profanityFlag ? "Комментарий скрыт до проверки: обнаружены слова из стоп-листа." : "Комментарий опубликован." }, 201, { ...headers, ...cors(origin) });
       } catch { return json({ error: "Не удалось отправить комментарий." }, 500, { ...headers, ...cors(origin) }); }
     }
+    const ownerCommentMatch = url.pathname.match(/^\\/api\\/news-comments\\/([^/]+)\\/(edit|delete)$/);
+    if (ownerCommentMatch && request.method === "POST") {
+      try {
+        await ensureNewsSocial(env);
+        const body = await readJsonBody(request);
+        const id = decodeURIComponent(ownerCommentMatch[1]);
+        const visitorId = cleanText(body.visitor_id, 100);
+        if (!/^[a-zA-Z0-9_-]{12,100}$/.test(visitorId)) return json({ error: "Не удалось подтвердить автора комментария." }, 403, { ...headers, ...cors(origin) });
+        const visitorHash = await sha256("s1sch9-news-comment:" + visitorId);
+        const current = await env.DB.prepare("SELECT author, message, status FROM news_comments WHERE id = ? AND visitor_hash = ?").bind(id, visitorHash).first();
+        if (!current) return json({ error: "Комментарий не найден или он принадлежит другому автору." }, 404, { ...headers, ...cors(origin) });
+        if (ownerCommentMatch[2] === "delete") {
+          await env.DB.prepare("DELETE FROM news_comments WHERE id = ? AND visitor_hash = ?").bind(id, visitorHash).run();
+          return json({ success: true, message: "Комментарий удалён." }, 200, { ...headers, ...cors(origin) });
+        }
+        const author = body.author === undefined ? current.author : cleanText(body.author, 32);
+        const message = body.message === undefined ? current.message : cleanText(body.message, 600);
+        if (author.length < 2 || message.length < 2) return json({ error: "Имя и текст должны содержать не менее 2 символов." }, 400, { ...headers, ...cors(origin) });
+        const profanityFlag = containsProfanity(author + " " + message) ? 1 : 0;
+        const status = profanityFlag || current.status === "moderation" ? "moderation" : "published";
+        await env.DB.prepare("UPDATE news_comments SET author = ?, message = ?, status = ?, profanity_flag = ? WHERE id = ? AND visitor_hash = ?").bind(author, message, status, profanityFlag, id, visitorHash).run();
+        return json({ success: true, status, flagged: !!profanityFlag, message: profanityFlag ? "Изменения сохранены, комментарий скрыт до проверки." : status === "moderation" ? "Изменения сохранены. Комментарий останется скрытым до проверки администратором." : "Комментарий обновлён." }, 200, { ...headers, ...cors(origin) });
+      } catch { return json({ error: "Не удалось изменить комментарий." }, 500, { ...headers, ...cors(origin) }); }
+    }
+
     if (url.pathname === "/api/admin/news-comments" && request.method === "GET") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
