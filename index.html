@@ -390,7 +390,7 @@ addEventListener("hashchange", route);
   nav.prepend(indicator);
 
   let pointerId = null, startX = 0, startY = 0, dragging = false;
-  let candidate = null, suppressClick = false;
+  let candidate = null, suppressClickUntil = 0;
 
   const moveIndicator = (el, immediate = false) => {
     if(!el){indicator.style.opacity="0";return;}
@@ -447,6 +447,7 @@ addEventListener("hashchange", route);
     if(pointerId !== null || (e.pointerType === "mouse" && e.button !== 0)) return;
     const item = e.target.closest(selector);
     if(!item || !nav.contains(item)) return;
+    suppressClickUntil = 0;
     pointerId = e.pointerId;
     startX = e.clientX;
     startY = e.clientY;
@@ -476,8 +477,7 @@ addEventListener("hashchange", route);
     if(pointerId === null || (e && e.pointerId !== pointerId)) return;
     if(!dragging){pointerId=null;candidate=null;return;}
     const selected = candidate;
-    suppressClick = true;
-    window.setTimeout(() => { suppressClick = false; }, 0);
+    suppressClickUntil = Date.now() + 500;
     if(e) e.preventDefault();
     try{if(nav.hasPointerCapture(pointerId)) nav.releasePointerCapture(pointerId);}catch(_){}
     if(selected){
@@ -497,10 +497,10 @@ addEventListener("hashchange", route);
     if(pointerId !== null && e.pointerId === pointerId) reset();
   });
   nav.addEventListener("click", e => {
-    if(suppressClick){
+    if(suppressClickUntil && Date.now() < suppressClickUntil){
       e.preventDefault();
       e.stopPropagation();
-      suppressClick = false;
+      suppressClickUntil = 0;
     }
   }, true);
 })();
