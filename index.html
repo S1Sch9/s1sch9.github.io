@@ -173,16 +173,17 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .home-shortcut-wide{grid-column:1/-1}
 @media(max-width:350px){.home-brand{grid-template-columns:65px minmax(0,1fr);gap:11px}.home-brand .logo{width:65px;height:65px;border-radius:18px}.home-brand-title h1,.home-brand-title h2{font-size:18px}.home-brand-title span{font-size:7px;letter-spacing:.45px}.home-hero{padding:19px 15px 15px}}
 nav{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:6;max-width:616px;margin:auto;display:flex;gap:2px;overflow:visible;padding:6px;border:1px solid var(--line);border-radius:28px;background:#fff;box-shadow:0 8px 24px rgba(61,0,13,.10);isolation:isolate;touch-action:pan-y;overscroll-behavior:contain;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-nav a,nav button{position:relative;z-index:1;flex:1 1 0;min-width:0;text-align:center;padding:8px 2px 7px;font:650 9.5px/1.25 Onest,system-ui,sans-serif;color:var(--mut);text-decoration:none;border:0;background:transparent;border-radius:20px;cursor:pointer;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none;transition:color .2s ease,background-color .2s ease}
-nav a i,nav button i{display:block;font-style:normal;font-size:19px;line-height:1.25;transition:transform .22s cubic-bezier(.2,.75,.25,1)}
+nav a,nav button{position:relative;z-index:1;flex:1 1 0;min-width:0;text-align:center;padding:8px 2px 7px;font:650 9.5px/1.25 Onest,system-ui,sans-serif;color:var(--mut);text-decoration:none;border:0;background:transparent;border-radius:20px;cursor:pointer;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none;transition:color .24s ease,background-color .24s ease,transform .24s cubic-bezier(.2,.8,.2,1)}
+nav a i,nav button i{display:block;font-style:normal;font-size:19px;line-height:1.25;transition:transform .32s cubic-bezier(.2,.8,.25,1)}
 nav a.on,nav button.on{background:transparent;color:#fff}
 nav a.on i,nav button.on i{transform:scale(1.08)}
-nav .nav-indicator{position:absolute;z-index:0;left:6px;top:6px;bottom:6px;width:0;border-radius:20px;background:linear-gradient(145deg,#b50931 0%,var(--red) 58%,#85001d 100%);box-shadow:0 5px 13px rgba(161,0,31,.2),inset 0 1px 0 rgba(255,255,255,.16);pointer-events:none;transform:translate3d(0,0,0);opacity:0;will-change:transform,width;transition:transform .38s cubic-bezier(.22,.78,.22,1),width .38s cubic-bezier(.22,.78,.22,1)}
+nav .nav-indicator{position:absolute;z-index:0;left:6px;top:6px;bottom:6px;width:0;border-radius:20px;background:linear-gradient(145deg,#b50931 0%,var(--red) 58%,#85001d 100%);box-shadow:0 5px 13px rgba(161,0,31,.2),inset 0 1px 0 rgba(255,255,255,.16);pointer-events:none;transform:translate3d(0,0,0);opacity:0;will-change:transform,width;transition:transform .52s cubic-bezier(.2,1.18,.32,1),width .52s cubic-bezier(.2,1.18,.32,1),opacity .2s ease}
 nav .nav-indicator:after{content:"";position:absolute;inset:1px;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.13),transparent 58%);pointer-events:none}
-nav.nav-dragging .nav-indicator{transition:none;box-shadow:0 7px 18px rgba(161,0,31,.24),inset 0 1px 0 rgba(255,255,255,.18)}
-nav.nav-dragging a,nav.nav-dragging button{transition:none}
+nav.nav-dragging .nav-indicator{transition:transform .15s cubic-bezier(.2,.75,.25,1),width .15s cubic-bezier(.2,.75,.25,1);box-shadow:0 7px 18px rgba(161,0,31,.24),inset 0 1px 0 rgba(255,255,255,.18)}
+nav.nav-dragging a,nav.nav-dragging button{transition:color .16s ease,transform .16s ease}
 nav .scrub-target{color:#fff}
 nav .scrub-target i{transform:scale(1.1)}
+nav a:active,nav button:active{transform:scale(.96)}
 @media(hover:hover) and (pointer:fine){nav a:hover,nav button:hover{color:var(--red)}nav a.on:hover,nav button.on:hover{color:#fff}}
 @media(prefers-reduced-motion:reduce){nav,nav a,nav button,nav a i,nav button i,nav .nav-indicator{transition:none!important;animation:none!important}}
 .more-panel{padding:17px 22px calc(24px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#fffafb 0%,#fff 42%);border-radius:28px 28px 0 0}
