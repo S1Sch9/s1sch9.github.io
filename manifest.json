@@ -10,16 +10,16 @@
   "theme_color": "#3d000d",
   "icons": [
     {
-      "src": "logo.jpg?v=20261114-brand",
-      "sizes": "256x256",
-      "type": "image/jpeg",
+      "src": "apple-touch-icon.png",
+      "sizes": "any",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "logo.jpg?v=20261114-brand",
-      "sizes": "256x256",
-      "type": "image/jpeg",
-      "purpose": "maskable"
+      "src": "favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
