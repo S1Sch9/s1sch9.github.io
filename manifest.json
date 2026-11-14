@@ -10,9 +10,9 @@
   "theme_color": "#3d000d",
   "icons": [
     {
-      "src": "logo.jpg?v=20261114-council-icon",
+      "src": "logo-soveta-pervykh.png?v=20261114-final",
       "sizes": "256x256",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     }
   ]
