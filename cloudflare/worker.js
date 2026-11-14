@@ -80,17 +80,19 @@ function containsProfanity(value) {
   const text = String(value || "").normalize("NFKC").toLocaleLowerCase("ru").replace(/ё/g, "е");
   // Проверяем отдельные корни, допуская точки, пробелы и другие разделители между буквами.
   const patterns = [
-    /х[\W_]*у[\W_]*[йяеюию]/iu,
-    /п[\W_]*и[\W_]*з[\W_]*д/iu,
-    /е[\W_]*б[\W_]*(?:а|о|у|л|н|с|т|и|я)/iu,
-    /б[\W_]*л[\W_]*я[\W_]*д/iu,
-    /м[\W_]*у[\W_]*д[\W_]*а[\W_]*к/iu,
-    /г[\W_]*а[\W_]*н[\W_]*д[\W_]*о[\W_]*н/iu,
-    /з[\W_]*а[\W_]*л[\W_]*у[\W_]*п/iu,
-    /д[\W_]*о[\W_]*л[\W_]*б[\W_]*о/iu,
-    /f[\W_]*u[\W_]*c[\W_]*k/iu,
-    /s[\W_]*h[\W_]*i[\W_]*t/iu,
-    /b[\W_]*i[\W_]*t[\W_]*c[\W_]*h/iu
+    /х[\p{P}\p{S}\s\p{Cf}]*у[\p{P}\p{S}\s\p{Cf}]*[йяеюию]/iu,
+    /п[\p{P}\p{S}\s\p{Cf}]*и[\p{P}\p{S}\s\p{Cf}]*з[\p{P}\p{S}\s\p{Cf}]*д/iu,
+    /е[\p{P}\p{S}\s\p{Cf}]*б[\p{P}\p{S}\s\p{Cf}]*(?:а|о|у|л|н|с|т|и|я)/iu,
+    /б[\p{P}\p{S}\s\p{Cf}]*л[\p{P}\p{S}\s\p{Cf}]*я[\p{P}\p{S}\s\p{Cf}]*д/iu,
+    /б[\p{P}\p{S}\s\p{Cf}]*л[\p{P}\p{S}\s\p{Cf}]*я/iu,
+    /с[\p{P}\p{S}\s\p{Cf}]*у[\p{P}\p{S}\s\p{Cf}]*к[\p{P}\p{S}\s\p{Cf}]*а/iu,
+    /м[\p{P}\p{S}\s\p{Cf}]*у[\p{P}\p{S}\s\p{Cf}]*д[\p{P}\p{S}\s\p{Cf}]*а[\p{P}\p{S}\s\p{Cf}]*к/iu,
+    /г[\p{P}\p{S}\s\p{Cf}]*а[\p{P}\p{S}\s\p{Cf}]*н[\p{P}\p{S}\s\p{Cf}]*д[\p{P}\p{S}\s\p{Cf}]*о[\p{P}\p{S}\s\p{Cf}]*н/iu,
+    /з[\p{P}\p{S}\s\p{Cf}]*а[\p{P}\p{S}\s\p{Cf}]*л[\p{P}\p{S}\s\p{Cf}]*у[\p{P}\p{S}\s\p{Cf}]*п/iu,
+    /д[\p{P}\p{S}\s\p{Cf}]*о[\p{P}\p{S}\s\p{Cf}]*л[\p{P}\p{S}\s\p{Cf}]*б[\p{P}\p{S}\s\p{Cf}]*о/iu,
+    /f[\p{P}\p{S}\s\p{Cf}]*u[\p{P}\p{S}\s\p{Cf}]*c[\p{P}\p{S}\s\p{Cf}]*k/iu,
+    /s[\p{P}\p{S}\s\p{Cf}]*h[\p{P}\p{S}\s\p{Cf}]*i[\p{P}\p{S}\s\p{Cf}]*t/iu,
+    /b[\p{P}\p{S}\s\p{Cf}]*i[\p{P}\p{S}\s\p{Cf}]*t[\p{P}\p{S}\s\p{Cf}]*c[\p{P}\p{S}\s\p{Cf}]*h/iu
   ];
   return patterns.some(pattern => pattern.test(text));
 }
