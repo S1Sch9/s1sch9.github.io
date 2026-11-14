@@ -392,11 +392,13 @@ function drawNews(){
     const cover = first && first.type !== "video"
       ? '<img src="' + esc(first.url || "") + '" alt="" loading="lazy" style="display:block;width:100%;max-height:190px;object-fit:cover;border-radius:14px;margin:10px 0">'
       : (first ? '<small style="display:block;margin:8px 0">▶ Видеоновость</small>' : '');
-    return cover + (n.x ? '<p class="news-desc" style="margin-top:7px;color:var(--mut);font-size:14px;line-height:1.45">' + esc(n.x) + '</p>' : '') + ((n.media || []).length > 1 ? '<small style="display:block;margin-top:6px">📷 Фото и видео в публикации</small>' : '');
+    const fullText = String(n.x || "").trim();
+    const teaser = fullText.length > 150 ? fullText.slice(0, 147).replace(/\\s+\\S*$/, "") + "…" : fullText;
+    return cover + (teaser ? '<p class="news-desc" style="margin-top:7px;color:var(--mut);font-size:14px;line-height:1.5">' + esc(teaser) + '</p>' : '') + ((n.media || []).length > 1 ? '<small style="display:block;margin-top:6px">📷 Фото и видео в публикации</small>' : '');
   };
-  $("#newsList").innerHTML = list.length ? list.map(n => '<button class="row rv" data-k="' + NEWS.indexOf(n) + '"><small>' + esc(n.d) + '</small><b>' + esc(n.t) + '</b>' + preview(n) + '<em style="display:block;margin-top:9px">Читать полностью →</em></button>').join("") : '<p class="note">Ничего не найдено.</p>';
+  $("#newsList").innerHTML = list.length ? list.map(n => '<button class="row rv" data-k="' + NEWS.indexOf(n) + '"><small>' + esc(n.d) + '</small><b>' + esc(n.t) + '</b>' + preview(n) + '<em style="display:block;margin-top:9px">Открыть новость →</em></button>').join("") : '<p class="note">Ничего не найдено.</p>';
   const L = NEWS[0];
-  $("#latest").innerHTML = L ? '<button class="row rv" data-k="0"><small>Последняя новость</small><b>' + esc(L.t) + '</b>' + preview(L) + '<em style="display:block;margin-top:9px">Читать полностью →</em></button>' : "";
+  $("#latest").innerHTML = L ? '<button class="row rv" data-k="0"><small>Последняя новость</small><b>' + esc(L.t) + '</b>' + preview(L) + '<em style="display:block;margin-top:9px">Открыть новость →</em></button>' : "";
   document.querySelectorAll("#newsList .row,#latest .row").forEach((b, i) => { b.style.setProperty("--i", Math.min(i, 9)); b.onclick = () => {
     const n = NEWS[b.dataset.k]; openSh('<span class="chip">' + esc(n.d) + '</span><h3 style="margin-top:12px">' + esc(n.t) + '</h3>' + (n.x ? '<p style="white-space:pre-line;line-height:1.65">' + esc(n.x) + '</p>' : '') + mediaMarkup(n)); }; });
 }
