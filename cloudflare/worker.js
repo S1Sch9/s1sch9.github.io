@@ -856,13 +856,14 @@ self.addEventListener("notificationclick", event => {
         const id = decodeURIComponent(commentAdminMatch[1]);
         if (request.method === "DELETE") { await env.DB.prepare("DELETE FROM news_comments WHERE id = ?").bind(id).run(); return json({ success: true }, 200, headers); }
         const body = await readJsonBody(request);
-        const current = await env.DB.prepare("SELECT author, message FROM news_comments WHERE id = ?").bind(id).first();
+        const current = await env.DB.prepare("SELECT author, message, status FROM news_comments WHERE id = ?").bind(id).first();
         if (!current) return json({ error: "Комментарий не найден." }, 404, headers);
         const author = body.author === undefined ? current.author : cleanText(body.author, 32);
         const message = body.message === undefined ? current.message : cleanText(body.message, 600);
         if (author.length < 2 || message.length < 2) return json({ error: "Имя и текст должны содержать не менее 2 символов." }, 400, headers);
-        const status = body.status === "moderation" ? "moderation" : "published";
         const profanityFlag = containsProfanity(author + " " + message) ? 1 : 0;
+        if (body.status === "published" && profanityFlag) return json({ error: "Нельзя опубликовать комментарий: в имени или тексте обнаружен мат. Сначала исправьте его." }, 400, headers);
+        const status = body.status === "moderation" || profanityFlag || current.status === "moderation" ? "moderation" : "published";
         const result = await env.DB.prepare("UPDATE news_comments SET author = ?, message = ?, status = ?, profanity_flag = ? WHERE id = ?").bind(author, message, status, profanityFlag, id).run();
         if (!result.meta.changes) return json({ error: "Комментарий не найден." }, 404, headers);
         return json({ success: true }, 200, headers);
