@@ -140,11 +140,53 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 
 .link{display:flex;align-items:center;gap:14px;padding:18px;margin-bottom:12px;font-weight:700}
 .link i{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-style:normal;font-size:22px;color:#fff;flex:none}.link i svg{width:26px;height:26px;display:block}.link i img{width:100%;height:100%;display:block;object-fit:contain}.link.school i{background:#fff;padding:3px}
+/* Обновлённая главная — фирменная обложка и быстрые разделы */
+.home-hero{position:relative;isolation:isolate;overflow:hidden;margin:7px 0 22px;padding:22px 20px 18px;border-radius:29px;color:#fff;background:linear-gradient(145deg,#b4002c 0%,#79001b 58%,#3d000d 100%);box-shadow:0 14px 32px rgba(83,0,22,.16)}
+.home-hero:before,.home-hero:after{content:"";position:absolute;z-index:-1;border-radius:50%;pointer-events:none}
+.home-hero:before{width:230px;height:230px;right:-110px;top:-125px;background:rgba(255,255,255,.15);filter:blur(2px)}
+.home-hero:after{width:170px;height:170px;left:-100px;bottom:-120px;background:rgba(240,200,105,.23);filter:blur(8px)}
+.home-eyebrow{display:flex;align-items:center;gap:8px;color:#f5d98e;font-size:9px;font-weight:900;letter-spacing:1.35px;margin-bottom:18px}
+.home-eyebrow span{width:7px;height:7px;border-radius:50%;background:#f0c869;box-shadow:0 0 0 4px rgba(240,200,105,.15)}
+.home-brand{display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;gap:15px}
+.home-brand .logo{width:82px;height:82px;margin:0;border-radius:22px;background:#fff;box-shadow:0 9px 22px rgba(25,0,7,.25)}
+.home-brand-title{min-width:0}
+.home-brand-title h1,.home-brand-title h2{margin:0;color:#fff;font-size:clamp(19px,5.6vw,27px);line-height:1.04;letter-spacing:-.055em;font-weight:900;white-space:nowrap}
+.home-brand-title h2{margin-top:4px;color:#f4d78d}
+.home-brand-title span{display:block;margin-top:8px;color:rgba(255,255,255,.72);font-size:8px;font-weight:800;letter-spacing:.8px;white-space:nowrap}
+.home-intro{margin:18px 0 17px;color:rgba(255,255,255,.84);font-size:13px;line-height:1.5}
+.home-appeal{display:flex;align-items:center;gap:11px;padding:12px 13px;border:1px solid rgba(255,255,255,.2);border-radius:18px;background:rgba(255,255,255,.12);color:#fff;text-decoration:none;backdrop-filter:blur(8px)}
+.home-appeal-icon{width:39px;height:39px;flex:none;display:grid;place-items:center;border-radius:13px;background:#f0c869;color:#3d000d;font-size:20px}
+.home-appeal span:nth-child(2){display:flex;flex:1;min-width:0;flex-direction:column;gap:2px}
+.home-appeal b{font-size:12px;line-height:1.3}.home-appeal small{font-size:10px;color:rgba(255,255,255,.76);line-height:1.3}.home-appeal strong{font-size:22px;color:#f0c869}
+.home-section-title{display:flex;flex-direction:column;gap:3px;margin:0 2px 12px}
+.home-section-title span{color:var(--red);font-size:9px;font-weight:900;letter-spacing:1.3px}
+.home-section-title b{font-size:21px;letter-spacing:-.5px}
+.home-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.home-shortcut{display:flex;align-items:center;gap:10px;min-width:0;min-height:70px;padding:12px;border:1px solid #eee2e5;border-radius:19px;background:linear-gradient(145deg,#fff 0%,#fffafb 100%);color:var(--ink);text-decoration:none;box-shadow:0 4px 13px rgba(61,0,13,.035);transition:transform .16s,border-color .16s}
+.home-shortcut:active{transform:scale(.975);border-color:#d8aab5}
+.home-shortcut i{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:13px;background:#f8e8ec;font-style:normal;font-size:19px}
+.home-shortcut span{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.home-shortcut b{font-size:12px;line-height:1.2}.home-shortcut small{color:var(--mut);font-size:10px;line-height:1.2}
+.home-shortcut>strong{color:#b7a3a8;font-size:13px}
+.home-shortcut-wide{grid-column:1/-1}
+@media(max-width:350px){.home-brand{grid-template-columns:65px minmax(0,1fr);gap:11px}.home-brand .logo{width:65px;height:65px;border-radius:18px}.home-brand-title h1,.home-brand-title h2{font-size:18px}.home-brand-title span{font-size:7px;letter-spacing:.45px}.home-hero{padding:19px 15px 15px}}
 nav{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:6;max-width:616px;margin:auto;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;padding:6px;border-radius:26px;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 10px 40px rgba(61,0,13,.2)}
 nav::-webkit-scrollbar{display:none}
-nav a,nav button{flex:1 1 0;min-width:0;text-align:center;padding:7px 2px 6px;font:600 10.5px/1.25 Onest,system-ui,sans-serif;color:var(--mut);text-decoration:none;border:0;background:transparent;border-radius:20px;cursor:pointer;transition:background .25s,color .25s}
+nav a,nav button{flex:1 1 0;min-width:0;text-align:center;padding:7px 1px 6px;font:600 9.5px/1.25 Onest,system-ui,sans-serif;color:var(--mut);text-decoration:none;border:0;background:transparent;border-radius:20px;cursor:pointer;transition:background .25s,color .25s}
 nav a i,nav button i{display:block;font-style:normal;font-size:19px;line-height:1.25;transition:transform .25s}
 nav a.on,nav button.on{background:var(--red);color:#fff}nav a.on i,nav button.on i{transform:scale(1.14)}
+.more-panel{padding:17px 22px calc(24px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#fffafb 0%,#fff 42%);border-radius:28px 28px 0 0}
+.more-menu-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:3px 0 16px;border-bottom:1px solid #f0e4e7}
+.more-menu-heading span{display:block;color:var(--red);font-size:9px;font-weight:900;letter-spacing:1.15px}
+.more-menu-heading h3{margin:5px 0 1px;font-size:27px;line-height:1.05;letter-spacing:-.8px;color:var(--ink)}
+.more-menu-heading p{margin:5px 0 0;color:var(--mut);font-size:12px}
+.more-close{width:35px;height:35px;flex:none;border:0;border-radius:12px;background:#f7e9ec;color:var(--red);font-size:25px;line-height:1;cursor:pointer}
+.more-menu-list{display:flex;flex-direction:column;margin-top:8px}
+.more-menu-item{min-height:56px;padding:8px 5px;gap:13px;border-bottom:1px solid #f3eaec;font-size:15px}
+.more-menu-item i{width:36px;height:36px;border-radius:12px;background:linear-gradient(145deg,#faedf0,#f4dfe4);font-size:18px}
+.more-menu-item span{flex:1}
+.more-menu-item:after{content:"›";color:#b9a5aa;font-size:23px;font-weight:400;margin-right:5px}
+.more-menu-item:active{background:#fff5f7;padding-left:10px}
 .more-menu-intro{margin:0 0 14px;color:var(--mut);font-size:13px}
 .more-menu-list{display:flex;flex-direction:column;margin-top:16px}
 .more-menu-item{display:flex;align-items:center;gap:14px;min-height:58px;padding:10px 5px;border:0;border-bottom:1px solid #f0e7e9;border-radius:0;background:transparent;color:var(--ink);text-decoration:none;font-weight:750;font-size:16px;transition:background .18s,padding .18s}
@@ -178,17 +220,26 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 <div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div></div>
 <main>
 <section id="home">
-  <div class="hero rv"><div class="hero-brand"><div class="logo" id="logo"><img src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"></div><div class="hero-brand-title"><h1>СОВЕТ ПЕРВЫХ</h1><h1>ШКОЛЫ ДЕВЯТЬ</h1></div></div><p class="hero-subtitle">КАЗАНЬ • 2026</p></div>
-  <div class="tiles">
-    <a class="tile red rv" href="#appeal"><span>✍️</span>Написать обращение</a>
-    <a class="tile rv" href="#team"><span>👥</span>Состав</a>
-    <a class="tile rv" href="#news"><span>📰</span>Новости</a>
-    <a class="tile rv" href="#events"><span>📅</span>Мероприятия</a>
-    <a class="tile rv" href="#games"><span>🎮</span>Мини-игры</a>
-    <a class="tile rv" href="#links"><span>🔗</span>Наши ресурсы</a>
+  <div class="home-hero rv">
+    <div class="home-hero-glow"></div>
+    <div class="home-eyebrow"><span></span> НАША ШКОЛА · НАШ ГОЛОС</div>
+    <div class="home-brand">
+      <div class="logo" id="logo"><img src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"></div>
+      <div class="home-brand-title"><h1>СОВЕТ ПЕРВЫХ</h1><h2>ШКОЛЫ ДЕВЯТЬ</h2><span>НОВО-САВИНОВСКИЙ РАЙОН · КАЗАНЬ</span></div>
+    </div>
+    <p class="home-intro">Идеи, инициативы и события, которыми живёт наша школа.</p>
+    <a class="home-appeal" href="#appeal"><span class="home-appeal-icon">✍️</span><span><b>Есть идея или предложение?</b><small>Напиши Совету Первых нашей школы</small></span><strong>→</strong></a>
+  </div>
+  <div class="home-section-title"><span>ОТКРЫВАЙ И УЧАСТВУЙ</span><b>Разделы сайта</b></div>
+  <div class="home-shortcuts">
+    <a class="home-shortcut" href="#team"><i>👥</i><span><b>Состав</b><small>Наша команда</small></span><strong>↗</strong></a>
+    <a class="home-shortcut" href="#news"><i>📰</i><span><b>Новости</b><small>Что нового</small></span><strong>↗</strong></a>
+    <a class="home-shortcut" href="#events"><i>📅</i><span><b>Мероприятия</b><small>Календарь событий</small></span><strong>↗</strong></a>
+    <a class="home-shortcut" href="#games"><i>🎮</i><span><b>Мини-игры</b><small>Немного веселья</small></span><strong>↗</strong></a>
+    <a class="home-shortcut home-shortcut-wide" href="#links"><i>🔗</i><span><b>Наши ресурсы</b><small>Будь на связи с Советом</small></span><strong>↗</strong></a>
   </div>
   <div id="latest"></div>
-  <button class="btn ghost full rv" id="share" style="margin-top:6px">Поделиться сайтом</button>
+  <button class="btn ghost full rv" id="share" style="margin-top:14px">↗ Поделиться сайтом</button>
 </section>
 <section id="team"><h1 class="rv">Состав</h1><div class="grid" id="teamList"></div></section>
 <section id="news"><h1 class="rv">Новости</h1>
@@ -256,6 +307,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 <nav aria-label="Основная навигация">
   <a href="#home"><i>🏠</i>Главная</a>
   <a href="#news"><i>📰</i>Новости</a>
+  <a href="#appeal"><i>✍️</i>Обращение</a>
   <button type="button" data-more="true" onclick="openMoreMenu()" aria-label="Открыть все разделы"><i>☰</i>Ещё</button>
 </nav>
 <div class="sh" id="sh"><div class="bg" onclick="closeSh()"></div><div class="pn" id="pn"></div></div>
@@ -305,7 +357,7 @@ function route(){
   document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === page));
   document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.hash === "#" + page));
   const moreButton = document.querySelector('nav [data-more="true"]');
-  if (moreButton) moreButton.classList.toggle("on", ["team","events","appeal","games","links"].includes(page));
+  if (moreButton) moreButton.classList.toggle("on", ["team","events","games","links"].includes(page));
   document.querySelectorAll("#" + page + " .rv").forEach((e, i) => e.style.setProperty("--i", Math.min(i, 9)));
   if (target && !target.matches("section")) {
     if (target.id === "appeal-rules") target.open = true;
@@ -315,13 +367,13 @@ function route(){
   }
 }
 addEventListener("hashchange", route);
-function openSh(h){ $("#pn").innerHTML = '<div class="grip"></div>' + h; $("#sh").classList.add("on"); document.body.style.overflow = "hidden"; }
+function openSh(h){ $("#pn").classList.remove("more-panel"); $("#pn").innerHTML = '<div class="grip"></div>' + h; $("#sh").classList.add("on"); document.body.style.overflow = "hidden"; }
 function closeSh(){ $("#sh").classList.remove("on"); document.body.style.overflow = ""; }
 function openMoreMenu(){
   openSh(`
-    <div style="margin-bottom:4px">
-      <h3 style="margin:0;font-size:23px;letter-spacing:-.03em">Все разделы</h3>
-      <p class="note" style="margin:4px 0 0;font-size:13px">Выбери, куда перейти</p>
+    <div class="more-menu-heading">
+      <div><span>СОВЕТ ПЕРВЫХ · ШКОЛА №9</span><h3>Ещё</h3><p>Всё самое важное — рядом</p></div>
+      <button class="more-close" type="button" onclick="closeSh()" aria-label="Закрыть">×</button>
     </div>
     <div class="more-menu-list">
       <a class="more-menu-item" href="#home" onclick="closeSh()"><i>🏠</i><span>Главная</span></a>
@@ -333,6 +385,7 @@ function openMoreMenu(){
       <a class="more-menu-item" href="#links" onclick="closeSh()"><i>🔗</i><span>Наши ресурсы</span></a>
     </div>
   `);
+  $("#pn").classList.add("more-panel");
 }
 const APPEAL_RULES_VERSION = "2026-11-12-v2";
 const APPEAL_RULES_KEY = "s1sch9-appeal-rules-" + APPEAL_RULES_VERSION;
