@@ -830,9 +830,9 @@ self.addEventListener("notificationclick", event => {
         const visitorHash = await sha256("s1sch9-news-comment:" + visitorId);
         const recent = await env.DB.prepare("SELECT COUNT(*) AS count FROM news_comments WHERE visitor_hash = ? AND created_at > ?").bind(visitorHash, new Date(Date.now()-600000).toISOString()).first();
         if (Number(recent?.count || 0) >= 3) return json({ error: "Слишком часто. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
-        const profanityFlag = containsProfanity(author + " " + message) ? 1 : 0, status = "published", id = crypto.randomUUID();
+        const profanityFlag = containsProfanity(author + " " + message) ? 1 : 0, status = profanityFlag ? "moderation" : "published", id = crypto.randomUUID();
         await env.DB.prepare("INSERT INTO news_comments (id, news_id, author, message, status, visitor_hash, created_at, profanity_flag) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(id, newsId, author, message, status, visitorHash, new Date().toISOString(), profanityFlag).run();
-        return json({ success: true, status, flagged: !!profanityFlag, message: "Комментарий опубликован." }, 201, { ...headers, ...cors(origin) });
+        return json({ success: true, status, flagged: !!profanityFlag, message: profanityFlag ? "Комментарий скрыт до проверки: обнаружены слова из стоп-листа." : "Комментарий опубликован." }, 201, { ...headers, ...cors(origin) });
       } catch { return json({ error: "Не удалось отправить комментарий." }, 500, { ...headers, ...cors(origin) }); }
     }
     if (url.pathname === "/api/admin/news-comments" && request.method === "GET") {
