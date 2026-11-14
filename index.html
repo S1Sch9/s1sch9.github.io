@@ -179,8 +179,12 @@ nav::-webkit-scrollbar{display:none}
 nav a,nav button{flex:1 1 0;min-width:0;text-align:center;padding:7px 1px 6px;font:600 9.5px/1.25 Onest,system-ui,sans-serif;color:var(--mut);text-decoration:none;border:0;background:transparent;border-radius:20px;cursor:pointer;transition:background .25s,color .25s}
 nav a i,nav button i{display:block;font-style:normal;font-size:19px;line-height:1.25;transition:transform .25s}
 nav a.on,nav button.on{background:transparent;color:#fff}nav a.on i,nav button.on i{transform:scale(1.14)}
-nav .nav-indicator{position:absolute;z-index:0;left:6px;top:6px;bottom:6px;width:0;border-radius:20px;background:var(--red);pointer-events:none;transform:translateX(0);transition:transform .52s cubic-bezier(.22,1,.36,1),width .46s cubic-bezier(.22,1,.36,1),opacity .24s ease;opacity:0;will-change:transform,width}
-nav.nav-scrubbing .nav-indicator{transition:transform .28s cubic-bezier(.22,.85,.25,1),width .28s cubic-bezier(.22,.85,.25,1),opacity .16s ease}
+nav .nav-indicator{position:absolute;z-index:0;left:6px;top:6px;bottom:6px;width:0;border-radius:20px;background:linear-gradient(145deg,#b50931 0%,var(--red) 58%,#85001d 100%);box-shadow:0 5px 13px rgba(161,0,31,.22),inset 0 1px 0 rgba(255,255,255,.16);pointer-events:none;transform:translate3d(0,0,0);opacity:0;will-change:transform,width}
+nav .nav-indicator:after{content:"";position:absolute;inset:1px;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.13),transparent 58%);pointer-events:none}
+nav.nav-scrubbing .nav-indicator{filter:saturate(1.08);box-shadow:0 7px 18px rgba(161,0,31,.27),inset 0 1px 0 rgba(255,255,255,.18)}
+nav.nav-scrubbing a,nav.nav-scrubbing button{transition:color .18s,transform .28s cubic-bezier(.2,.8,.2,1)}
+nav.nav-scrubbing .scrub-target{transform:scale(1.09)}
+nav a.on i,nav button.on i{transform:scale(1.16)}
 nav .scrub-target{background:transparent;color:#fff;transform:scale(1.07)}
 nav .scrub-target i{transform:scale(1.2)}
 nav.nav-scrubbing .on.scrub-target{background:transparent;color:#fff}
@@ -395,11 +399,31 @@ addEventListener("hashchange", route);
   indicator.className = "nav-indicator";
   indicator.setAttribute("aria-hidden","true");
   nav.prepend(indicator);
+  let indicatorX = 0, indicatorW = 0, targetX = 0, targetW = 0;
+  let indicatorVX = 0, indicatorVW = 0, indicatorFrame = 0, indicatorReady = false;
+  const animateIndicator = () => {
+    indicatorFrame = 0;
+    const dx = targetX - indicatorX, dw = targetW - indicatorW;
+    indicatorVX = (indicatorVX + dx * .16) * .72;
+    indicatorVW = (indicatorVW + dw * .16) * .72;
+    indicatorX += indicatorVX; indicatorW += indicatorVW;
+    indicator.style.transform = "translate3d(" + indicatorX.toFixed(2) + "px,0,0)";
+    indicator.style.width = Math.max(0,indicatorW).toFixed(2) + "px";
+    if(Math.abs(dx)>.12 || Math.abs(dw)>.12 || Math.abs(indicatorVX)>.12 || Math.abs(indicatorVW)>.12){
+      indicatorFrame = requestAnimationFrame(animateIndicator);
+    }else{
+      indicatorX=targetX; indicatorW=targetW; indicatorVX=indicatorVW=0;
+      indicator.style.transform = "translate3d(" + indicatorX.toFixed(2) + "px,0,0)";
+      indicator.style.width = indicatorW.toFixed(2) + "px";
+    }
+  };
   const moveIndicator = el => {
     if(!el){indicator.style.opacity="0";return;}
-    indicator.style.width = el.offsetWidth + "px";
-    indicator.style.transform = "translateX(" + (el.offsetLeft - 6) + "px)";
+    targetX = el.offsetLeft - 6;
+    targetW = el.offsetWidth;
+    if(!indicatorReady){indicatorX=targetX;indicatorW=targetW;indicatorReady=true;}
     indicator.style.opacity = "1";
+    if(!indicatorFrame) indicatorFrame = requestAnimationFrame(animateIndicator);
   };
   window.syncNavIndicator = () => moveIndicator(nav.querySelector(".on"));
   requestAnimationFrame(window.syncNavIndicator);
