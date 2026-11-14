@@ -201,6 +201,7 @@ async function ensureNewsSocial(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_likes (news_id TEXT NOT NULL, visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (news_id, visitor_hash))`).run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_likes_news ON news_likes(news_id)").run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_comments (id TEXT PRIMARY KEY, news_id TEXT NOT NULL, author TEXT NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'published', visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
+  try { await env.DB.prepare("ALTER TABLE news_comments ADD COLUMN profanity_flag INTEGER NOT NULL DEFAULT 0").run(); } catch {}
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_comments_news ON news_comments(news_id, status, created_at)").run();
 }
 async function ensureTelegramNews(env) {
@@ -829,18 +830,21 @@ self.addEventListener("notificationclick", event => {
         const visitorHash = await sha256("s1sch9-news-comment:" + visitorId);
         const recent = await env.DB.prepare("SELECT COUNT(*) AS count FROM news_comments WHERE visitor_hash = ? AND created_at > ?").bind(visitorHash, new Date(Date.now()-600000).toISOString()).first();
         if (Number(recent?.count || 0) >= 3) return json({ error: "Слишком часто. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
-        const status = containsProfanity(author + " " + message) ? "moderation" : "published", id = crypto.randomUUID();
-        await env.DB.prepare("INSERT INTO news_comments (id, news_id, author, message, status, visitor_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(id, newsId, author, message, status, visitorHash, new Date().toISOString()).run();
-        return json({ success: true, status, message: status === "moderation" ? "Комментарий отправлен на проверку." : "Комментарий опубликован." }, 201, { ...headers, ...cors(origin) });
+        const profanityFlag = containsProfanity(author + " " + message) ? 1 : 0, status = "published", id = crypto.randomUUID();
+        await env.DB.prepare("INSERT INTO news_comments (id, news_id, author, message, status, visitor_hash, created_at, profanity_flag) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(id, newsId, author, message, status, visitorHash, new Date().toISOString(), profanityFlag).run();
+        return json({ success: true, status, flagged: !!profanityFlag, message: "Комментарий опубликован." }, 201, { ...headers, ...cors(origin) });
       } catch { return json({ error: "Не удалось отправить комментарий." }, 500, { ...headers, ...cors(origin) }); }
     }
     if (url.pathname === "/api/admin/news-comments" && request.method === "GET") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
       try {
         await ensureNewsSocial(env);
-        const status = url.searchParams.get("status"), result = ["published","moderation"].includes(status)
-          ? await env.DB.prepare("SELECT id, news_id, author, message, status, created_at FROM news_comments WHERE status = ? ORDER BY created_at DESC LIMIT 300").bind(status).all()
-          : await env.DB.prepare("SELECT id, news_id, author, message, status, created_at FROM news_comments ORDER BY created_at DESC LIMIT 300").all();
+        const status = url.searchParams.get("status");
+        const result = status === "flagged"
+          ? await env.DB.prepare("SELECT id, news_id, author, message, status, created_at, profanity_flag FROM news_comments WHERE profanity_flag = 1 OR status = 'moderation' ORDER BY created_at DESC LIMIT 300").all()
+          : ["published","moderation"].includes(status)
+            ? await env.DB.prepare("SELECT id, news_id, author, message, status, created_at, profanity_flag FROM news_comments WHERE status = ? ORDER BY created_at DESC LIMIT 300").bind(status).all()
+            : await env.DB.prepare("SELECT id, news_id, author, message, status, created_at, profanity_flag FROM news_comments ORDER BY created_at DESC LIMIT 300").all();
         return json({ items: result.results || [] }, 200, headers);
       } catch { return json({ error: "Не удалось загрузить комментарии." }, 500, headers); }
     }
@@ -851,9 +855,15 @@ self.addEventListener("notificationclick", event => {
         await ensureNewsSocial(env);
         const id = decodeURIComponent(commentAdminMatch[1]);
         if (request.method === "DELETE") { await env.DB.prepare("DELETE FROM news_comments WHERE id = ?").bind(id).run(); return json({ success: true }, 200, headers); }
-        const body = await readJsonBody(request), status = body.status === "published" ? "published" : body.status === "moderation" ? "moderation" : "";
-        if (!status) return json({ error: "Некорректный статус." }, 400, headers);
-        const result = await env.DB.prepare("UPDATE news_comments SET status = ? WHERE id = ?").bind(status, id).run();
+        const body = await readJsonBody(request);
+        const current = await env.DB.prepare("SELECT author, message FROM news_comments WHERE id = ?").bind(id).first();
+        if (!current) return json({ error: "Комментарий не найден." }, 404, headers);
+        const author = body.author === undefined ? current.author : cleanText(body.author, 32);
+        const message = body.message === undefined ? current.message : cleanText(body.message, 600);
+        if (author.length < 2 || message.length < 2) return json({ error: "Имя и текст должны содержать не менее 2 символов." }, 400, headers);
+        const status = body.status === "moderation" ? "moderation" : "published";
+        const profanityFlag = containsProfanity(author + " " + message) ? 1 : 0;
+        const result = await env.DB.prepare("UPDATE news_comments SET author = ?, message = ?, status = ?, profanity_flag = ? WHERE id = ?").bind(author, message, status, profanityFlag, id).run();
         if (!result.meta.changes) return json({ error: "Комментарий не найден." }, 404, headers);
         return json({ success: true }, 200, headers);
       } catch { return json({ error: "Не удалось изменить комментарий." }, 500, headers); }
