@@ -378,131 +378,33 @@ function route(){
 }
 addEventListener("hashchange", route);
 
-/* Надёжное горизонтальное перетаскивание нижней навигации */
-(function installNavScrubbing(){
+/* Простая и надёжная нижняя навигация с плавной подложкой */
+(function installNavIndicator(){
   const nav = document.querySelector("body > nav");
   if(!nav) return;
-  const selector = "a[href^='#'],button[data-more='true']";
-  const items = () => [...nav.querySelectorAll(selector)];
   const indicator = document.createElement("span");
   indicator.className = "nav-indicator";
   indicator.setAttribute("aria-hidden","true");
   nav.prepend(indicator);
 
-  let pointerId = null, startX = 0, startY = 0, dragging = false;
-  let candidate = null, suppressClickUntil = 0;
-
-  const moveIndicator = (el, immediate = false) => {
-    if(!el){indicator.style.opacity="0";return;}
+  const sync = () => {
+    const active = nav.querySelector(".on");
+    if(!active){ indicator.style.opacity = "0"; return; }
     const navRect = nav.getBoundingClientRect();
-    const rect = el.getBoundingClientRect();
-    const x = rect.left - navRect.left - 6;
-    if(immediate) indicator.style.transition = "none";
+    const rect = active.getBoundingClientRect();
     indicator.style.opacity = "1";
-    indicator.style.transform = "translate3d("+x.toFixed(2)+"px,0,0)";
-    indicator.style.width = rect.width.toFixed(2)+"px";
-    if(immediate){
-      indicator.getBoundingClientRect();
-      indicator.style.transition = "";
-    }
+    indicator.style.width = rect.width + "px";
+    indicator.style.transform = "translate3d(" + (rect.left - navRect.left - 6) + "px,0,0)";
   };
-  window.syncNavIndicator = () => moveIndicator(nav.querySelector(".on"));
-  const syncSoon = () => requestAnimationFrame(window.syncNavIndicator);
-  syncSoon();
-  window.addEventListener("resize", syncSoon, {passive:true});
-  window.addEventListener("orientationchange", syncSoon, {passive:true});
+  window.syncNavIndicator = sync;
+  requestAnimationFrame(sync);
+  window.addEventListener("resize", sync, {passive:true});
+  window.addEventListener("orientationchange", sync, {passive:true});
   if("ResizeObserver" in window){
-    const ro = new ResizeObserver(syncSoon);
-    ro.observe(nav);
-    items().forEach(el => ro.observe(el));
+    const observer = new ResizeObserver(sync);
+    observer.observe(nav);
+    nav.querySelectorAll("a,button").forEach(item => observer.observe(item));
   }
-
-  const itemAt = (x,y) => {
-    const el = document.elementFromPoint(x,y);
-    const item = el && el.closest(selector);
-    return item && nav.contains(item) ? item : null;
-  };
-  const choose = (el) => {
-    if(!el || el === candidate) return;
-    if(candidate) candidate.classList.remove("scrub-target");
-    candidate = el;
-    candidate.classList.add("scrub-target");
-    moveIndicator(candidate,true);
-  };
-  const reset = () => {
-    if(candidate) candidate.classList.remove("scrub-target");
-    candidate = null;
-    nav.classList.remove("nav-dragging");
-    dragging = false;
-    pointerId = null;
-    syncSoon();
-  };
-  nav.addEventListener("contextmenu", e => {
-    if(e.target.closest(selector)) e.preventDefault();
-  });
-  nav.addEventListener("dragstart", e => {
-    if(e.target.closest(selector)) e.preventDefault();
-  });
-  nav.addEventListener("pointerdown", e => {
-    if(pointerId !== null || (e.pointerType === "mouse" && e.button !== 0)) return;
-    const item = e.target.closest(selector);
-    if(!item || !nav.contains(item)) return;
-    suppressClickUntil = 0;
-    pointerId = e.pointerId;
-    startX = e.clientX;
-    startY = e.clientY;
-    candidate = item;
-  }, {passive:true});
-
-  window.addEventListener("pointermove", e => {
-    if(pointerId === null || e.pointerId !== pointerId) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if(!dragging){
-      if(Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { reset(); return; }
-      if(Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
-      dragging = true;
-      nav.classList.add("nav-dragging");
-      try{nav.setPointerCapture(e.pointerId);}catch(_){}
-      if(navigator.vibrate && e.pointerType === "touch") navigator.vibrate(6);
-      choose(itemAt(e.clientX,e.clientY) || candidate);
-    }
-    if(dragging){
-      e.preventDefault();
-      choose(itemAt(e.clientX,e.clientY));
-    }
-  }, {passive:false});
-
-  const finish = e => {
-    if(pointerId === null || (e && e.pointerId !== pointerId)) return;
-    if(!dragging){pointerId=null;candidate=null;return;}
-    const selected = candidate;
-    suppressClickUntil = Date.now() + 500;
-    if(e) e.preventDefault();
-    try{if(nav.hasPointerCapture(pointerId)) nav.releasePointerCapture(pointerId);}catch(_){}
-    if(selected){
-      if(selected.matches("a[href^='#']")){
-        const nextHash = selected.getAttribute("href");
-        if(location.hash === nextHash) route();
-        else location.hash = nextHash;
-      }else if(selected.matches("button[data-more='true']")){
-        openMoreMenu();
-      }
-    }
-    reset();
-  };
-  window.addEventListener("pointerup", finish);
-  window.addEventListener("pointercancel", reset);
-  nav.addEventListener("lostpointercapture", e => {
-    if(pointerId !== null && e.pointerId === pointerId) reset();
-  });
-  nav.addEventListener("click", e => {
-    if(suppressClickUntil && Date.now() < suppressClickUntil){
-      e.preventDefault();
-      e.stopPropagation();
-      suppressClickUntil = 0;
-    }
-  }, true);
 })();
 function openSh(h){ $("#pn").classList.remove("more-panel"); $("#pn").innerHTML = '<div class="grip"></div>' + h; $("#sh").classList.add("on"); document.body.style.overflow = "hidden"; }
 function closeSh(){ $("#sh").classList.remove("on"); document.body.style.overflow = ""; }
