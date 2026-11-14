@@ -159,9 +159,7 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .home-appeal-icon{width:45px;height:45px;flex:none;display:grid;place-items:center;border-radius:15px;background:#3d000d;color:#f0c869;font-size:22px;box-shadow:none}
 .home-appeal span:nth-child(2){display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
 .home-appeal b{font-size:14px;line-height:1.25;font-weight:900}.home-appeal small{font-size:10.5px;color:#68404a;line-height:1.3;font-weight:650}.home-appeal strong{font-size:26px;color:#3d000d}
-.home-appeal-kicker{display:flex;align-items:center;gap:7px;margin:0 0 8px 3px;color:#f5d98e;font-size:9px;font-weight:900;letter-spacing:1.35px}
-.home-appeal-kicker span{width:6px;height:6px;border-radius:50%;background:#f0c869;box-shadow:none}
-.appeal-heading{margin:14px 0 8px;padding:4px 2px 0}.appeal-heading span{display:inline-flex;align-items:center;gap:7px;margin-bottom:7px;color:var(--red);font-size:10px;font-weight:850;letter-spacing:1.4px}.appeal-heading span:before{content:"";width:18px;height:2px;border-radius:2px;background:var(--gold)}.appeal-heading h1{margin:0}
+.appeal-heading{margin:14px 0 8px;padding:4px 2px 0}.appeal-heading h1{margin:0}
 .home-section-title{display:flex;flex-direction:column;gap:3px;margin:0 2px 12px}
 .home-section-title span{color:var(--red);font-size:9px;font-weight:900;letter-spacing:1.3px}
 .home-section-title b{font-size:21px;letter-spacing:-.5px}
@@ -231,7 +229,6 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
       <div class="home-brand-title"><h1>СОВЕТ ПЕРВЫХ</h1><h2>ШКОЛЫ ДЕВЯТЬ</h2><span>НОВО-САВИНОВСКИЙ РАЙОН · КАЗАНЬ</span></div>
     </div>
     <p class="home-intro">Идеи, инициативы и события, которыми живёт наша школа.</p>
-    <div class="home-appeal-kicker"><span></span> ВАЖЕН КАЖДЫЙ!</div>
     <a class="home-appeal" href="#appeal" aria-label="Оставить обращение Совету Первых школы №9"><span class="home-appeal-icon">✍️</span><span><b>Есть идея? Предложи её!</b><small>Напиши Совету Первых школы №9 — твоё мнение важно</small></span><strong>→</strong></a>
   </div>
   <div class="home-section-title"><span>ОТКРЫВАЙ И УЧАСТВУЙ</span><b>Разделы сайта</b></div>
@@ -264,7 +261,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
     <div class="calendar-grid mini-calendar-grid" id="calendarGrid"></div>
   </div>
 </section>
-<section id="appeal"><div class="appeal-heading rv"><span>ВАЖЕН КАЖДЫЙ</span><h1>Обращение</h1></div>
+<section id="appeal"><div class="appeal-heading rv"><h1>Обращение</h1></div>
   <p class="rv">Друзья, поделитесь идеями, предложениями или новостями нашей школы! Каждое обращение мы читаем, обсуждаем и стараемся находить полезным идеям место в школьной жизни.</p>
   <div id="appealBlockNotice" role="alert" aria-live="polite"><strong>⛔ Доступ к отправке обращений ограничен</strong><p>Доступ с этого подключения временно заблокирован.</p><p id="appealBlockReason"></p><p>Если вы считаете, что блокировка произошла по ошибке, обратитесь к Совету.</p></div>
   <form id="form" style="margin-top:22px" class="rv">
