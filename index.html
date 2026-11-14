@@ -179,6 +179,17 @@ nav::-webkit-scrollbar{display:none}
 nav a,nav button{flex:1 1 0;min-width:0;text-align:center;padding:7px 1px 6px;font:600 9.5px/1.25 Onest,system-ui,sans-serif;color:var(--mut);text-decoration:none;border:0;background:transparent;border-radius:20px;cursor:pointer;transition:background .25s,color .25s}
 nav a i,nav button i{display:block;font-style:normal;font-size:19px;line-height:1.25;transition:transform .25s}
 nav a.on,nav button.on{background:var(--red);color:#fff}nav a.on i,nav button.on i{transform:scale(1.14)}
+/* iOS-inspired navigation: springy feedback + long-press scrubbing */
+nav{isolation:isolate;touch-action:pan-y; -webkit-user-select:none;user-select:none}
+nav a,nav button{position:relative;z-index:1;will-change:transform,background-color;color;transition:background-color .34s cubic-bezier(.2,.9,.25,1.25),color .24s,transform .34s cubic-bezier(.2,.9,.25,1.35),box-shadow .3s}
+nav a i,nav button i{transition:transform .38s cubic-bezier(.2,.9,.25,1.35),filter .25s}
+nav a:active,nav button:active{transform:scale(.91)}
+nav a.on,nav button.on{box-shadow:0 4px 12px rgba(161,0,31,.2)}
+nav.nav-scrubbing{box-shadow:0 12px 34px rgba(61,0,13,.2),0 0 0 5px rgba(161,0,31,.07);transform:translateY(-3px) scale(1.015);transition:transform .22s cubic-bezier(.2,.9,.25,1.25),box-shadow .22s}
+nav .scrub-target{background:#f6e4e8;color:var(--red);transform:scale(1.07)}
+nav .scrub-target i{transform:scale(1.2)}
+nav.nav-scrubbing .on.scrub-target{background:var(--red);color:#fff}
+@media(prefers-reduced-motion:reduce){nav,nav a,nav button,nav a i,nav button i{transition:none!important;animation:none!important}}
 .more-panel{padding:17px 22px calc(24px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#fffafb 0%,#fff 42%);border-radius:28px 28px 0 0}
 .more-menu-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:3px 0 16px;border-bottom:1px solid #f0e4e7}
 .more-menu-heading span{display:block;color:var(--red);font-size:9px;font-weight:900;letter-spacing:1.15px}
@@ -370,6 +381,78 @@ function route(){
   }
 }
 addEventListener("hashchange", route);
+
+/* Долгое нажатие + горизонтальное скольжение по нижней навигации */
+(function installNavScrubbing(){
+  const nav = document.querySelector("body > nav");
+  if(!nav) return;
+  let holdTimer = 0, startX = 0, startY = 0, active = false, candidate = null, suppressClick = false;
+  const items = () => [...nav.querySelectorAll("a[href^='#'],button[data-more='true']")];
+  const itemAt = (x,y) => {
+    const el = document.elementFromPoint(x,y);
+    const item = el && el.closest("a[href^='#'],button[data-more='true']");
+    return item && nav.contains(item) ? item : null;
+  };
+  const clearCandidate = () => {
+    items().forEach(el => el.classList.remove("scrub-target"));
+    candidate = null;
+  };
+  const choose = el => {
+    if(!el || el === candidate) return;
+    clearCandidate();
+    candidate = el;
+    candidate.classList.add("scrub-target");
+  };
+  nav.addEventListener("pointerdown", e => {
+    if(e.pointerType === "mouse" && e.button !== 0) return;
+    const item = e.target.closest("a[href^='#'],button[data-more='true']");
+    if(!item || !nav.contains(item)) return;
+    startX = e.clientX; startY = e.clientY; active = false; candidate = item;
+    holdTimer = window.setTimeout(() => {
+      active = true;
+      nav.classList.add("nav-scrubbing");
+      choose(item);
+      if(navigator.vibrate) navigator.vibrate(8);
+    }, 230);
+  });
+  nav.addEventListener("pointermove", e => {
+    if(!holdTimer && !active) return;
+    if(!active && Math.hypot(e.clientX-startX,e.clientY-startY)>12){
+      clearTimeout(holdTimer); holdTimer = 0; candidate = null; return;
+    }
+    if(active){
+      e.preventDefault();
+      choose(itemAt(e.clientX,e.clientY));
+    }
+  }, {passive:false});
+  const finish = () => {
+    clearTimeout(holdTimer); holdTimer = 0;
+    if(!active){candidate=null;return;}
+    const selected = candidate;
+    active = false;
+    nav.classList.remove("nav-scrubbing");
+    clearCandidate();
+    if(selected){
+      suppressClick = true;
+      if(selected.matches("a[href^='#']")){
+        const nextHash = selected.getAttribute("href");
+        if(location.hash === nextHash) route(); else location.hash = nextHash;
+      }else if(selected.matches("button[data-more='true']")){
+        openMoreMenu();
+      }
+      window.setTimeout(() => { suppressClick = false; }, 450);
+    }
+    candidate = null;
+  };
+  nav.addEventListener("pointerup", finish);
+  nav.addEventListener("pointercancel", () => {
+    clearTimeout(holdTimer); holdTimer=0; active=false; nav.classList.remove("nav-scrubbing"); clearCandidate();
+  });
+  nav.addEventListener("click", e => {
+    if(suppressClick){e.preventDefault();e.stopPropagation();suppressClick=false;}
+  }, true);
+})();
+
 function openSh(h){ $("#pn").classList.remove("more-panel"); $("#pn").innerHTML = '<div class="grip"></div>' + h; $("#sh").classList.add("on"); document.body.style.overflow = "hidden"; }
 function closeSh(){ $("#sh").classList.remove("on"); document.body.style.overflow = ""; }
 function openMoreMenu(){
