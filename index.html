@@ -390,7 +390,7 @@ addEventListener("hashchange", route);
   nav.prepend(indicator);
 
   let pointerId = null, startX = 0, startY = 0, dragging = false;
-  let candidate = null, suppressClickUntil = 0;
+  let candidate = null, suppressClick = false;
 
   const moveIndicator = (el, immediate = false) => {
     if(!el){indicator.style.opacity="0";return;}
@@ -453,7 +453,7 @@ addEventListener("hashchange", route);
     candidate = item;
   }, {passive:true});
 
-  nav.addEventListener("pointermove", e => {
+  window.addEventListener("pointermove", e => {
     if(pointerId === null || e.pointerId !== pointerId) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
@@ -476,7 +476,8 @@ addEventListener("hashchange", route);
     if(pointerId === null || (e && e.pointerId !== pointerId)) return;
     if(!dragging){pointerId=null;candidate=null;return;}
     const selected = candidate;
-    suppressClickUntil = Date.now() + 500;
+    suppressClick = true;
+    window.setTimeout(() => { suppressClick = false; }, 0);
     if(e) e.preventDefault();
     try{if(nav.hasPointerCapture(pointerId)) nav.releasePointerCapture(pointerId);}catch(_){}
     if(selected){
@@ -490,16 +491,16 @@ addEventListener("hashchange", route);
     }
     reset();
   };
-  nav.addEventListener("pointerup", finish);
-  nav.addEventListener("pointercancel", reset);
+  window.addEventListener("pointerup", finish);
+  window.addEventListener("pointercancel", reset);
   nav.addEventListener("lostpointercapture", e => {
     if(pointerId !== null && e.pointerId === pointerId) reset();
   });
   nav.addEventListener("click", e => {
-    if(Date.now() < suppressClickUntil){
+    if(suppressClick){
       e.preventDefault();
       e.stopPropagation();
-      suppressClickUntil = 0;
+      suppressClick = false;
     }
   }, true);
 })();
