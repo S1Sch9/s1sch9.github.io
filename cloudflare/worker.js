@@ -844,7 +844,7 @@ self.addEventListener("notificationclick", event => {
         return json({ success: true, status, flagged: !!profanityFlag, message: profanityFlag ? "Комментарий скрыт до проверки: обнаружены слова из стоп-листа." : "Комментарий опубликован." }, 201, { ...headers, ...cors(origin) });
       } catch { return json({ error: "Не удалось отправить комментарий." }, 500, { ...headers, ...cors(origin) }); }
     }
-    const ownerCommentMatch = url.pathname.match(/^\\/api\\/news-comments\\/([^/]+)\\/(edit|delete)$/);
+    const ownerCommentMatch = url.pathname.match(/^\/api\/news-comments\/([^/]+)\/(edit|delete)$/);
     if (ownerCommentMatch && request.method === "POST") {
       try {
         await ensureNewsSocial(env);
