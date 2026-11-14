@@ -378,33 +378,162 @@ function route(){
 }
 addEventListener("hashchange", route);
 
-/* Простая и надёжная нижняя навигация с плавной подложкой */
-(function installNavIndicator(){
+/* Интерактивная нижняя навигация: горизонтальный свайп + обычные нажатия */
+(function installNavScrubbing(){
   const nav = document.querySelector("body > nav");
   if(!nav) return;
+  const selector = "a[href^='#'],button[data-more='true']";
   const indicator = document.createElement("span");
   indicator.className = "nav-indicator";
   indicator.setAttribute("aria-hidden","true");
   nav.prepend(indicator);
 
+  let candidate = null;
+  let touchStart = null;
+  let touchDragging = false;
+  let suppressClickUntil = 0;
+  let mousePointer = null;
+
   const sync = () => {
     const active = nav.querySelector(".on");
-    if(!active){ indicator.style.opacity = "0"; return; }
-    const navRect = nav.getBoundingClientRect();
-    const rect = active.getBoundingClientRect();
+    const target = candidate || active;
+    if(!target){ indicator.style.opacity = "0"; return; }
+    const nr = nav.getBoundingClientRect(), r = target.getBoundingClientRect();
     indicator.style.opacity = "1";
-    indicator.style.width = rect.width + "px";
-    indicator.style.transform = "translate3d(" + (rect.left - navRect.left - 6) + "px,0,0)";
+    indicator.style.width = r.width + "px";
+    indicator.style.transform = "translate3d(" + (r.left - nr.left - 6) + "px,0,0)";
   };
   window.syncNavIndicator = sync;
-  requestAnimationFrame(sync);
-  window.addEventListener("resize", sync, {passive:true});
-  window.addEventListener("orientationchange", sync, {passive:true});
+  const syncSoon = () => requestAnimationFrame(sync);
+  syncSoon();
+  window.addEventListener("resize", syncSoon, {passive:true});
+  window.addEventListener("orientationchange", syncSoon, {passive:true});
   if("ResizeObserver" in window){
-    const observer = new ResizeObserver(sync);
+    const observer = new ResizeObserver(syncSoon);
     observer.observe(nav);
-    nav.querySelectorAll("a,button").forEach(item => observer.observe(item));
+    nav.querySelectorAll("a,button").forEach(el => observer.observe(el));
   }
+
+  const itemAt = (x,y) => {
+    const el = document.elementFromPoint(x,y);
+    const item = el && el.closest(selector);
+    return item && nav.contains(item) ? item : null;
+  };
+  const choose = el => {
+    if(!el || el === candidate) return;
+    if(candidate) candidate.classList.remove("scrub-target");
+    candidate = el;
+    candidate.classList.add("scrub-target");
+    nav.classList.add("nav-dragging");
+    sync();
+  };
+  const clearGesture = () => {
+    if(candidate) candidate.classList.remove("scrub-target");
+    candidate = null;
+    nav.classList.remove("nav-dragging");
+    touchStart = null;
+    touchDragging = false;
+    mousePointer = null;
+    syncSoon();
+  };
+  const activate = item => {
+    if(!item) return;
+    if(item.matches("a[href^='#']")){
+      const hash = item.getAttribute("href");
+      if(location.hash === hash) route();
+      else location.hash = hash;
+    }else if(item.matches("button[data-more='true']")){
+      openMoreMenu();
+    }
+  };
+
+  // iPhone/iPad: native touch events are more predictable than pointer capture here.
+  nav.addEventListener("touchstart", e => {
+    if(e.touches.length !== 1) { touchStart = null; return; }
+    const t = e.touches[0], item = e.target.closest(selector);
+    if(!item || !nav.contains(item)) return;
+    suppressClickUntil = 0;
+    touchStart = {id:t.identifier,x:t.clientX,y:t.clientY,item};
+    candidate = item;
+    touchDragging = false;
+  }, {passive:true});
+
+  nav.addEventListener("touchmove", e => {
+    if(!touchStart || e.touches.length !== 1) return;
+    const t = [...e.touches].find(x => x.identifier === touchStart.id);
+    if(!t) return;
+    const dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
+    if(!touchDragging){
+      if(Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { clearGesture(); return; }
+      if(Math.abs(dx) < 9 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+      touchDragging = true;
+      nav.classList.add("nav-dragging");
+      if(navigator.vibrate) { try{navigator.vibrate(5);}catch(_){} }
+    }
+    if(touchDragging){
+      if(e.cancelable) e.preventDefault();
+      choose(itemAt(t.clientX,t.clientY));
+    }
+  }, {passive:false});
+
+  nav.addEventListener("touchend", e => {
+    if(!touchStart) return;
+    const wasDragging = touchDragging;
+    const selected = candidate;
+    if(wasDragging){
+      suppressClickUntil = Date.now() + 900;
+      if(e.cancelable) e.preventDefault();
+      clearGesture();
+      activate(selected);
+    }else{
+      clearGesture();
+    }
+  }, {passive:false});
+  nav.addEventListener("touchcancel", clearGesture, {passive:true});
+
+  // Desktop mouse dragging, while ordinary clicks remain native.
+  nav.addEventListener("pointerdown", e => {
+    if(e.pointerType !== "mouse" || e.button !== 0) return;
+    const item = e.target.closest(selector);
+    if(!item || !nav.contains(item)) return;
+    mousePointer = {id:e.pointerId,x:e.clientX,y:e.clientY,dragging:false};
+    candidate = item;
+  });
+  window.addEventListener("pointermove", e => {
+    if(!mousePointer || e.pointerId !== mousePointer.id) return;
+    const dx=e.clientX-mousePointer.x, dy=e.clientY-mousePointer.y;
+    if(!mousePointer.dragging){
+      if(Math.abs(dx)<9 || Math.abs(dx)<Math.abs(dy)*1.2) return;
+      mousePointer.dragging=true;
+      nav.classList.add("nav-dragging");
+    }
+    e.preventDefault();
+    choose(itemAt(e.clientX,e.clientY));
+  }, {passive:false});
+  window.addEventListener("pointerup", e => {
+    if(!mousePointer || e.pointerId !== mousePointer.id) return;
+    if(mousePointer.dragging){
+      const selected=candidate;
+      suppressClickUntil=Date.now()+900;
+      clearGesture();
+      activate(selected);
+    }else clearGesture();
+  });
+  window.addEventListener("pointercancel", () => { if(mousePointer) clearGesture(); });
+
+  nav.addEventListener("click", e => {
+    if(suppressClickUntil && Date.now() < suppressClickUntil){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      suppressClickUntil = 0;
+    }
+  }, true);
+  nav.addEventListener("contextmenu", e => {
+    if(e.target.closest(selector)) e.preventDefault();
+  });
+  nav.addEventListener("dragstart", e => {
+    if(e.target.closest(selector)) e.preventDefault();
+  });
 })();
 function openSh(h){ $("#pn").classList.remove("more-panel"); $("#pn").innerHTML = '<div class="grip"></div>' + h; $("#sh").classList.add("on"); document.body.style.overflow = "hidden"; }
 function closeSh(){ $("#sh").classList.remove("on"); document.body.style.overflow = ""; }
