@@ -167,6 +167,15 @@ async function rateAllowed(env, key) {
   `).bind(key, now, now - 3600, now - 3600, now).first();
   return { allowed: !!row && row.attempts <= 10, attempts: row?.attempts || 0 };
 }
+async function ensureEvents(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS events (
+    id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
+    event_date TEXT NOT NULL, event_time TEXT NOT NULL DEFAULT '',
+    location TEXT NOT NULL DEFAULT '', category TEXT NOT NULL DEFAULT 'Мероприятие',
+    registration_url TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'draft',
+    created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+  )`).run();
+}
 async function ensureTelegramNews(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_news (
     id TEXT PRIMARY KEY, date TEXT NOT NULL, text TEXT NOT NULL, media TEXT NOT NULL DEFAULT '[]'
@@ -439,6 +448,13 @@ export default {
     if (url.pathname === "/telegram/webhook" && request.method === "POST") {
       try { return await telegramWebhook(request, env); }
       catch (error) { return json({ error: "Webhook processing failed" }, 500); }
+    }
+    if (url.pathname === "/api/events" && request.method === "GET") {
+      try {
+        await ensureEvents(env);
+        const result = await env.DB.prepare("SELECT id, title, description, event_date, event_time, location, category, registration_url FROM events WHERE status = 'published' ORDER BY event_date ASC, event_time ASC LIMIT 200").all();
+        return json(result.results || [], 200, { ...headers, ...cors(origin) });
+      } catch { return json([], 200, { ...headers, ...cors(origin) }); }
     }
     if (url.pathname === "/api/news" && request.method === "GET") {
       try {
@@ -801,6 +817,61 @@ self.addEventListener("notificationclick", event => {
         if (!result.meta.changes) return json({ error: "Новость не найдена." }, 404, headers);
         return json({ success: true }, 200, headers);
       } catch { return json({ error: "Не удалось изменить новость." }, 500, headers); }
+    }
+
+    if (url.pathname === "/api/admin/events" && request.method === "GET") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensureEvents(env);
+        const result = await env.DB.prepare("SELECT id, title, description, event_date, event_time, location, category, registration_url, status, created_at, updated_at FROM events ORDER BY event_date DESC, event_time DESC").all();
+        return json({ items: result.results || [] }, 200, headers);
+      } catch { return json({ error: "Не удалось загрузить мероприятия." }, 500, headers); }
+    }
+    if (url.pathname === "/api/admin/events" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensureEvents(env);
+        const body = await readJsonBody(request);
+        const title = cleanText(body.title, 120), description = cleanText(body.description, 2000);
+        const eventDate = cleanText(body.event_date, 10), eventTime = cleanText(body.event_time, 5);
+        const location = cleanText(body.location, 140), category = cleanText(body.category, 40) || "Мероприятие";
+        const registrationUrl = cleanText(body.registration_url, 500);
+        const status = body.status === "published" ? "published" : "draft";
+        if (title.length < 2) return json({ error: "Добавьте название мероприятия." }, 400, headers);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) return json({ error: "Укажите корректную дату." }, 400, headers);
+        if (eventTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(eventTime)) return json({ error: "Укажите корректное время." }, 400, headers);
+        if (registrationUrl && !/^https:\/\//i.test(registrationUrl)) return json({ error: "Ссылка для регистрации должна начинаться с https://." }, 400, headers);
+        const id = "event-" + crypto.randomUUID(), now = Math.floor(Date.now() / 1000);
+        await env.DB.prepare("INSERT INTO events (id,title,description,event_date,event_time,location,category,registration_url,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
+          .bind(id,title,description,eventDate,eventTime,location,category,registrationUrl,status,now,now).run();
+        return json({ success: true, id }, 201, headers);
+      } catch { return json({ error: "Не удалось сохранить мероприятие." }, 500, headers); }
+    }
+    const eventMatch = url.pathname.match(/^\/api\/admin\/events\/(event-[a-f0-9-]+)$/);
+    if (eventMatch && (request.method === "PATCH" || request.method === "DELETE")) {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401, headers);
+      try {
+        await ensureEvents(env);
+        const id = eventMatch[1];
+        if (request.method === "DELETE") {
+          await env.DB.prepare("DELETE FROM events WHERE id = ?").bind(id).run();
+          return json({ success: true }, 200, headers);
+        }
+        const body = await readJsonBody(request);
+        const title = cleanText(body.title, 120), description = cleanText(body.description, 2000);
+        const eventDate = cleanText(body.event_date, 10), eventTime = cleanText(body.event_time, 5);
+        const location = cleanText(body.location, 140), category = cleanText(body.category, 40) || "Мероприятие";
+        const registrationUrl = cleanText(body.registration_url, 500);
+        const status = body.status === "published" ? "published" : "draft";
+        if (title.length < 2) return json({ error: "Добавьте название мероприятия." }, 400, headers);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) return json({ error: "Укажите корректную дату." }, 400, headers);
+        if (eventTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(eventTime)) return json({ error: "Укажите корректное время." }, 400, headers);
+        if (registrationUrl && !/^https:\/\//i.test(registrationUrl)) return json({ error: "Ссылка для регистрации должна начинаться с https://." }, 400, headers);
+        const result = await env.DB.prepare("UPDATE events SET title=?,description=?,event_date=?,event_time=?,location=?,category=?,registration_url=?,status=?,updated_at=? WHERE id=?")
+          .bind(title,description,eventDate,eventTime,location,category,registrationUrl,status,Math.floor(Date.now()/1000),id).run();
+        if (!result.meta.changes) return json({ error: "Мероприятие не найдено." }, 404, headers);
+        return json({ success: true }, 200, headers);
+      } catch { return json({ error: "Не удалось изменить мероприятие." }, 500, headers); }
     }
 
     if (url.pathname === "/api/admin/security" && request.method === "GET") {
