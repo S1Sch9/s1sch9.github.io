@@ -179,8 +179,8 @@ nav::-webkit-scrollbar{display:none}
 nav a,nav button{flex:1 1 0;min-width:0;text-align:center;padding:7px 1px 6px;font:600 9.5px/1.25 Onest,system-ui,sans-serif;color:var(--mut);text-decoration:none;border:0;background:transparent;border-radius:20px;cursor:pointer;transition:background .25s,color .25s}
 nav a i,nav button i{display:block;font-style:normal;font-size:19px;line-height:1.25;transition:transform .25s}
 nav a.on,nav button.on{background:transparent;color:#fff}nav a.on i,nav button.on i{transform:scale(1.14)}
-nav .nav-indicator{position:absolute;z-index:0;left:6px;top:6px;bottom:6px;width:0;border-radius:20px;background:var(--red);pointer-events:none;transform:translateX(0);transition:transform .38s cubic-bezier(.2,.85,.25,1.25),width .32s cubic-bezier(.2,.85,.25,1.2),opacity .2s;opacity:0;will-change:transform,width}
-nav.nav-scrubbing .nav-indicator{transition:transform .16s cubic-bezier(.2,.8,.2,1),width .16s cubic-bezier(.2,.8,.2,1),opacity .12s}
+nav .nav-indicator{position:absolute;z-index:0;left:6px;top:6px;bottom:6px;width:0;border-radius:20px;background:var(--red);pointer-events:none;transform:translateX(0);transition:transform .52s cubic-bezier(.22,1,.36,1),width .46s cubic-bezier(.22,1,.36,1),opacity .24s ease;opacity:0;will-change:transform,width}
+nav.nav-scrubbing .nav-indicator{transition:transform .28s cubic-bezier(.22,.85,.25,1),width .28s cubic-bezier(.22,.85,.25,1),opacity .16s ease}
 nav .scrub-target{background:transparent;color:#fff;transform:scale(1.07)}
 nav .scrub-target i{transform:scale(1.2)}
 nav.nav-scrubbing .on.scrub-target{background:transparent;color:#fff}
