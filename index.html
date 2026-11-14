@@ -146,12 +146,12 @@ nav a,nav button{flex:1 1 0;min-width:0;text-align:center;padding:7px 2px 6px;fo
 nav a i,nav button i{display:block;font-style:normal;font-size:19px;line-height:1.25;transition:transform .25s}
 nav a.on,nav button.on{background:var(--red);color:#fff}nav a.on i,nav button.on i{transform:scale(1.14)}
 .more-menu-intro{margin:0 0 14px;color:var(--mut);font-size:13px}
-.more-menu-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.more-menu-item{display:flex;align-items:center;gap:11px;min-height:68px;padding:13px;border:1px solid var(--line);border-radius:17px;background:#fff;color:var(--ink);text-decoration:none;font-weight:700;font-size:14px}
-.more-menu-item:active{transform:scale(.98)}
-.more-menu-item i{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:12px;background:#f8e9ec;font-style:normal;font-size:20px}
+.more-menu-list{display:flex;flex-direction:column;margin-top:16px}
+.more-menu-item{display:flex;align-items:center;gap:14px;min-height:58px;padding:10px 5px;border:0;border-bottom:1px solid #f0e7e9;border-radius:0;background:transparent;color:var(--ink);text-decoration:none;font-weight:750;font-size:16px;transition:background .18s,padding .18s}
+.more-menu-item:last-child{border-bottom:0}
+.more-menu-item:active{background:#fff7f8;padding-left:10px}
+.more-menu-item i{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:11px;background:#f8e9ec;font-style:normal;font-size:19px}
 .more-menu-item span{line-height:1.2}
-.more-menu-item small{display:block;margin-top:3px;color:var(--mut);font-size:10px;font-weight:500}
 .sh{position:fixed;inset:0;z-index:20;display:none}.sh.on{display:block}
 .sh .bg{position:absolute;inset:0;background:rgba(30,0,8,.5);animation:fd .25s}
 .sh .pn{position:absolute;left:0;right:0;bottom:0;max-width:640px;margin:auto;max-height:88vh;overflow:auto;background:#fff;border-radius:28px 28px 0 0;padding:14px 22px calc(30px + env(safe-area-inset-bottom));animation:sl .38s cubic-bezier(.2,.9,.25,1)}
@@ -249,8 +249,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 <nav aria-label="Основная навигация">
   <a href="#home"><i>🏠</i>Главная</a>
   <a href="#news"><i>📰</i>Новости</a>
-  <a href="#appeal"><i>✍️</i>Обращение</a>
-  <button type="button" data-more="true" onclick="openMoreMenu()" aria-label="Открыть остальные разделы"><i>☰</i>Ещё</button>
+  <button type="button" data-more="true" onclick="openMoreMenu()" aria-label="Открыть все разделы"><i>☰</i>Ещё</button>
 </nav>
 <div class="sh" id="sh"><div class="bg" onclick="closeSh()"></div><div class="pn" id="pn"></div></div>
 <div id="gm"><button onclick="closeGame()">← На сайт</button><iframe id="gf" title="Башня Первых" allowfullscreen></iframe></div>
@@ -299,7 +298,7 @@ function route(){
   document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === page));
   document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.hash === "#" + page));
   const moreButton = document.querySelector('nav [data-more="true"]');
-  if (moreButton) moreButton.classList.toggle("on", ["team","events","games","links"].includes(page));
+  if (moreButton) moreButton.classList.toggle("on", ["team","events","appeal","games","links"].includes(page));
   document.querySelectorAll("#" + page + " .rv").forEach((e, i) => e.style.setProperty("--i", Math.min(i, 9)));
   if (target && !target.matches("section")) {
     if (target.id === "appeal-rules") target.open = true;
@@ -313,15 +312,18 @@ function openSh(h){ $("#pn").innerHTML = '<div class="grip"></div>' + h; $("#sh"
 function closeSh(){ $("#sh").classList.remove("on"); document.body.style.overflow = ""; }
 function openMoreMenu(){
   openSh(`
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
-      <div style="width:44px;height:44px;display:grid;place-items:center;border-radius:15px;background:#f8e9ec;font-size:23px">✨</div>
-      <div><h3 style="margin:0;font-size:22px">Ещё разделы</h3><p class="note" style="margin:2px 0 0;font-size:12px">Всё остальное — здесь</p></div>
+    <div style="margin-bottom:4px">
+      <h3 style="margin:0;font-size:23px;letter-spacing:-.03em">Все разделы</h3>
+      <p class="note" style="margin:4px 0 0;font-size:13px">Выбери, куда перейти</p>
     </div>
     <div class="more-menu-list">
-      <a class="more-menu-item" href="#team" onclick="closeSh()"><i>👥</i><span>Состав<small>Команда Совета</small></span></a>
-      <a class="more-menu-item" href="#events" onclick="closeSh()"><i>📅</i><span>Мероприятия<small>Календарь событий</small></span></a>
-      <a class="more-menu-item" href="#games" onclick="closeSh()"><i>🎮</i><span>Мини-игры<small>Отдохнуть и сыграть</small></span></a>
-      <a class="more-menu-item" href="#links" onclick="closeSh()"><i>🔗</i><span>Наши ресурсы<small>Каналы и полезные ссылки</small></span></a>
+      <a class="more-menu-item" href="#home" onclick="closeSh()"><i>🏠</i><span>Главная</span></a>
+      <a class="more-menu-item" href="#team" onclick="closeSh()"><i>👥</i><span>Состав</span></a>
+      <a class="more-menu-item" href="#news" onclick="closeSh()"><i>📰</i><span>Новости</span></a>
+      <a class="more-menu-item" href="#events" onclick="closeSh()"><i>📅</i><span>Мероприятия</span></a>
+      <a class="more-menu-item" href="#appeal" onclick="closeSh()"><i>✍️</i><span>Обращение</span></a>
+      <a class="more-menu-item" href="#games" onclick="closeSh()"><i>🎮</i><span>Мини-игры</span></a>
+      <a class="more-menu-item" href="#links" onclick="closeSh()"><i>🔗</i><span>Наши ресурсы</span></a>
     </div>
   `);
 }
