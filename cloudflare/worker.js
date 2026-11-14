@@ -76,6 +76,24 @@ function cors(origin) {
 function cleanText(value, max) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
+function containsProfanity(value) {
+  const text = String(value || "").normalize("NFKC").toLocaleLowerCase("ru").replace(/ё/g, "е");
+  // Проверяем отдельные корни, допуская точки, пробелы и другие разделители между буквами.
+  const patterns = [
+    /х[\\W_]*у[\\W_]*[йяеюию]/iu,
+    /п[\\W_]*и[\\W_]*з[\\W_]*д/iu,
+    /е[\\W_]*б[\\W_]*(?:а|о|у|л|н|с|т|и|я)/iu,
+    /б[\\W_]*л[\\W_]*я[\\W_]*д/iu,
+    /м[\\W_]*у[\\W_]*д[\\W_]*а[\\W_]*к/iu,
+    /г[\\W_]*а[\\W_]*н[\\W_]*д[\\W_]*о[\\W_]*н/iu,
+    /з[\\W_]*а[\\W_]*л[\\W_]*у[\\W_]*п/iu,
+    /д[\\W_]*о[\\W_]*л[\\W_]*б[\\W_]*о/iu,
+    /f[\\W_]*u[\\W_]*c[\\W_]*k/iu,
+    /s[\\W_]*h[\\W_]*i[\\W_]*t/iu,
+    /b[\\W_]*i[\\W_]*t[\\W_]*c[\\W_]*h/iu
+  ];
+  return patterns.some(pattern => pattern.test(text));
+}
 async function sha256(value) {
   const bytes = new TextEncoder().encode(value);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -418,18 +436,22 @@ async function telegramWebhook(request, env) {
     await telegramReply(env, chatId, "🛡 В целях безопасности с одного аккаунта можно отправить не более 10 обращений в час. Пожалуйста, попробуйте позже.", keyboard);
     return json({ ok: true });
   }
-  const insertedAppeal = await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
-    .bind("Telegram", "Через Telegram-бота", message).run();
+  const flaggedForReview = containsProfanity(message);
+  const appealStatus = flaggedForReview ? "moderation" : "new";
+  const insertedAppeal = await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, ?)")
+    .bind("Telegram", "Через Telegram-бота", message, appealStatus).run();
   if (insertedAppeal.meta?.last_row_id) {
     await env.DB.prepare("INSERT OR REPLACE INTO telegram_appeal_sender_keys (appeal_id, chat_id) VALUES (?, ?)")
       .bind(insertedAppeal.meta.last_row_id, chatId).run();
   }
-  await sendPushNotifications(env, {
-    title: "Совет Первых · Новое обращение",
-    body: "Поступило обращение из Telegram-бота. Нажмите, чтобы открыть админку.",
-    url: "/admin#appeals",
-    tag: "new-appeal"
-  });
+  if (!flaggedForReview) {
+    await sendPushNotifications(env, {
+      title: "Совет Первых · Новое обращение",
+      body: "Поступило обращение из Telegram-бота. Нажмите, чтобы открыть админку.",
+      url: "/admin#appeals",
+      tag: "new-appeal"
+    });
+  }
   await env.DB.prepare("UPDATE telegram_appeal_sessions SET awaiting=0, updated_at=? WHERE chat_id=?")
     .bind(Math.floor(Date.now() / 1000), chatId).run();
   await telegramReply(env, chatId,
@@ -703,19 +725,23 @@ self.addEventListener("notificationclick", event => {
         if (!limit.allowed) {
           return json({ error: "В целях безопасности с одного подключения можно отправить не более 10 обращений в час. Пожалуйста, попробуйте позже." }, 429, { ...headers, ...cors(origin) });
         }
-        const inserted = await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, 'new')")
-          .bind(role, category, message).run();
+        const flaggedForReview = containsProfanity(message);
+        const appealStatus = flaggedForReview ? "moderation" : "new";
+        const inserted = await env.DB.prepare("INSERT INTO appeals (role, category, message, status) VALUES (?, ?, ?, ?)")
+          .bind(role, category, message, appealStatus).run();
         if (inserted.meta?.last_row_id) {
           await env.DB.prepare("INSERT OR REPLACE INTO appeal_sender_keys (appeal_id, ip_hash) VALUES (?, ?)")
             .bind(inserted.meta.last_row_id, ipHash).run();
         }
-        await sendPushNotifications(env, {
-          title: "Совет Первых · Новое обращение",
-          body: "Поступило новое обращение с сайта. Нажмите, чтобы открыть админку.",
-          url: "/admin#appeals",
-          tag: "new-appeal"
-        });
-        return json({ success: true }, 201, { ...headers, ...cors(origin) });
+        if (!flaggedForReview) {
+          await sendPushNotifications(env, {
+            title: "Совет Первых · Новое обращение",
+            body: "Поступило новое обращение с сайта. Нажмите, чтобы открыть админку.",
+            url: "/admin#appeals",
+            tag: "new-appeal"
+          });
+        }
+        return json({ success: true, heldForReview: flaggedForReview }, 201, { ...headers, ...cors(origin) });
       } catch {
         return json({ error: "Сервис временно недоступен. Попробуйте позже." }, 503, { ...headers, ...cors(origin) });
       }
@@ -984,7 +1010,7 @@ self.addEventListener("notificationclick", event => {
           return json({ success: true }, 200, headers);
         }
         const body = await readJsonBody(request);
-        if (!["reviewed", "done"].includes(body.status)) return json({ error: "Некорректный статус." }, 400, headers);
+        if (!["new", "reviewed", "done"].includes(body.status)) return json({ error: "Некорректный статус." }, 400, headers);
         await env.DB.prepare("UPDATE appeals SET status = ? WHERE id = ?").bind(body.status, id).run();
         return json({ success: true }, 200, headers);
       } catch { return json({ error: "Не удалось изменить обращение." }, 500, headers); }
