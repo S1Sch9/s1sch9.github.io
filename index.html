@@ -589,7 +589,7 @@ addEventListener("hashchange", route);
     if(e.target.closest(selector)) e.preventDefault();
   });
 })();
-let s1SheetScrollY=0;
+let s1SheetScrollY=0,s1BodyStyleBeforeSheet=null;
 function updateS1VisualHeight(){
   const height=window.visualViewport?window.visualViewport.height:window.innerHeight;
   document.documentElement.style.setProperty("--s1-visual-height",Math.max(240,height)+"px");
@@ -598,13 +598,20 @@ updateS1VisualHeight();
 if(window.visualViewport){window.visualViewport.addEventListener("resize",updateS1VisualHeight);window.visualViewport.addEventListener("scroll",updateS1VisualHeight)}
 window.addEventListener("resize",updateS1VisualHeight);
 function openSh(h){
-  if(!$("#sh").classList.contains("on"))s1SheetScrollY=window.scrollY||window.pageYOffset||0;
+  if(!$("#sh").classList.contains("on")){
+    s1SheetScrollY=window.scrollY||window.pageYOffset||0;
+    s1BodyStyleBeforeSheet={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,right:document.body.style.right,width:document.body.style.width,overflow:document.body.style.overflow};
+    document.body.style.position="fixed";document.body.style.top=(-s1SheetScrollY)+"px";document.body.style.left="0";document.body.style.right="0";document.body.style.width="100%";document.body.style.overflow="hidden";
+  }
   $("#pn").classList.remove("more-panel");$("#pn").innerHTML='<div class="grip"></div>'+h;
-  updateS1VisualHeight();$("#sh").classList.add("on");document.body.style.overflow="hidden";
+  updateS1VisualHeight();$("#sh").classList.add("on");
 }
 function closeSh(){
   const active=document.activeElement;if(active&&$("#pn").contains(active))active.blur();
-  $("#sh").classList.remove("on");document.body.style.overflow="";
+  $("#sh").classList.remove("on");
+  const prior=s1BodyStyleBeforeSheet||{};
+  document.body.style.position=prior.position||"";document.body.style.top=prior.top||"";document.body.style.left=prior.left||"";document.body.style.right=prior.right||"";document.body.style.width=prior.width||"";document.body.style.overflow=prior.overflow||"";
+  s1BodyStyleBeforeSheet=null;
   requestAnimationFrame(()=>window.scrollTo(0,s1SheetScrollY));
 }
 function openMoreMenu(){
