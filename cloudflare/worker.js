@@ -196,18 +196,23 @@ async function ensureEvents(env) {
     created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
   )`).run();
 }
+let newsSocialSchemaPromise=null;
 async function ensureNewsSocial(env) {
-  await ensureTelegramNews(env);
-  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_likes (news_id TEXT NOT NULL, visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (news_id, visitor_hash))`).run();
-  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_likes_news ON news_likes(news_id)").run();
-  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_comments (id TEXT PRIMARY KEY, news_id TEXT NOT NULL, author TEXT NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'published', visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
-  for (const sql of [
-    "ALTER TABLE news_comments ADD COLUMN profanity_flag INTEGER NOT NULL DEFAULT 0",
-    "ALTER TABLE news_comments ADD COLUMN parent_id TEXT"
-  ]) { try { await env.DB.prepare(sql).run(); } catch {} }
-  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_comments_news ON news_comments(news_id, status, created_at)").run();
-  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_comment_likes (comment_id TEXT NOT NULL, visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (comment_id, visitor_hash))`).run();
-  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_comment_likes_comment ON news_comment_likes(comment_id)").run();
+  if(newsSocialSchemaPromise)return newsSocialSchemaPromise;
+  newsSocialSchemaPromise=(async()=>{
+    await ensureTelegramNews(env);
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_likes (news_id TEXT NOT NULL, visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (news_id, visitor_hash))`).run();
+    await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_likes_news ON news_likes(news_id)").run();
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_comments (id TEXT PRIMARY KEY, news_id TEXT NOT NULL, author TEXT NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'published', visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
+    for (const sql of [
+      "ALTER TABLE news_comments ADD COLUMN profanity_flag INTEGER NOT NULL DEFAULT 0",
+      "ALTER TABLE news_comments ADD COLUMN parent_id TEXT"
+    ]) { try { await env.DB.prepare(sql).run(); } catch {} }
+    await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_comments_news ON news_comments(news_id, status, created_at)").run();
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_comment_likes (comment_id TEXT NOT NULL, visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (comment_id, visitor_hash))`).run();
+    await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_comment_likes_comment ON news_comment_likes(comment_id)").run();
+  })();
+  try{await newsSocialSchemaPromise;}catch(error){newsSocialSchemaPromise=null;throw error;}
 }
 async function ensureTelegramNews(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_news (
