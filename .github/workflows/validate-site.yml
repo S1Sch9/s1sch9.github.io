@@ -28,6 +28,10 @@ jobs:
           fs.writeFileSync('/tmp/s1sch9-inline.js', html.slice(html.indexOf('>', open) + 1, close));
           NODE
           node --check /tmp/s1sch9-inline.js
+      - name: Run Worker security smoke tests
+        run: |
+          npm install --prefix cloudflare --no-package-lock
+          node cloudflare/security-smoke-test.mjs
       - name: Check required site safeguards
         run: |
           node <<'NODE'
