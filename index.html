@@ -37,28 +37,6 @@
   "description": "Сайт Совета Первых школы №9 города Казани: новости, команда, проекты, мероприятия и обращения."
 }
 
-/* Единый поиск по новостям, календарю, команде и полезным ссылкам */
-(function installSiteSearch(){
- const panel=$("#siteSearchPanel"),trigger=$("#siteSearchTrigger"),input=$("#siteSearchInput"),results=$("#siteSearchResults");if(!panel||!trigger||!input||!results)return;
- const close=()=>{panel.hidden=true;trigger.setAttribute("aria-expanded","false");};
- const open=()=>{panel.hidden=false;trigger.setAttribute("aria-expanded","true");setTimeout(()=>input.focus(),30);};
- trigger.addEventListener("click",()=>panel.hidden?open():close());$("#siteSearchClose")?.addEventListener("click",close);
- document.addEventListener("keydown",e=>{if(e.key==="Escape")close();if(e.key==="/"&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||"")){e.preventDefault();open();}});
- function addResult(type,title,subtitle,action){const b=document.createElement("button");b.type="button";b.className="site-search-result";const left=document.createElement("span"),small=document.createElement("small"),bold=document.createElement("b"),arrow=document.createElement("span");small.textContent=type;bold.textContent=title;left.append(small,bold);if(subtitle){const desc=document.createElement("small");desc.textContent=subtitle;left.append(desc);}arrow.textContent="›";b.append(left,arrow);b.addEventListener("click",()=>{close();action();});results.append(b);}
- function search(){
-  const q=input.value.trim().toLocaleLowerCase("ru");results.replaceChildren();if(!q){const p=document.createElement("p");p.className="note";p.textContent="Начни вводить запрос — найдём нужное.";results.append(p);return;}
-  let count=0;const add=(...args)=>{if(count<12){addResult(...args);count++;}};
-  NEWS.forEach((n,index)=>{if((n.t+" "+n.x+" "+n.d).toLocaleLowerCase("ru").includes(q))add("Новость",n.t,n.d,()=>{location.hash="#news";route();drawNews();document.querySelector('#newsList .news-feed-card[data-k="'+index+'"] .news-open')?.click();});});
-  PUBLIC_EVENTS.forEach(e=>{if((e.title+" "+(e.description||"")+" "+(e.category||"")+" "+e.event_date).toLocaleLowerCase("ru").includes(q))add("Мероприятие",e.title,e.event_date,()=>{selectedEventDay=e.event_date;const d=eventDateFromKey(e.event_date);calendarCursor=new Date(d.getFullYear(),d.getMonth(),1);renderPublicCalendar();renderPublicEvents();location.hash="#events";if(location.hash==="#events")route();});});
-  TEAM.forEach((m,index)=>{if(m.join(" ").toLocaleLowerCase("ru").includes(q))add("Команда",m[1]||m[0],m[0],()=>{location.hash="#team";route();document.querySelector('#teamList .card[data-k="'+index+'"]')?.click();});});
-  document.querySelectorAll('#links a.row').forEach(a=>{if(a.textContent.toLocaleLowerCase("ru").includes(q))add("Ресурс",a.textContent.trim(),"Полезная ссылка",()=>{location.hash="#links";route();a.click();});});
-  if(!count){const p=document.createElement("p");p.className="note";p.textContent="Ничего не найдено. Попробуй другое слово.";results.append(p);}
- }
- input.addEventListener("input",search);
- document.addEventListener("click",e=>{if(!panel.hidden&&!panel.contains(e.target)&&!trigger.contains(e.target))close();});
-})();
-$("#siteInstallHelp")?.addEventListener("click",()=>showSiteToast(/iPhone|iPad|iPod/i.test(navigator.userAgent)?"В Safari нажми «Поделиться» → «На экран Домой».":"В меню браузера выбери «Установить приложение» или «Добавить на главный экран»."));
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
 </script>
 
 <link rel="icon" type="image/svg+xml" href="official-logo.svg?v=20261114-final">
@@ -1422,6 +1400,29 @@ const daySwipe=$('#dayShowcase');let dayTouchX=null;
 daySwipe?.addEventListener('touchstart',e=>{dayTouchX=e.changedTouches[0].clientX},{passive:true});
 daySwipe?.addEventListener('touchend',e=>{if(dayTouchX===null)return;const dx=e.changedTouches[0].clientX-dayTouchX;if(Math.abs(dx)>45)shiftSelectedDay(dx<0?1:-1);dayTouchX=null},{passive:true});
 loadPublicEvents();
+/* Единый поиск по новостям, календарю, команде и полезным ссылкам */
+(function installSiteSearch(){
+ const panel=$("#siteSearchPanel"),trigger=$("#siteSearchTrigger"),input=$("#siteSearchInput"),results=$("#siteSearchResults");if(!panel||!trigger||!input||!results)return;
+ const close=()=>{panel.hidden=true;trigger.setAttribute("aria-expanded","false");};
+ const open=()=>{panel.hidden=false;trigger.setAttribute("aria-expanded","true");setTimeout(()=>input.focus(),30);};
+ trigger.addEventListener("click",()=>panel.hidden?open():close());$("#siteSearchClose")?.addEventListener("click",close);
+ document.addEventListener("keydown",e=>{if(e.key==="Escape")close();if(e.key==="/"&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||"")){e.preventDefault();open();}});
+ function addResult(type,title,subtitle,action){const b=document.createElement("button");b.type="button";b.className="site-search-result";const left=document.createElement("span"),small=document.createElement("small"),bold=document.createElement("b"),arrow=document.createElement("span");small.textContent=type;bold.textContent=title;left.append(small,bold);if(subtitle){const desc=document.createElement("small");desc.textContent=subtitle;left.append(desc);}arrow.textContent="›";b.append(left,arrow);b.addEventListener("click",()=>{close();action();});results.append(b);}
+ function search(){
+  const q=input.value.trim().toLocaleLowerCase("ru");results.replaceChildren();if(!q){const p=document.createElement("p");p.className="note";p.textContent="Начни вводить запрос — найдём нужное.";results.append(p);return;}
+  let count=0;const add=(...args)=>{if(count<12){addResult(...args);count++;}};
+  NEWS.forEach((n,index)=>{if((n.t+" "+n.x+" "+n.d).toLocaleLowerCase("ru").includes(q))add("Новость",n.t,n.d,()=>{location.hash="#news";route();drawNews();document.querySelector('#newsList .news-feed-card[data-k="'+index+'"] .news-open')?.click();});});
+  PUBLIC_EVENTS.forEach(e=>{if((e.title+" "+(e.description||"")+" "+(e.category||"")+" "+e.event_date).toLocaleLowerCase("ru").includes(q))add("Мероприятие",e.title,e.event_date,()=>{selectedEventDay=e.event_date;const d=eventDateFromKey(e.event_date);calendarCursor=new Date(d.getFullYear(),d.getMonth(),1);renderPublicCalendar();renderPublicEvents();location.hash="#events";if(location.hash==="#events")route();});});
+  TEAM.forEach((m,index)=>{if(m.join(" ").toLocaleLowerCase("ru").includes(q))add("Команда",m[1]||m[0],m[0],()=>{location.hash="#team";route();document.querySelector('#teamList .card[data-k="'+index+'"]')?.click();});});
+  document.querySelectorAll('#links a.row').forEach(a=>{if(a.textContent.toLocaleLowerCase("ru").includes(q))add("Ресурс",a.textContent.trim(),"Полезная ссылка",()=>{location.hash="#links";route();a.click();});});
+  if(!count){const p=document.createElement("p");p.className="note";p.textContent="Ничего не найдено. Попробуй другое слово.";results.append(p);}
+ }
+ input.addEventListener("input",search);
+ document.addEventListener("click",e=>{if(!panel.hidden&&!panel.contains(e.target)&&!trigger.contains(e.target))close();});
+})();
+$("#siteInstallHelp")?.addEventListener("click",()=>showSiteToast(/iPhone|iPad|iPod/i.test(navigator.userAgent)?"В Safari нажми «Поделиться» → «На экран Домой».":"В меню браузера выбери «Установить приложение» или «Добавить на главный экран»."));
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
+
 </script>
 <footer class="site-credit" aria-label="Информация о создателе сайта">Создатель сайта — Михеев Д. А. · 9 «А» класс</footer>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
