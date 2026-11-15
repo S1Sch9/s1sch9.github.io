@@ -1015,7 +1015,71 @@ html{scroll-behavior:smooth}
 @media(max-width:380px){#events .day-showcase{padding:16px 13px 13px}#events .day-date strong{font-size:23px}#events .event-list-item{gap:9px;padding:10px}#events .event-list-date{width:43px;height:46px}#events .mini-calendar-wrap{padding:13px 9px}#events .calendar-day{min-height:36px}}
 @media(prefers-reduced-motion:reduce){#events .event-list-item{transition:none}}
 </style>
-</head>
+<style id="sitewide-design-system-2026">
+/* Единая визуальная система: меньше визуального шума, яснее иерархия */
+:root{--ui-ink:#28151b;--ui-muted:#817279;--ui-line:#eee5e7;--ui-soft:#f7f2f3;--ui-red:#86152f;--ui-red-dark:#6f1027;--ui-gold:#d9b45f}
+html{scroll-behavior:smooth}
+body{color:var(--ui-ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+main{max-width:760px}
+section{scroll-margin-top:20px}
+.section-heading{padding:5px 2px 3px!important;margin:13px 0 22px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+.section-heading small{margin-bottom:7px;font-size:9px;letter-spacing:.15em;color:#9a6673}
+.section-heading h1{font-size:clamp(27px,6vw,32px);line-height:1.08;letter-spacing:-1.05px;font-weight:850;color:#32131d}
+.section-heading p{max-width:38em;font-size:12px;line-height:1.55;color:#83767b}
+button,.btn,a.btn{font-family:inherit;-webkit-tap-highlight-color:transparent}
+button:not(.calendar-day):not(.day-arrow):not(.home-shortcuts-dot):not(.tile):not(.home-shortcut):not(.news-tab):not(.nav-label),
+.btn{touch-action:manipulation}
+.btn,a.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:41px;padding:9px 15px!important;border:1px solid transparent!important;border-radius:13px!important;background:var(--ui-red)!important;color:#fff!important;font-size:12px!important;line-height:1.2;font-weight:780!important;letter-spacing:0!important;box-shadow:0 2px 5px rgba(83,0,22,.08)!important;transition:background .16s,border-color .16s,transform .16s,box-shadow .16s!important}
+.btn:active,a.btn:active{transform:scale(.975)}
+.btn.ghost{background:#f4edef!important;border-color:#eee3e6!important;color:#5b3540!important;box-shadow:none!important}
+.btn:disabled{opacity:.48;box-shadow:none!important}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #bd8795;outline-offset:3px}
+input:not([type=checkbox]):not([type=radio]),select,textarea{border-color:#e9dfe2;border-radius:13px;background:#fff;box-shadow:none;font-size:13px}
+input:not([type=checkbox]):not([type=radio]),select{min-height:43px;padding:10px 13px}
+textarea{min-height:125px;padding:12px 13px;line-height:1.5}
+input:focus,select:focus,textarea:focus{border-color:#bd8795!important;box-shadow:0 0 0 3px rgba(134,21,47,.09)!important}
+label{font-size:12px;font-weight:760;color:#58464c}
+.card,.appeal-form-card,.game,.mini-calendar-wrap,.news-card,.team-card,.row.link{box-shadow:0 4px 16px rgba(47,9,20,.045)}
+.appeal-form-card{padding:17px;border:1px solid var(--ui-line);border-radius:19px;background:#fff}
+.appeal-form-head{gap:11px;margin-bottom:14px}
+.appeal-form-head>span{width:37px;height:37px;display:grid;place-items:center;border-radius:12px;background:#f7edf0;font-size:16px}
+.appeal-form-head b{font-size:14px;letter-spacing:-.02em}
+.appeal-form-head small{font-size:11px;line-height:1.45;color:var(--ui-muted)}
+.rules-gate{padding:12px;border-radius:14px;background:#faf7f8;box-shadow:none}
+.rules-gate-icon{width:34px;height:34px;border-radius:10px;font-size:15px}
+.rules-consent{padding:10px 12px;border-radius:13px;background:#faf7f8;font-size:11px}
+#send.btn.full{min-height:47px!important;padding:12px 16px!important;border-radius:13px!important;font-size:13px!important;box-shadow:0 3px 10px rgba(134,21,47,.12)!important}
+#send.btn.full:disabled{box-shadow:none!important}
+.news-tabs{gap:7px;margin:12px 0 8px}
+.news-tab{min-height:37px!important;padding:8px 12px!important;border:1px solid #eee5e7!important;border-radius:11px!important;background:#f8f4f5!important;color:#705e64!important;font-size:11px!important;font-weight:750!important;box-shadow:none!important}
+.news-tab.is-active{border-color:#86152f!important;background:#86152f!important;color:#fff!important}
+.news-result-count{margin:8px 2px 12px;font-size:10px;color:#94868b}
+#q{margin-bottom:8px}
+.row.link{min-height:58px;padding:10px 13px;border:1px solid #eee6e8;border-radius:15px;background:#fff;font-size:12px;font-weight:730;box-shadow:none}
+.row.link i{width:35px;height:35px;flex:0 0 35px;border-radius:11px}
+.resource-caption{margin:19px 2px 9px;font-size:10px;font-weight:850;letter-spacing:.1em;color:#9b6d78;text-transform:uppercase}
+.game{border:1px solid #eee4e7;border-radius:20px;box-shadow:none;overflow:hidden}
+.game-bottom{gap:10px;padding:13px 15px}
+.game-hint{font-size:10px;line-height:1.4;color:#84777c}
+.game-bottom .btn{min-width:104px}
+nav{gap:4px;padding:5px;border:1px solid #eee5e7;border-radius:22px;background:rgba(255,255,255,.94);box-shadow:0 7px 22px rgba(49,7,19,.10);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+nav a,nav button{min-height:49px;padding:6px 2px 5px!important;border:0!important;border-radius:16px!important;background:transparent!important;color:#85767b!important;box-shadow:none!important;font-size:9px!important;font-weight:720!important}
+nav a i,nav button i{display:grid;place-items:center;width:23px;height:23px;margin:0 auto 3px;font-size:0!important;color:inherit}
+nav a i svg,nav button i svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav a.on,nav button.on{background:#82142e!important;color:#fff!important;box-shadow:0 3px 9px rgba(91,0,23,.16)!important}
+nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
+.sh .pn{border-radius:24px 24px 0 0}
+.sh .pn .grip{width:38px;height:4px;border-radius:9px;background:#d8cdd0}
+.home-brand{margin-bottom:17px}
+@media(max-width:420px){
+ .section-heading{margin-bottom:18px!important}
+ .section-heading h1{font-size:28px}
+ .appeal-form-card{padding:14px;border-radius:17px}
+ .row.link{min-height:55px}
+ nav{left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom))}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,a.btn,button{transition:none!important}}
+</style></head>
 <body>
 <div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button></div>
 <div class="site-search-panel" id="siteSearchPanel" hidden><div class="site-search-head"><label for="siteSearchInput">Поиск по всему сайту</label><button type="button" id="siteSearchClose" aria-label="Закрыть поиск">×</button></div><input id="siteSearchInput" type="search" placeholder="Новости, мероприятия, люди, ссылки…" autocomplete="off"><div id="siteSearchResults" class="site-search-results"><p class="note">Начни вводить запрос — найдём нужное.</p></div><button type="button" id="siteInstallHelp" class="site-install-help">Как добавить сайт на экран телефона</button></div>
@@ -1137,10 +1201,10 @@ html{scroll-behavior:smooth}
 </section>
 </main>
 <nav aria-label="Основная навигация">
-  <a href="#home"><i>🏠</i><span class="nav-label">Главная</span></a>
-  <a href="#news"><i>📰</i><span class="nav-label">Новости</span></a>
-  <a href="#appeal"><i>✍️</i><span class="nav-label">Обращение</span></a>
-  <button type="button" data-more="true" onclick="openMoreMenu()" aria-label="Открыть все разделы"><i>☰</i><span class="nav-label">Ещё</span></button>
+  <a href="#home"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10 8.5-7 8.5 7v10a1 1 0 0 1-1 1h-5.2v-6.5H9.7V21H4.5a1 1 0 0 1-1-1z"/></svg></i><span class="nav-label">Главная</span></a>
+  <a href="#news"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h14a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5Z"/><path d="M7.5 8h9M7.5 12h9M7.5 16h5"/></svg></i><span class="nav-label">Новости</span></a>
+  <a href="#appeal"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-7a7.5 7.5 0 1 1 17.5-2.5Z"/><path d="M8 10h8M8 14h5"/></svg></i><span class="nav-label">Обращение</span></a>
+  <button type="button" data-more="true" onclick="openMoreMenu()" aria-label="Открыть все разделы"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></i><span class="nav-label">Ещё</span></button>
 </nav>
 <div class="sh" id="sh"><div class="bg" onclick="closeSh()"></div><div class="pn" id="pn"></div></div>
 <div id="gm"><button onclick="closeGame()">← На сайт</button><iframe id="gf" title="Башня Первых" allowfullscreen></iframe></div>
