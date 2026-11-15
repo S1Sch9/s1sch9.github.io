@@ -901,6 +901,25 @@ html{scroll-behavior:smooth}
 .sh.is-dismissing .pn{pointer-events:none}
 @media(prefers-reduced-motion:reduce){.sh .pn{will-change:auto}.sh.is-dragging .pn{box-shadow:none}}
 </style>
+<style id="restore-original-home-tiles">
+/* Restore the original home section tiles; keep the newer panel gestures and navigation. */
+.tiles{gap:12px!important;margin:14px 0!important}
+.tile{
+ position:static!important;isolation:auto!important;overflow:visible!important;
+ min-height:0!important;padding:18px!important;border-radius:var(--r)!important;
+ box-shadow:none!important;transition:transform .15s!important;
+}
+.tile span{font-size:26px!important;line-height:normal!important}
+.tile.red{
+ min-height:0!important;padding:18px!important;border-radius:var(--r)!important;
+ box-shadow:none!important;
+}
+.tile:after{display:none!important}
+.tile:active{transform:scale(.97)!important;box-shadow:none!important}
+@media(hover:hover) and (pointer:fine){.tile:hover{transform:none!important;box-shadow:none!important;border-color:var(--line)!important}}
+@media(max-width:420px){.tile{padding:18px!important;min-height:0!important}.tile.red{padding:18px!important}}
+@media(max-width:360px){.tile{padding:18px!important}}
+</style>
 </head>
 <body>
 <div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button></div>
