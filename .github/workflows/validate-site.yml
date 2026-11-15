@@ -1,0 +1,40 @@
+name: Validate site code
+on:
+  push:
+    branches: [main, site-upgrade-security-pwa]
+  pull_request:
+    branches: [main]
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check cloudflare/worker.js
+          node --check cloudflare/admin-page.js
+          node --check sw.js
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const scripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1]).filter(s => s.trim());
+          if (!scripts.length) throw new Error('No inline application script found');
+          fs.writeFileSync('/tmp/s1sch9-inline.js', scripts[scripts.length - 1]);
+          NODE
+          node --check /tmp/s1sch9-inline.js
+      - name: Check required site safeguards
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const sw = fs.readFileSync('sw.js', 'utf8');
+          for (const text of ['newsFavoritesToggle','siteSearchTrigger','data-add-calendar','prefers-reduced-motion','&#39;']) {
+            if (!html.includes(text)) throw new Error('Missing expected feature or safeguard: ' + text);
+          }
+          if (!sw.includes('url.pathname.includes("/api/")')) throw new Error('Service worker must not cache API responses');
+          if (!sw.includes('request.mode === "navigate"')) throw new Error('Navigation offline fallback missing');
+          console.log('Site feature and offline-cache checks passed');
+          NODE
