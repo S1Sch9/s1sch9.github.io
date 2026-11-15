@@ -831,7 +831,7 @@ function newsVisitorId(){const key="s1sch9_news_visitor";let id=localStorage.get
 function renderNewsComment(c,all=[],depth=0){
   const date=esc(new Date(c.created_at).toLocaleString("ru-RU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}));
   const tools=c.is_mine?'<div class="news-comment-tools"><button type="button" data-comment-edit>Изменить</button><button type="button" data-comment-delete>Удалить</button></div>':"";
-  const actions='<div class="news-comment-actions"><button type="button" class="news-comment-like'+(c.liked?' is-liked':'')+'" data-comment-like>♥ '+Number(c.likes||0)+'</button><button type="button" data-comment-reply>Ответить</button></div>';
+  const actions=c.status==="moderation"?'':'<div class="news-comment-actions"><button type="button" class="news-comment-like'+(c.liked?' is-liked':'')+'" data-comment-like>♥ '+Number(c.likes||0)+'</button><button type="button" data-comment-reply>Ответить</button></div>';
   const children=depth<4?all.filter(x=>x.parent_id===c.id).map(x=>renderNewsComment(x,all,depth+1)).join(""):"";
   return '<article class="news-comment" data-comment-id="'+esc(c.id)+'"><b>'+esc(c.author)+'</b><p>'+esc(c.message)+'</p><small>'+date+'</small>'+actions+tools+(children?'<div class="news-comment-children">'+children+'</div>':'')+'</article>';
  }
