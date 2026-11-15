@@ -892,6 +892,14 @@ html{scroll-behavior:smooth}
  .tile:after,.card:after,.row:after{display:none}
 }
 
+
+/* Sheet motion polish: subtle depth and live backdrop dimming while dragging */
+.sh .bg{transition:opacity .32s ease}
+.sh .pn{transform:translate3d(0,0,0);transform-origin:50% 100%;will-change:transform}
+.sh.is-dragging .pn{animation:none!important;transition:none!important;box-shadow:0 18px 60px rgba(30,0,8,.24)}
+.sh.is-dragging .bg{transition:none!important}
+.sh.is-dismissing .pn{pointer-events:none}
+@media(prefers-reduced-motion:reduce){.sh .pn{will-change:auto}.sh.is-dragging .pn{box-shadow:none}}
 </style>
 </head>
 <body>
@@ -1431,42 +1439,69 @@ function openNewsComments(newsId){
 }
 document.addEventListener("focusin",e=>{if(!e.target.matches("#pn input,#pn textarea"))return;requestAnimationFrame(()=>{requestAnimationFrame(()=>{if(e.target.isConnected)e.target.scrollIntoView({block:"nearest",inline:"nearest",behavior:"smooth"})})})});
 
-/* Swipe down from the upper sheet area to dismiss the current panel. */
+/* iOS-style interactive sheet: the panel follows the finger, then springs back or dismisses. */
 (function installSheetSwipeDismiss(){
- const panel=$("#pn");if(!panel)return;
- let start=null,dragging=false;
+ const shell=$("#sh"),panel=$("#pn");if(!shell||!panel)return;
+ let start=null,dragging=false,lastY=0,lastTime=0,velocity=0,closing=false;
+ const reset=()=>{
+  start=null;dragging=false;velocity=0;
+  shell.classList.remove("is-dragging","is-dismissing");
+  shell.style.removeProperty("--sheet-drag");
+  panel.style.transform="";panel.style.transition="";panel.style.animation="";
+  const bg=shell.querySelector(".bg");if(bg)bg.style.opacity="";
+ };
+ const springBack=()=>{
+  shell.classList.remove("is-dragging");
+  panel.style.transition="transform 460ms cubic-bezier(.2,1.35,.32,1)";
+  panel.style.transform="translate3d(0,0,0)";
+  const bg=shell.querySelector(".bg");if(bg)bg.style.transition="opacity 360ms ease";
+  if(bg)bg.style.opacity="1";
+  window.setTimeout(()=>{if(!shell.classList.contains("is-dismissing"))reset()},490);
+ };
  panel.addEventListener("touchstart",e=>{
-  if(e.touches.length!==1)return;
+  if(closing||e.touches.length!==1)return;
   const target=e.target;
   if(target.closest("input,textarea,select,[contenteditable=true],.news-comments-list,.news-comments-compose"))return;
-  const rect=panel.getBoundingClientRect(),y=e.touches[0].clientY;
-  if(y>rect.top+155)return;
-  start={x:e.touches[0].clientX,y,id:e.touches[0].identifier};dragging=false;
+  const rect=panel.getBoundingClientRect(),t=e.touches[0];
+  if(t.clientY>rect.top+155)return;
+  start={x:t.clientX,y:t.clientY,id:t.identifier,time:performance.now()};
+  lastY=t.clientY;lastTime=start.time;velocity=0;dragging=false;
  },{passive:true});
  panel.addEventListener("touchmove",e=>{
-  if(!start||e.touches.length!==1)return;
+  if(!start||e.touches.length!==1||closing)return;
   const t=[...e.touches].find(x=>x.identifier===start.id);if(!t)return;
-  const dx=t.clientX-start.x,dy=t.clientY-start.y;
+  const dx=t.clientX-start.x,dy=t.clientY-start.y,now=performance.now();
   if(!dragging){
-   if(Math.abs(dx)>Math.abs(dy)*1.15||dy<8)return;
-   if(dy<14)return;
-   dragging=true;
+   if(Math.abs(dx)>Math.abs(dy)*1.15||dy<7)return;
+   dragging=true;shell.classList.add("is-dragging");
+   panel.style.animation="none";
   }
-  if(dy>0&&e.cancelable)e.preventDefault();
+  if(dy>=0){
+   if(e.cancelable)e.preventDefault();
+   const pull=Math.max(0,dy);
+   panel.style.transform="translate3d(0,"+pull+"px,0)";
+   const bg=shell.querySelector(".bg");if(bg){bg.style.transition="none";bg.style.opacity=String(Math.max(.35,1-pull/430))}
+   const dt=Math.max(1,now-lastTime);velocity=(t.clientY-lastY)/dt;
+   lastY=t.clientY;lastTime=now;
+  }
  },{passive:false});
  panel.addEventListener("touchend",e=>{
   if(!start)return;
   const t=[...e.changedTouches].find(x=>x.identifier===start.id);
   const dy=t?t.clientY-start.y:0,dx=t?t.clientX-start.x:0;
-  const shouldClose=dragging&&dy>72&&dy>Math.abs(dx)*1.2;
-  start=null;dragging=false;
+  const shouldClose=dragging&&dy>Math.abs(dx)*1.15&&(dy>112||(dy>38&&velocity>.62));
+  start=null;
+  if(!dragging){velocity=0;return}
   if(shouldClose){
-   const active=document.activeElement;
-   if(active&&panel.contains(active))active.blur();
-   if(panel.classList.contains("news-comments-panel"))closeNewsComments();else closeSh();
-  }
+   closing=true;shell.classList.remove("is-dragging");shell.classList.add("is-dismissing");
+   panel.style.transition="transform 300ms cubic-bezier(.32,0,.7,.25)";
+   panel.style.transform="translate3d(0,105%,0)";
+   const bg=shell.querySelector(".bg");if(bg){bg.style.transition="opacity 260ms ease";bg.style.opacity="0"}
+   const active=document.activeElement;if(active&&panel.contains(active))active.blur();
+   window.setTimeout(()=>{closing=false;reset();if(panel.classList.contains("news-comments-panel"))closeNewsComments();else closeSh()},310);
+  }else springBack();
  },{passive:true});
- panel.addEventListener("touchcancel",()=>{start=null;dragging=false},{passive:true});
+ panel.addEventListener("touchcancel",()=>{if(dragging)springBack();else reset()},{passive:true});
 })();
 
 document.addEventListener("click",e=>{
