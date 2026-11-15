@@ -20,9 +20,12 @@ jobs:
           node <<'NODE'
           const fs = require('node:fs');
           const html = fs.readFileSync('index.html', 'utf8');
-          const scripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1]).filter(s => s.trim());
-          if (!scripts.length) throw new Error('No inline application script found');
-          fs.writeFileSync('/tmp/s1sch9-inline.js', scripts[scripts.length - 1]);
+          const marker = '/* ===== НАСТРОЙКИ ===== */';
+          const at = html.indexOf(marker);
+          const open = html.lastIndexOf('<script', at);
+          const close = html.indexOf('</script>', at);
+          if (at < 0 || open < 0 || close < 0) throw new Error('Main application script not found');
+          fs.writeFileSync('/tmp/s1sch9-inline.js', html.slice(html.indexOf('>', open) + 1, close));
           NODE
           node --check /tmp/s1sch9-inline.js
       - name: Check required site safeguards
