@@ -343,9 +343,12 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .site-install-help{width:100%;margin-top:10px;padding:10px;border:0;border-radius:12px;background:#f7f1f2;color:#75686c;font:600 12px Onest,system-ui;cursor:pointer}
 .site-toast{position:fixed;z-index:50;left:50%;bottom:calc(94px + env(safe-area-inset-bottom));transform:translate(-50%,12px);max-width:calc(100vw - 32px);padding:11px 16px;border-radius:14px;background:#2b171d;color:#fff;font-size:12px;line-height:1.4;box-shadow:0 8px 28px #0002;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .site-toast.is-visible{opacity:1;transform:translate(-50%,0)}
-.news-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-5px 0 12px;color:var(--mut);font-size:11px}
-.news-tools button{padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--deep);font:700 12px Onest,system-ui;cursor:pointer}
-.news-tools button[aria-pressed="true"]{background:#f6e4e8;border-color:#e5c4cd;color:var(--red)}
+.news-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:-4px 0 7px;padding:5px;border:1px solid #eee2e5;border-radius:16px;background:#f8f3f4}
+.news-tab{display:flex;align-items:center;justify-content:center;gap:8px;min-height:43px;padding:9px 10px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--mut);font:750 12px Onest,system-ui;cursor:pointer;transition:background .2s,border-color .2s,color .2s,box-shadow .2s}
+.news-tab span{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;padding:0 6px;border-radius:999px;background:#eae1e3;color:#65565b;font-size:10px}
+.news-tab.is-active{background:#fff;border-color:#ead8dd;color:var(--red);box-shadow:0 3px 10px #3d000d0b}
+.news-tab.is-active span{background:#f5e4e8;color:var(--red)}
+.news-result-count{min-height:16px;margin:0 2px 12px;color:var(--mut);font-size:10px}
 .news-bookmark{padding:7px 9px;border:1px solid #eadfe1;border-radius:10px;background:#fff;color:var(--red);font:700 12px Onest,system-ui;cursor:pointer}
 .news-bookmark.is-saved{background:#fff2d8;border-color:#efd9a4;color:#76520b}
 .event-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
@@ -726,7 +729,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 <section id="team"><div class="section-heading rv"><small>КОМАНДА СОВЕТА</small><h1>Состав</h1><p>Участники Совета и их роли в школьных инициативах.</p></div><div class="grid" id="teamList"></div></section>
 <section id="news"><div class="section-heading rv"><small>НОВОСТИ СОВЕТА</small><h1>Новости</h1><p>Публикации о проектах, событиях и жизни нашей школы.</p></div>
   <input id="q" class="rv" type="search" placeholder="Искать новости" aria-label="Поиск по новостям">
-  <div class="news-tools"><button type="button" id="newsFavoritesToggle" aria-pressed="false">☆ Сохранённые</button><span id="newsResultCount" aria-live="polite"></span></div>
+  <div class="news-tabs" role="tablist" aria-label="Разделы новостей"><button type="button" class="news-tab is-active" id="newsAllTab" role="tab" aria-selected="true" aria-controls="newsList" data-news-tab="all">Все новости <span id="newsAllCount">0</span></button><button type="button" class="news-tab" id="newsSavedTab" role="tab" aria-selected="false" aria-controls="newsList" data-news-tab="saved">★ Сохранённые <span id="newsSavedCount">0</span></button></div><p class="news-result-count" id="newsResultCount" aria-live="polite"></p>
   <div id="newsList"></div>
 </section>
 <section id="events"><div class="section-heading rv"><small>КАЛЕНДАРЬ</small><h1>Мероприятия</h1><p>Выбери дату, чтобы посмотреть запланированные события Совета.</p></div>
@@ -1135,8 +1138,13 @@ function drawNews(){
       '<div class="news-social news-social-feed" data-news-social="' + esc(id) + '">' +
       '<div class="news-social-actions"><button type="button" class="news-like" data-news-like>♡ Нравится <span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump>Комментарии <span data-comment-count></span></button><button type="button" class="news-bookmark" data-bookmark-news>☆ Сохранить</button></div></div></article>';
   }).join("") : '<p class="note">Ничего не найдено.</p>';
-  const savedToggle = $("#newsFavoritesToggle"); if(savedToggle){savedToggle.setAttribute("aria-pressed",String(showSavedNews));savedToggle.textContent=showSavedNews?"★ Все новости":"☆ Сохранённые";}
-  const countLabel=$("#newsResultCount");if(countLabel)countLabel.textContent=list.length+" из "+NEWS.length;
+  const allTab=$("#newsAllTab"), savedTab=$("#newsSavedTab");
+  if(allTab){allTab.classList.toggle("is-active",!showSavedNews);allTab.setAttribute("aria-selected",String(!showSavedNews));}
+  if(savedTab){savedTab.classList.toggle("is-active",showSavedNews);savedTab.setAttribute("aria-selected",String(showSavedNews));}
+  const allCount=$("#newsAllCount"), savedCount=$("#newsSavedCount");
+  if(allCount)allCount.textContent=NEWS.length;
+  if(savedCount)savedCount.textContent=NEWS.filter(n=>NEWS_FAVORITES.has(newsSocialId(n))).length;
+  const countLabel=$("#newsResultCount");if(countLabel)countLabel.textContent=showSavedNews?"Сохранённые новости · "+list.length:"Все публикации · "+list.length;
   document.querySelectorAll("#newsList [data-bookmark-news]").forEach(button=>{const key=button.closest("[data-news-social]")?.dataset.newsSocial;const saved=NEWS_FAVORITES.has(key);button.classList.toggle("is-saved",saved);button.textContent=saved?"★ Сохранено":"☆ Сохранить";button.setAttribute("aria-pressed",String(saved));button.addEventListener("click",()=>toggleNewsFavorite(key));});
   const L = NEWS[0];
   $("#latest").innerHTML = L ? '<button class="row rv" data-k="0"><small>Последняя новость</small><b>' + esc(L.t) + '</b>' + preview(L) + '<em style="display:block;margin-top:9px">Открыть новость →</em></button>' : "";
@@ -1298,7 +1306,8 @@ document.addEventListener("submit",async e=>{
 document.addEventListener("submit",async e=>{const form=e.target.closest("[data-comment-form],[data-comment-reply-form]");if(!form)return;e.preventDefault();const root=form.closest("[data-news-social]"),status=form.querySelector("[data-comment-status]"),button=form.querySelector("button[type=submit]");const edit=document.querySelector("[data-name-edit]"),author=(edit&&edit.value.trim())||newsCommentName(),message=form.elements.message.value.trim(),article=form.closest("[data-comment-id]"),parent_id=article?article.dataset.commentId:null;button.disabled=true;if(status)status.textContent="Отправляем…";try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({news_id:root.dataset.newsSocial,visitor_id:newsVisitorId(),author,message,parent_id})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось отправить комментарий");if(status)status.textContent=d.message;form.reset();const nameEdit=document.querySelector("[data-name-edit]");if(nameEdit)nameEdit.value=newsCommentName();if(d.status==="published")await loadNewsSocial(root.dataset.newsSocial)}catch(err){if(status)status.textContent=err.message}finally{button.disabled=false}});
 
 $("#q").addEventListener("input", drawNews);
-$("#newsFavoritesToggle")?.addEventListener("click",()=>{showSavedNews=!showSavedNews;drawNews();});
+$("#newsAllTab")?.addEventListener("click",()=>{showSavedNews=false;drawNews();});
+$("#newsSavedTab")?.addEventListener("click",()=>{showSavedNews=true;drawNews();});
 drawTeam(); drawNews();
 Promise.all([
   fetch("./news.json?v=" + Date.now()).then(r => r.ok ? r.json() : []).catch(() => []),
