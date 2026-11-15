@@ -455,6 +455,148 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
  .news-detail-dock{gap:9px;padding-left:17px;padding-right:17px}
 }
 @media(prefers-reduced-motion:reduce){.news-detail-dock button{transition:none}}
+
+/* Финальная полировка панели реакций и обсуждения */
+.news-detail-dock{
+  gap:11px;
+  padding:13px 22px calc(14px + env(safe-area-inset-bottom));
+  border-top:1px solid rgba(145,35,61,.10);
+  background:linear-gradient(180deg,rgba(255,255,255,.97),#fff 72%);
+  box-shadow:0 -10px 28px rgba(73,12,28,.075)
+}
+.news-detail-dock .news-like,
+.news-detail-dock .news-comments-jump{
+  min-height:54px;
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  font:800 13px Onest,system-ui;
+  letter-spacing:.01em;
+  transition:transform .24s cubic-bezier(.2,.9,.25,1),background .2s,border-color .2s,box-shadow .2s
+}
+.news-detail-dock .news-like{
+  min-width:104px;
+  padding:0 17px;
+  border:1px solid #f0dce1;
+  background:linear-gradient(145deg,#fff8f9,#fff0f3);
+  color:#a1002a;
+  box-shadow:0 3px 10px rgba(145,0,35,.055)
+}
+.news-detail-dock .news-like.is-liked{
+  background:linear-gradient(145deg,#ffe8ee,#ffeff3);
+  border-color:#e7b9c5;
+  box-shadow:0 4px 13px rgba(161,0,42,.11)
+}
+.news-detail-dock .news-comments-jump{
+  flex:1;
+  min-width:0;
+  padding:0 17px;
+  border:1px solid #eadde1;
+  background:linear-gradient(145deg,#fff,#faf5f6);
+  color:#542b36;
+  box-shadow:0 3px 10px rgba(61,0,13,.045)
+}
+.news-detail-dock .news-comments-jump:active,
+.news-detail-dock .news-like:active{transform:scale(.965)}
+.news-dock-icon{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;color:#a1002a}
+.news-dock-icon svg{display:block;width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.news-detail-dock .news-like.is-liked .news-dock-icon svg{fill:#b0002b;stroke:#b0002b}
+.news-dock-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#f4e7ea;color:#8d1935;font-size:11px;font-weight:850}
+.news-detail-dock .news-comments-jump .news-dock-count{background:#f1e5e8}
+.news-social-actions{gap:10px}
+.news-social-actions .news-like,
+.news-social-actions .news-comments-jump{
+  min-height:40px;
+  padding:8px 15px;
+  border-radius:13px;
+  border:1px solid #eee2e5;
+  background:linear-gradient(145deg,#fff,#fbf7f8);
+  color:#6b3a47;
+  font:750 12px Onest,system-ui;
+  box-shadow:0 2px 7px rgba(61,0,13,.035)
+}
+.news-social-actions .news-like{color:#a1002a;background:linear-gradient(145deg,#fff8f9,#fff1f4)}
+.news-social-actions .news-like.is-liked{background:#ffedf1;border-color:#e8bdc7;color:#a1002a}
+.news-social-actions .news-comments-jump{flex:1;justify-content:center}
+.news-comments-panel .news-comments-head{
+  padding:9px 0 16px;
+  border-bottom:1px solid #f0e6e9;
+  background:linear-gradient(180deg,#fffafb,#fff)
+}
+.news-comments-head small{letter-spacing:1.35px;font-size:9px}
+.news-comments-head h3{font-size:25px;letter-spacing:-.8px;color:#38212a}
+.news-comment-name{
+  min-height:36px;
+  padding:8px 13px;
+  border:1px solid #ead5db;
+  border-radius:13px;
+  background:linear-gradient(145deg,#fff8fa,#fbedf1);
+  color:#9b1736;
+  font:800 11px Onest,system-ui;
+  box-shadow:0 2px 8px rgba(145,0,35,.045)
+}
+.news-comment-name:after{content:"⌄";padding-left:8px;color:#b25b70}
+.news-comments-list{padding-top:16px}
+.news-comment-avatar{
+  width:36px;height:36px;
+  background:linear-gradient(145deg,#f8e9ed,#ebd1d9);
+  box-shadow:inset 0 0 0 1px rgba(145,35,61,.06)
+}
+.news-comment-bubble{
+  padding:11px 13px;
+  border:1px solid #f0e5e8;
+  border-radius:7px 17px 17px 17px;
+  background:linear-gradient(145deg,#fffdfd,#faf6f7);
+  box-shadow:0 2px 8px rgba(61,0,13,.025)
+}
+.news-comment-meta{gap:8px;margin-bottom:5px}
+.news-comment-meta b{font-size:12px;color:#482630}
+.news-comment-meta time{font-size:10px;color:#a5969b}
+.news-comment-bubble p{font-size:13px;line-height:1.55;color:#514047}
+.news-comment-actions button{
+  border-radius:10px;
+  transition:background .18s,color .18s,transform .18s
+}
+.news-comment-actions button:active{transform:scale(.96)}
+.news-comment-actions .news-comment-like{
+  min-width:48px;
+  color:#a34d63;
+  background:#fff7f8
+}
+.news-comment-actions .news-comment-like.is-liked{color:#b0002b;background:#fff0f3}
+.news-comments-compose{
+  padding-top:13px;
+  border-top:1px solid #f0e5e8;
+  background:rgba(255,253,253,.98);
+  box-shadow:0 -8px 22px rgba(61,0,13,.055)
+}
+.news-comment-compose-row textarea{
+  border:1px solid #eadde1;
+  background:#faf7f8;
+  box-shadow:inset 0 1px 2px rgba(61,0,13,.025)
+}
+.news-comment-compose-row textarea:focus{
+  outline:3px solid rgba(176,0,43,.09);
+  border-color:#c47a8c;
+  background:#fff
+}
+.news-comment-compose-row .btn{
+  border-radius:16px;
+  background:linear-gradient(145deg,#b20a35,#8f0025);
+  box-shadow:0 5px 14px rgba(143,0,37,.2)
+}
+@media(max-width:420px){
+  .news-detail-dock{gap:9px;padding-left:17px;padding-right:17px}
+  .news-detail-dock .news-like{min-width:88px;padding:0 12px}
+  .news-detail-dock .news-comments-jump{padding:0 12px;gap:7px}
+  .news-detail-dock .news-comments-label{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  .news-detail-dock .news-like,.news-detail-dock .news-comments-jump,.news-comment-actions button{transition:none}
+}
+
 </style></head>
 <body>
 <div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div></div>
@@ -943,7 +1085,7 @@ function drawNews(){
   $("#latest").innerHTML = L ? '<button class="row rv" data-k="0"><small>Последняя новость</small><b>' + esc(L.t) + '</b>' + preview(L) + '<em style="display:block;margin-top:9px">Открыть новость →</em></button>' : "";
   document.querySelectorAll("#newsList .news-feed-card,#latest .row").forEach((b, i) => { b.style.setProperty("--i", Math.min(i, 9)); b.onclick = e => {
     if(e.target.closest(".news-social")) return;
-    const n = NEWS[b.dataset.k]; if(!n)return; openSh('<div class="news-detail-content"><span class="chip">' + esc(n.d) + '</span><h3 style="margin-top:12px">' + esc(n.t) + '</h3>' + (n.x ? '<p style="white-space:pre-line;line-height:1.65">' + esc(n.x) + '</p>' : '') + mediaMarkup(n) + '</div><div class="news-detail-dock" data-news-social="' + esc(newsSocialId(n)) + '"><button type="button" class="news-like" data-news-like aria-label="Поставить лайк"><span class="news-dock-icon">♡</span><span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump aria-label="Открыть комментарии"><span class="news-dock-icon">▤</span><span>Комментарии</span><span class="news-dock-count" data-comment-count></span></button></div>'); loadNewsSocial(newsSocialId(n)); }; });
+    const n = NEWS[b.dataset.k]; if(!n)return; openSh('<div class="news-detail-content"><span class="chip">' + esc(n.d) + '</span><h3 style="margin-top:12px">' + esc(n.t) + '</h3>' + (n.x ? '<p style="white-space:pre-line;line-height:1.65">' + esc(n.x) + '</p>' : '') + mediaMarkup(n) + '</div><div class="news-detail-dock" data-news-social="' + esc(newsSocialId(n)) + '"><button type="button" class="news-like" data-news-like aria-label="Поставить лайк"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10A4.8 4.8 0 0 1 12 6.2a4.8 4.8 0 0 1 8.8 2.6Z"/></svg></span><span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump aria-label="Открыть комментарии"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/><path d="M8 11h8M8 14h5"/></svg></span><span class="news-comments-label">Комментарии</span><span class="news-dock-count" data-comment-count></span></button></div>'); loadNewsSocial(newsSocialId(n)); }; });
   document.querySelectorAll("#newsList .news-feed-card .news-open").forEach(b=>b.setAttribute("aria-label","Открыть новость"));
   document.querySelectorAll("#newsList [data-news-social]").forEach(root=>loadNewsSocial(root.dataset.newsSocial));
 }
