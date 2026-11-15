@@ -268,8 +268,10 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .home-shortcuts-page .home-shortcut{height:100%}
 .home-shortcuts-more{align-content:start}
 .home-shortcuts-more .home-shortcut{grid-column:1/-1;min-height:82px}
-.home-shortcuts-hint{display:flex;align-items:center;gap:9px;margin:8px 2px 20px;color:#9b7c83;font-size:8px;font-weight:850;letter-spacing:1.05px}
-.home-shortcuts-hint-line{height:1px;flex:1;background:linear-gradient(90deg,#ead9dd,rgba(234,217,221,0))}
+.home-shortcuts-pagination{display:flex;align-items:center;justify-content:center;gap:7px;margin:10px 0 20px}
+.home-shortcuts-dot{width:6px;height:6px;padding:0;border:0;border-radius:99px;background:#d9c8cc;cursor:pointer;transition:width .22s ease,background .22s ease,transform .22s ease}
+.home-shortcuts-dot.is-active{width:19px;background:var(--red)}
+.home-shortcuts-dot:focus-visible{outline:2px solid var(--red);outline-offset:4px}
 @media(min-width:600px){.home-shortcuts-page{flex-basis:calc(100% - 54px)}}
 </style>
   <meta name="google-site-verification" content="OeqPg6QGqLsGVY-m0d_avxqMQK16st13n9Bg8HKyTgY" />
@@ -368,7 +370,10 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
       </div>
     </div>
   </div>
-  <div class="home-shortcuts-hint"><span>ЕЩЁ РАЗДЕЛЫ</span><span class="home-shortcuts-hint-line"></span><span>СВАЙП →</span></div>
+  <div class="home-shortcuts-pagination" aria-label="Страницы разделов">
+    <button class="home-shortcuts-dot is-active" type="button" data-shortcuts-page="0" aria-label="Первая страница разделов" aria-current="true"></button>
+    <button class="home-shortcuts-dot" type="button" data-shortcuts-page="1" aria-label="Ещё разделы"></button>
+  </div>
   <div id="latest"></div>
   <button class="btn ghost full rv" id="share" style="margin-top:14px">Поделиться сайтом ↗</button>
 </section>
@@ -968,6 +973,28 @@ $("#play").onclick = () => { if (!C.game) return alert("Игра скоро по
 const shareSite = () => { const u = location.href.split("#")[0];
   navigator.share ? navigator.share({title: document.title, url: u}).catch(() => {}) : navigator.clipboard?.writeText(u).then(() => alert("Ссылка скопирована")); };
 $("#share").onclick = shareSite;
+const shortcutsViewport=document.querySelector(".home-shortcuts-viewport");
+if(shortcutsViewport){
+  const shortcutsPages=[...shortcutsViewport.querySelectorAll(".home-shortcuts-page")];
+  const shortcutsDots=[...document.querySelectorAll("[data-shortcuts-page]")];
+  const setShortcutsPage=index=>{
+    shortcutsDots.forEach((dot,i)=>{
+      const active=i===index;
+      dot.classList.toggle("is-active",active);
+      if(active)dot.setAttribute("aria-current","true");else dot.removeAttribute("aria-current");
+    });
+  };
+  shortcutsViewport.addEventListener("scroll",()=>{
+    const nextPage=shortcutsPages[1];
+    if(!nextPage)return;
+    const threshold=nextPage.offsetLeft-shortcutsPages[0].offsetLeft;
+    setShortcutsPage(shortcutsViewport.scrollLeft>threshold/2?1:0);
+  },{passive:true});
+  shortcutsDots.forEach(dot=>dot.addEventListener("click",()=>{
+    const page=shortcutsPages[Number(dot.dataset.shortcutsPage)];
+    if(page)shortcutsViewport.scrollTo({left:page.offsetLeft-shortcutsPages[0].offsetLeft,behavior:"smooth"});
+  }));
+}
 route();
 
 // Календарь мероприятий Совета Первых — карточка дня + компактный календарь
