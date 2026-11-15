@@ -409,7 +409,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .news-comments-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.news-comments-title h3{margin:0;font-size:20px;letter-spacing:-.4px}
 .news-comment-name{border:1px solid #eadde0;border-radius:999px;background:#fff8f9;color:var(--red);padding:6px 10px;font:750 11px Onest,system-ui;max-width:145px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .news-comment-name:after{content:"⌄";padding-left:5px}
-.news-comment-name-edit{display:none!important;flex:0 1 148px;min-width:0;max-width:148px;width:148px;min-height:40px;margin:0!important;padding:9px 10px!important;border:1px solid #e9dfe1!important;border-radius:12px!important;font:16px/1.25 Onest,system-ui!important;letter-spacing:normal!important;touch-action:manipulation;background:#fff!important;color:#38212a!important}.news-comment-name-edit.on{display:block!important}.news-comment-name.editing{display:none!important}
+.news-comments-name-row{display:none;flex:none;padding:10px 0 2px}.news-comments-name-row.on{display:block}.news-comment-name-edit{display:block!important;width:100%;min-height:48px;margin:0!important;padding:12px 14px!important;border:1px solid #e9dfe1!important;border-radius:14px!important;font:16px/1.3 Onest,system-ui!important;letter-spacing:normal!important;touch-action:manipulation;background:#fff!important;color:#38212a!important}.news-comment-name-edit:focus{outline:3px solid rgba(176,0,43,.10);border-color:#bd6a7d!important}.news-comments-panel .news-comment-name-edit{display:none!important}.news-comments-panel .news-comments-name-row.on .news-comment-name-edit{display:block!important}
 .news-comment-name-edit.on{display:block!important}
 .news-comment-compose-row{display:grid;grid-template-columns:1fr;gap:10px}
 .news-comment-compose-row textarea{display:block;width:100%;min-height:82px;height:82px;max-height:180px;resize:vertical;margin:0;padding:14px 15px;border:1.5px solid #e4d5d9;border-radius:16px;background:#fff;font:16px/1.45 Onest,system-ui;letter-spacing:normal;box-shadow:0 2px 8px rgba(61,0,13,.035);touch-action:manipulation}
@@ -480,7 +480,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .news-comment-tools{margin:2px 0 0 5px}
 .news-comments-compose{position:relative;top:auto;z-index:3;flex:none;margin:0 -22px;padding:11px 22px calc(10px + env(safe-area-inset-bottom));border-top:1px solid #eee5e7;border-bottom:0;background:rgba(255,255,255,.97);box-shadow:0 -6px 18px rgba(61,0,13,.045)}
 .news-comment-compose-row{grid-template-columns:minmax(0,1fr) 48px;align-items:end;gap:8px}
-.news-comment-compose-row textarea{min-height:48px;height:48px;max-height:110px;padding:12px 13px;border-radius:16px;background:#faf8f8;font-size:14px}
+.news-comment-compose-row textarea{min-height:48px;height:48px;max-height:110px;padding:12px 13px;border-radius:16px;background:#faf8f8;font-size:16px;line-height:1.35}
 .news-comment-compose-row .btn{width:48px;min-height:48px;height:48px;padding:0;border-radius:15px;font-size:23px;line-height:1}
 .news-comment-compose-hint{margin:5px 2px 0;font-size:10px}
 .news-comments-compose .note{margin:4px 2px 0;font-size:11px}
@@ -977,8 +977,15 @@ addEventListener("hashchange", route);
 })();
 let s1SheetScrollY=0,s1BodyStyleBeforeSheet=null;
 function updateS1VisualHeight(){
-  const height=window.visualViewport?window.visualViewport.height:window.innerHeight;
+  const vv=window.visualViewport;
+  const height=vv?vv.height:window.innerHeight;
   document.documentElement.style.setProperty("--s1-visual-height",Math.max(240,height)+"px");
+  const sheet=document.getElementById("sh");
+  if(sheet&&sheet.classList.contains("on")){
+    sheet.style.top=(vv?Math.max(0,vv.offsetTop):0)+"px";
+    sheet.style.height=Math.max(240,height)+"px";
+    sheet.style.bottom="auto";
+  }
 }
 updateS1VisualHeight();
 if(window.visualViewport){window.visualViewport.addEventListener("resize",updateS1VisualHeight);window.visualViewport.addEventListener("scroll",updateS1VisualHeight)}
@@ -994,7 +1001,7 @@ function openSh(h){
 }
 function closeSh(){
   const active=document.activeElement;if(active&&$("#pn").contains(active))active.blur();
-  $("#sh").classList.remove("on");
+  $("#sh").classList.remove("on");$("#sh").style.top="";$("#sh").style.height="";$("#sh").style.bottom="";
   const prior=s1BodyStyleBeforeSheet||{};
   document.body.style.position=prior.position||"";document.body.style.top=prior.top||"";document.body.style.left=prior.left||"";document.body.style.right=prior.right||"";document.body.style.width=prior.width||"";document.body.style.overflow=prior.overflow||"";
   s1BodyStyleBeforeSheet=null;
@@ -1180,15 +1187,16 @@ function openNewsComments(newsId){
   const current=$("#pn");
   if(current&&current.innerHTML.includes("news-detail-content")){const snapshot=current.cloneNode(true);snapshot.querySelectorAll(".grip,.sh-close").forEach(node=>node.remove());newsDetailReturnHtml=snapshot.innerHTML;}
   const name=newsCommentName();
-  openSh('<div class="news-comments-modal" data-news-social="'+esc(newsId)+'"><div class="news-comments-head"><div><small>ОБСУЖДЕНИЕ НОВОСТИ</small><h3>Комментарии</h3></div><button type="button" class="news-comments-back" onclick="closeNewsComments()" aria-label="Вернуться к новости">← К новости</button><button type="button" class="news-comment-name" data-name-toggle>'+esc(name)+'</button><input class="news-comment-name-edit" data-name-edit maxlength="32" value="'+esc(name)+'" placeholder="Ваше имя" aria-label="Имя для комментариев"></div><div class="news-comments-list" data-comments-list><p class="note">Загружаем комментарии…</p></div><div class="news-comments-compose"><form data-comment-form><div class="news-comment-compose-row"><textarea name="message" maxlength="600" minlength="2" required placeholder="Написать комментарий…" aria-label="Текст комментария"></textarea><button class="btn" type="submit" aria-label="Отправить комментарий">↑</button></div><p class="news-comment-compose-hint">Общайтесь уважительно — комментарии видны всем</p><p class="note" data-comment-status role="status"></p></form></div></div>');
+  openSh('<div class="news-comments-modal" data-news-social="'+esc(newsId)+'"><div class="news-comments-head"><div><small>ОБСУЖДЕНИЕ НОВОСТИ</small><h3>Комментарии</h3></div><button type="button" class="news-comments-back" onclick="closeNewsComments()" aria-label="Вернуться к новости">← К новости</button><button type="button" class="news-comment-name" data-name-toggle>'+esc(name)+'</button></div><div class="news-comments-name-row"><input class="news-comment-name-edit" data-name-edit maxlength="32" value="'+esc(name)+'" placeholder="Введите имя для комментариев" aria-label="Имя для комментариев"></div><div class="news-comments-list" data-comments-list><p class="note">Загружаем комментарии…</p></div><div class="news-comments-compose"><form data-comment-form><div class="news-comment-compose-row"><textarea name="message" maxlength="600" minlength="2" required placeholder="Написать комментарий…" aria-label="Текст комментария"></textarea><button class="btn" type="submit" aria-label="Отправить комментарий">↑</button></div><p class="news-comment-compose-hint">Общайтесь уважительно — комментарии видны всем</p><p class="note" data-comment-status role="status"></p></form></div></div>');
   $("#pn").classList.add("news-comments-panel");
   loadNewsSocial(newsId);
 }
+document.addEventListener("focusin",e=>{if(!e.target.matches("#pn input,#pn textarea"))return;requestAnimationFrame(()=>{requestAnimationFrame(()=>{if(e.target.isConnected)e.target.scrollIntoView({block:"nearest",inline:"nearest",behavior:"smooth"})})})});
 document.addEventListener("click",e=>{
   const jump=e.target.closest("[data-comments-jump]");
   if(jump){e.preventDefault();e.stopPropagation();const root=jump.closest("[data-news-social]");if(root)openNewsComments(root.dataset.newsSocial);return}
   const toggle=e.target.closest("[data-name-toggle]");
-  if(toggle){const edit=document.querySelector("[data-name-edit]");if(edit){const opening=!edit.classList.contains("on");edit.classList.toggle("on",opening);toggle.classList.toggle("editing",opening);if(opening){try{edit.focus({preventScroll:true})}catch{edit.focus()}edit.select()}else{edit.blur()}}}
+  if(toggle){const row=document.querySelector(".news-comments-name-row"),edit=document.querySelector("[data-name-edit]");if(row&&edit){const opening=!row.classList.contains("on");row.classList.toggle("on",opening);if(opening){try{edit.focus({preventScroll:true})}catch{edit.focus()}edit.select()}else{edit.blur()}}}
   const reply=e.target.closest("[data-comment-reply]");
   if(reply){const article=reply.closest("[data-comment-id]");if(!article)return;const existing=article.querySelector(".news-comment-reply-form");if(existing){existing.remove();return}const form=document.createElement("form");form.className="news-comment-reply-form";form.dataset.commentReplyForm="";form.innerHTML='<textarea name="message" maxlength="600" minlength="2" required placeholder="Ваш ответ…"></textarea><button type="submit">Ответить</button><p class="note" data-comment-status role="status"></p>';article.appendChild(form);form.querySelector("textarea").focus();return}
 });
@@ -1199,7 +1207,7 @@ document.addEventListener("input",e=>{
     const button=document.querySelector("[data-name-toggle]");if(button)button.textContent=name;
   }
 });
-document.addEventListener("keydown",e=>{if(!e.target.matches("[data-name-edit]"))return;if(e.key==="Enter"){e.preventDefault();e.target.blur()}});document.addEventListener("focusout",e=>{if(!e.target.matches("[data-name-edit]"))return;e.target.classList.remove("on");const button=document.querySelector("[data-name-toggle]");if(button)button.classList.remove("editing");const name=e.target.value.trim().slice(0,32)||"Аноним";e.target.value=name;localStorage.setItem("s1sch9_comment_name",name);if(button)button.textContent=name});
+document.addEventListener("keydown",e=>{if(!e.target.matches("[data-name-edit]"))return;if(e.key==="Enter"){e.preventDefault();e.target.blur()}});document.addEventListener("focusout",e=>{if(!e.target.matches("[data-name-edit]"))return;const row=document.querySelector(".news-comments-name-row"),button=document.querySelector("[data-name-toggle]");if(row)row.classList.remove("on");const name=e.target.value.trim().slice(0,32)||"Аноним";e.target.value=name;localStorage.setItem("s1sch9_comment_name",name);if(button)button.textContent=name});
 document.addEventListener("click",async e=>{
  const like=e.target.closest("[data-comment-like]");if(!like)return;
  const article=like.closest("[data-comment-id]");if(!article)return;
