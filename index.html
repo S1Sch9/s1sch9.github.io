@@ -80,7 +80,13 @@ h1{font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin:1
 .photo-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;text-align:center;color:#fff;background:radial-gradient(circle at 50% 25%,#d52b52 0,#8e0020 55%,#3d000d 100%);font-weight:800}.photo-placeholder small{font-size:10px;line-height:1.25;letter-spacing:.07em}.big .photo-placeholder .camera{font-size:27px}.big .photo-placeholder small{font-size:8px}
 .card div.t{padding:12px 14px 14px;flex:1;display:flex;flex-direction:column;align-items:stretch}.card small{min-height:3.9em;display:flex;align-items:flex-start}.card b{min-height:2.5em}.card small{display:block;color:var(--mut);font-size:12.5px;line-height:1.3;margin-bottom:4px}
 .card b{display:block;line-height:1.25;font-size:15px}
-.row{padding:16px 18px;margin-bottom:12px}.resource-caption{margin:18px 2px 10px;color:var(--red);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}.resource-secondary{margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}.row small{color:var(--red);font-weight:700}.row b{display:block;font-size:17px;line-height:1.25;margin:2px 0}.row em{font-style:normal;color:var(--mut);font-size:14px}
+.row{padding:16px 18px;margin-bottom:12px}.resource-caption{margin:18px 2px 10px;color:var(--red);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.about-grid{display:grid;gap:10px;margin-top:18px}
+.about-card{position:relative;display:grid;grid-template-columns:42px 1fr 18px;grid-template-rows:auto auto;align-items:center;gap:3px 11px;padding:15px;border:1px solid #eee2e5;border-radius:18px;background:linear-gradient(145deg,#fff,#fffafb);color:var(--ink);text-decoration:none;box-shadow:0 4px 13px rgba(61,0,13,.035)}
+.about-card>span{grid-row:1/3;width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:#f8e8ec;font-size:20px}
+.about-card>b{font-size:13px;line-height:1.25}
+.about-card>small{color:var(--mut);font-size:11px;line-height:1.35}
+.about-card>strong{grid-column:3;grid-row:1/3;color:#b7a3a8;font-size:17px}.resource-secondary{margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}.row small{color:var(--red);font-weight:700}.row b{display:block;font-size:17px;line-height:1.25;margin:2px 0}.row em{font-style:normal;color:var(--mut);font-size:14px}
 .chip{display:inline-block;background:#f6e4e8;color:var(--red);font-weight:700;font-size:13px;padding:4px 12px;border-radius:99px}
 input,select,textarea{font:inherit;width:100%;padding:15px;border:1.5px solid var(--line);border-radius:16px;background:#fff;margin:6px 0 16px;transition:border-color .2s,box-shadow .2s}
 input:focus,select:focus,textarea:focus{outline:0;border-color:var(--red);box-shadow:0 0 0 4px #a1001f1f}
@@ -377,7 +383,8 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
         <a class="home-shortcut" href="#games"><i>🎮</i><span><b>Мини-игры</b><small>Немного веселья</small></span><strong>↗</strong></a>
       </div>
       <div class="home-shortcuts-page home-shortcuts-more">
-        <a class="home-shortcut" href="#links"><i>🔗</i><span><b>Наши ресурсы</b><small>Наши каналы, сообщества и полезные ссылки</small></span><strong>↗</strong></a>
+        <a class="home-shortcut" href="#about"><i>💙</i><span><b>О Совете</b><small>Кто мы и как участвовать</small></span><strong>↗</strong></a>
+        <a class="home-shortcut" href="#links"><i>🔗</i><span><b>Наши ресурсы</b><small>Каналы и ссылки</small></span><strong>↗</strong></a>
       </div>
     </div>
   </div>
@@ -387,6 +394,14 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   </div>
   <div id="latest"></div>
   <button class="btn ghost full rv" id="share" style="margin-top:14px">Поделиться сайтом ↗</button>
+</section>
+<section id="about">
+  <div class="section-heading rv"><small>О СОВЕТЕ</small><h1>Здесь важен каждый</h1><p>Совет Первых — пространство для школьных инициатив, идей и совместных дел. Предложить свою идею может каждый ученик — даже если он не состоит в Совете.</p></div>
+  <div class="about-grid">
+    <a class="about-card rv" href="#team"><span>👥</span><b>Познакомиться с командой</b><small>Узнать, кто входит в Совет и за что отвечает</small><strong>→</strong></a>
+    <a class="about-card rv" href="#news"><span>✨</span><b>Посмотреть наши дела</b><small>Новости, проекты и события школы</small><strong>→</strong></a>
+    <a class="about-card rv" href="#appeal"><span>💡</span><b>Предложить свою идею</b><small>Рассмотрим предложение и обсудим его</small><strong>→</strong></a>
+  </div>
 </section>
 <section id="team"><div class="section-heading rv"><small>КОМАНДА СОВЕТА</small><h1>Состав</h1><p>Участники Совета и их роли в школьных инициативах.</p></div><div class="grid" id="teamList"></div></section>
 <section id="news"><div class="section-heading rv"><small>НОВОСТИ СОВЕТА</small><h1>Новости</h1><p>Публикации о проектах, событиях и жизни нашей школы.</p></div>
@@ -465,7 +480,7 @@ const C = {
   appealsApi: "https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/appeals",
   tg: "https://t.me/dvizhenieschool9",
   max: "https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI",
-  game: "game.html",
+  game: "game.html?v=20261115-recordfix",
   newsCsv: "",
   teamCsv: "",
   logo: "official-logo.svg?v=20261114-final"
@@ -504,7 +519,7 @@ function route(){
   document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === page));
   document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.hash === "#" + page));
   const moreButton = document.querySelector('nav [data-more="true"]');
-  if (moreButton) moreButton.classList.toggle("on", ["team","events","games","links"].includes(page));
+  if (moreButton) moreButton.classList.toggle("on", ["about","team","events","games","links"].includes(page));
   if (window.syncNavIndicator) requestAnimationFrame(window.syncNavIndicator);
   document.querySelectorAll("#" + page + " .rv").forEach((e, i) => e.style.setProperty("--i", Math.min(i, 9)));
   if (target && !target.matches("section")) {
@@ -706,7 +721,8 @@ function openMoreMenu(){
     </div>
     <div class="more-menu-list">
       <a class="more-menu-item" href="#home" onclick="closeSh()"><i>🏠</i><span>Главная</span></a>
-      <a class="more-menu-item" href="#team" onclick="closeSh()"><i>👥</i><span>Состав</span></a>
+      <a class="more-menu-item" href="#about" onclick="closeSh()"><i>💙</i><span>О Совете</span></a>
+       <a class="more-menu-item" href="#team" onclick="closeSh()"><i>👥</i><span>Состав</span></a>
       <a class="more-menu-item" href="#news" onclick="closeSh()"><i>📰</i><span>Новости</span></a>
       <a class="more-menu-item" href="#events" onclick="closeSh()"><i>📅</i><span>Мероприятия</span></a>
       <a class="more-menu-item" href="#appeal" onclick="closeSh()"><i>✍️</i><span>Обращение</span></a>
