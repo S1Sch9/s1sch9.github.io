@@ -353,11 +353,11 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   </div>
   <div class="home-section-title"><b>Разделы сайта</b></div>
   <div class="home-shortcuts">
-    <a class="home-shortcut" href="#team"><i>👥</i><span><b>Состав</b><small>Наша команда</small></span><strong>↗</strong></a>
-    <a class="home-shortcut" href="#news"><i>📰</i><span><b>Новости</b><small>Что нового</small></span><strong>↗</strong></a>
-    <a class="home-shortcut" href="#events"><i>📅</i><span><b>Мероприятия</b><small>Календарь событий</small></span><strong>↗</strong></a>
-    <a class="home-shortcut" href="#games"><i>🎮</i><span><b>Мини-игры</b><small>Немного веселья</small></span><strong>↗</strong></a>
-    <a class="home-shortcut home-shortcut-wide" href="#links"><i>🔗</i><span><b>Наши ресурсы</b><small>Наши каналы, сообщества и полезные ссылки</small></span><strong>↗</strong></a>
+    <a class="home-shortcut" href="#team"><i>👥</i><span><b>Состав</b><small>Кто отвечает за направления</small></span><strong>↗</strong></a>
+    <a class="home-shortcut" href="#news"><i>📰</i><span><b>Новости</b><small>Публикации о делах и событиях Совета</small></span><strong>↗</strong></a>
+    <a class="home-shortcut" href="#events"><i>📅</i><span><b>Мероприятия</b><small>Даты и подробности школьных событий</small></span><strong>↗</strong></a>
+    <a class="home-shortcut" href="#games"><i>🎮</i><span><b>Мини-игры</b><small>Проверь реакцию и побей рекорд</small></span><strong>↗</strong></a>
+    <a class="home-shortcut home-shortcut-wide" href="#links"><i>🔗</i><span><b>Наши ресурсы</b><small>Официальные каналы Совета и сайты школы</small></span><strong>↗</strong></a>
   </div>
   <div id="latest"></div>
   <button class="btn ghost full rv" id="share" style="margin-top:14px">Поделиться сайтом ↗</button>
@@ -381,13 +381,10 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   </div>
 </section>
 <section id="appeal">
-  <div class="appeal-hero rv">
-    <div class="appeal-hero-mark" aria-hidden="true">✉</div>
-    <div class="appeal-hero-copy"><small>СОВЕТ ПЕРВЫХ · ШКОЛА №9</small><h1>Твоё мнение важно</h1><p>Идеи, предложения и обратная связь — мы открыты к диалогу</p></div>
-  </div>
-  <p class="appeal-intro rv">Расскажи, что можно сделать лучше, предложи школьную инициативу или поделись новостью. Каждое обращение внимательно читаем и обсуждаем.</p>
+  <div class="section-heading rv"><small>ОБРАТНАЯ СВЯЗЬ</small><h1>Написать Совету</h1><p>Предложи идею, задай вопрос или расскажи, что стоит изменить в школе.</p></div>
+
   <div class="appeal-form-card rv">
-    <div class="appeal-form-head"><span aria-hidden="true">✍️</span><div><b>Написать Совету</b><small>Заполни форму — это займёт пару минут</small></div></div>
+    <div class="appeal-form-head"><span aria-hidden="true">✍️</span><div><b>Новое обращение</b><small>Опиши идею, вопрос или предложение — сообщение увидит Совет.</small></div></div>
     <div id="appealBlockNotice" role="alert" aria-live="polite"><strong>⛔ Отправка обращений временно ограничена</strong><p>Сервис сообщает, что отправка с этого подключения сейчас недоступна.</p><p id="appealBlockReason"></p><p>Если считаешь, что это ошибка, свяжись с Советом через Telegram.</p></div>
     <form id="form" style="margin-top:8px">
       <div class="appeal-fields">
@@ -397,32 +394,32 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
       </div>
       <div class="rules-gate rv" id="rulesGate">
         <div class="rules-gate-icon">📋</div>
-        <div class="rules-gate-copy"><b>Один короткий шаг перед отправкой</b><span>Открой правила пользования и подтверди, что ознакомился с ними.</span></div>
-        <button class="btn ghost full" id="openAppealRules" type="button">Открыть правила пользования</button>
-        <p id="rulesGateStatus" class="note" role="status">После подтверждения можно будет отправить обращение.</p>
+        <div class="rules-gate-copy"><b>Перед отправкой</b><span>Прочитай правила пользования и подтверди согласие.</span></div>
+        <button class="btn ghost full" id="openAppealRules" type="button">Прочитать правила</button>
+        <p id="rulesGateStatus" class="note" role="status">После подтверждения форма станет доступна.</p>
       </div>
       <div class="cf-turnstile" data-sitekey="0x4AAAAAAF6Yz9usYN7tJ3iQ" data-language="ru" style="margin:8px 0 16px"></div>
       <button class="btn full" id="send" type="submit" disabled>Сначала ознакомьтесь с правилами</button>
       <p id="status" class="note" role="status" style="margin-top:12px;text-align:center"></p>
     </form>
-    <p class="appeal-privacy"><span>🔒</span><span>Обращения конфиденциальны. Личная информация не публикуется.</span></p>
+    <p class="appeal-privacy"><span>🔒</span><span>Сообщение не появится на сайте. Личные данные не публикуются.</span></p>
   </div>
-  <div class="appeal-alt rv"><div class="appeal-alt-copy"><b>Удобнее написать в Telegram?</b><small>Можно связаться с нами напрямую через бот обращений</small></div><a href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener noreferrer">Открыть бота ↗</a></div>
+  <div class="appeal-alt rv"><div class="appeal-alt-copy"><b>Отправить обращение в Telegram</b><small>Бот примет сообщение и передаст его Совету.</small></div><a href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener noreferrer">Открыть бота ↗</a></div>
 </section>
-<section id="games"><div class="section-heading rv"><small>ИНТЕРАКТИВ</small><h1>Мини-игры</h1><p>Небольшая игра, чтобы отвлечься и попробовать побить свой рекорд.</p></div>
+<section id="games"><div class="section-heading rv"><small>ИНТЕРАКТИВ</small><h1>Мини-игры</h1><p>Проверь точность и чувство момента: ставь блоки ровно и поднимай башню выше.</p></div>
   <div class="game rv">
     <div class="game-art">
       <div class="game-emblem"><img src="gerb.png" alt="Герб школы №9"></div>
-      <div class="game-copy"><span class="game-kicker">ИГРАЙ • СОБИРАЙ • ДОСТИГАЙ</span><h2>Башня Первых</h2><p>Каждый новый блок — шаг к цели. Поднимайся выше, открывай проекты и достижения Первых. Строй свою башню и не останавливайся, даже если путь становится сложнее!</p></div>
+      <div class="game-copy"><span class="game-kicker">ИГРАЙ • СОБИРАЙ • ДОСТИГАЙ</span><h2>Башня Первых</h2><p>Ставь блоки как можно точнее, чтобы построить высокую башню и установить новый рекорд.</p></div>
     </div>
-    <div class="game-bottom"><span class="game-hint">🏆 Побей свой рекорд — результат сохранится</span><button class="btn" id="play" type="button">Играть <span aria-hidden="true">→</span></button></div>
+    <div class="game-bottom"><span class="game-hint">🏆 Лучший результат сохранится на этом устройстве</span><button class="btn" id="play" type="button">Играть <span aria-hidden="true">→</span></button></div>
   </div>
 </section>
 <section id="links"><div class="section-heading rv"><small>ПОЛЕЗНЫЕ ССЫЛКИ</small><h1>Наши ресурсы</h1><p>Официальные каналы Совета и полезные школьные сайты.</p></div>
   <p class="resource-caption rv">Ресурсы Совета</p>
-  <a class="row link rv" id="tg" href="#"><i style="background:#2aa3e0"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21.5 3.5 18.2 20c-.25 1.17-.9 1.46-1.82.91l-5.03-3.7-2.43 2.34c-.27.27-.5.5-1.02.5l.36-5.12 9.32-8.42c.4-.36-.09-.56-.62-.2L5.44 13.5.49 11.95c-1.08-.34-1.1-1.08.23-1.58L20.1 2.9c.9-.33 1.69.22 1.4.6Z" fill="white"/></svg></i>Telegram-канал «Совета»</a>
-  <a class="row link rv" id="mx" href="#"><i style="background:#fff;padding:0"><img src="https://max.ru/s/img/big-logo.png" alt="Логотип MAX" loading="lazy"></i>MAX-канал «Совета»</a>
-  <a class="row link rv" href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener"><i style="background:#f6e4e8;padding:0;overflow:hidden"><img src="appeal-icon.png?v=20261113-1" alt="Логотип бота для приёма обращений" loading="lazy"></i>ТГ-бот для приёма обращений</a>
+  <a class="row link rv" id="tg" href="#"><i style="background:#2aa3e0"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21.5 3.5 18.2 20c-.25 1.17-.9 1.46-1.82.91l-5.03-3.7-2.43 2.34c-.27.27-.5.5-1.02.5l.36-5.12 9.32-8.42c.4-.36-.09-.56-.62-.2L5.44 13.5.49 11.95c-1.08-.34-1.1-1.08.23-1.58L20.1 2.9c.9-.33 1.69.22 1.4.6Z" fill="white"/></svg></i>Telegram-канал Совета</a>
+  <a class="row link rv" id="mx" href="#"><i style="background:#fff;padding:0"><img src="https://max.ru/s/img/big-logo.png" alt="Логотип MAX" loading="lazy"></i>MAX-канал Совета</a>
+  <a class="row link rv" href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener"><i style="background:#f6e4e8;padding:0;overflow:hidden"><img src="appeal-icon.png?v=20261113-1" alt="Логотип бота для приёма обращений" loading="lazy"></i>Бот для обращений в Telegram</a>
   <p class="resource-caption resource-secondary rv">Другие школьные ресурсы</p>
   <a class="row link rv school" href="https://edu.tatar.ru/nsav/page2298.htm" target="_blank" rel="noopener"><i><img src="gerb.png" alt="Герб школы №9" loading="lazy"></i>Официальный сайт школы</a>
   <a class="row link rv" href="https://max.ru/id1657021136_gos" target="_blank" rel="noopener"><i style="background:#fff;padding:0"><img src="https://max.ru/s/img/big-logo.png" alt="Логотип MAX" loading="lazy"></i>MAX-канал школы</a>
@@ -724,7 +721,7 @@ function setAppealRulesAccepted(){
   gate.querySelector(".rules-gate-copy b").textContent = accepted ? "✓ Правила приняты" : "Один короткий шаг перед отправкой";
   button.textContent = accepted ? "Изменить" : "Открыть правила";
   button.setAttribute("aria-label", accepted ? "Повторно открыть правила пользования" : "Открыть правила пользования");
-  $("#rulesGateStatus").textContent = accepted ? "Согласие сохранено на этом устройстве." : "После подтверждения можно будет отправить обращение.";
+  $("#rulesGateStatus").textContent = accepted ? "Согласие сохранено на этом устройстве." : "После подтверждения форма станет доступна.";
 }
 $("#openAppealRules").addEventListener("click", () => {
   openSh(appealRulesHTML);
