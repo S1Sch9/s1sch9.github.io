@@ -38,7 +38,7 @@ jobs:
           const fs = require('node:fs');
           const html = fs.readFileSync('index.html', 'utf8');
           const sw = fs.readFileSync('sw.js', 'utf8');
-          for (const text of ['newsFavoritesToggle','siteSearchTrigger','data-add-calendar','prefers-reduced-motion','&#39;']) {
+          for (const text of ['newsAllTab','newsSavedTab','siteSearchTrigger','data-add-calendar','prefers-reduced-motion','&#39;']) {
             if (!html.includes(text)) throw new Error('Missing expected feature or safeguard: ' + text);
           }
           if (!sw.includes('url.pathname.includes("/api/")')) throw new Error('Service worker must not cache API responses');
