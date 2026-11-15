@@ -212,6 +212,7 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .news-detail-dock .news-like{min-width:76px;padding:10px 17px;background:#fff5f6;border-color:#f0dce1}
 .news-detail-dock .news-comments-jump{flex:1;justify-content:center;gap:8px;padding:10px 16px;background:#f7f3f4;border-color:#eee5e7}
 .news-detail-dock .news-like.is-liked{background:#fff0f3;border-color:#e8bdc7}
+.news-detail-dock .news-share-button{flex:0 0 46px;width:46px;padding:8px;border:1px solid #eee5e7;background:#fff;color:var(--red);font-size:20px}
 @media(min-width:700px){.news-detail-panel{border-radius:28px 28px 0 0}.news-detail-dock{border-radius:0 0 28px 28px}}
 /* Переворот главной карточки: спокойная подсказка и свободное место для текста */
 .home-hero-flip{perspective:1100px;perspective-origin:50% 48%;cursor:pointer;outline:none;padding:0;min-height:270px}
@@ -351,6 +352,9 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .event-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .event-actions button{flex:1 1 145px;min-height:40px;padding:9px 12px;border:1px solid #eadfe1;border-radius:12px;background:#fff;color:var(--deep);font:700 11px Onest,system-ui;cursor:pointer}
 .event-actions button:first-child{background:#f7edf0;color:var(--red);border-color:#ead3d9}
+.event-filter-row{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px 13px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.event-filter-row label{flex:0 0 auto;font-size:12px;color:var(--mut)}
+.event-filter-row select{flex:1;min-width:0;margin:0;padding:10px 12px;border-radius:11px;font-size:12px}
 :focus-visible{outline:3px solid #c27a8a!important;outline-offset:3px}
 @media(max-width:380px){.site-search-panel{left:8px;right:8px;padding:13px}.site-search-trigger{width:39px;height:39px;flex-basis:39px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
@@ -722,6 +726,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   <div id="newsList"></div>
 </section>
 <section id="events"><div class="section-heading rv"><small>КАЛЕНДАРЬ</small><h1>Мероприятия</h1><p>Выбери дату, чтобы посмотреть запланированные события Совета.</p></div>
+  <div class="event-filter-row rv"><label for="eventCategoryFilter">Категория событий</label><select id="eventCategoryFilter"><option value="all">Все категории</option></select></div>
   <div class="day-showcase rv" id="dayShowcase">
     <div class="day-showcase-head"><span class="day-kicker">ВЫБРАННЫЙ ДЕНЬ</span><button class="day-today" id="goToday" type="button">Сегодня</button></div>
     <div class="day-switch"><button class="day-arrow" id="prevDay" type="button" aria-label="Предыдущий день">‹</button><div class="day-date" id="dayDate"><strong>Сегодня</strong><span>Загружаем дату…</span></div><button class="day-arrow" id="nextDay" type="button" aria-label="Следующий день">›</button></div>
@@ -1120,7 +1125,7 @@ function drawNews(){
   $("#latest").innerHTML = L ? '<button class="row rv" data-k="0"><small>Последняя новость</small><b>' + esc(L.t) + '</b>' + preview(L) + '<em style="display:block;margin-top:9px">Открыть новость →</em></button>' : "";
   document.querySelectorAll("#newsList .news-feed-card,#latest .row").forEach((b, i) => { b.style.setProperty("--i", Math.min(i, 9)); b.onclick = e => {
     if(e.target.closest(".news-social")) return;
-    const n = NEWS[b.dataset.k]; if(!n)return; openSh('<div class="news-detail-content"><span class="chip">' + esc(n.d) + '</span><h3 style="margin-top:12px">' + esc(n.t) + '</h3>' + (n.x ? '<p style="white-space:pre-line;line-height:1.65">' + esc(n.x) + '</p>' : '') + mediaMarkup(n) + '</div><div class="news-detail-dock" data-news-social="' + esc(newsSocialId(n)) + '"><button type="button" class="news-like" data-news-like aria-label="Поставить лайк"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10A4.8 4.8 0 0 1 12 6.2a4.8 4.8 0 0 1 8.8 2.6Z"/></svg></span><span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump aria-label="Открыть комментарии"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/><path d="M8 11h8M8 14h5"/></svg></span><span class="news-comments-label">Комментарии</span><span class="news-dock-count" data-comment-count></span></button></div>'); loadNewsSocial(newsSocialId(n)); }; });
+    const n = NEWS[b.dataset.k]; if(!n)return; openSh('<div class="news-detail-content"><span class="chip">' + esc(n.d) + '</span><h3 style="margin-top:12px">' + esc(n.t) + '</h3>' + (n.x ? '<p style="white-space:pre-line;line-height:1.65">' + esc(n.x) + '</p>' : '') + mediaMarkup(n) + '</div><div class="news-detail-dock" data-news-social="' + esc(newsSocialId(n)) + '"><button type="button" class="news-like" data-news-like aria-label="Поставить лайк"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10A4.8 4.8 0 0 1 12 6.2a4.8 4.8 0 0 1 8.8 2.6Z"/></svg></span><span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump aria-label="Открыть комментарии"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/><path d="M8 11h8M8 14h5"/></svg></span><span class="news-comments-label">Комментарии</span><span class="news-dock-count" data-comment-count></span></button><button type="button" class="news-share-button" data-news-share aria-label="Поделиться новостью">↗</button></div>'); loadNewsSocial(newsSocialId(n)); }; });
   document.querySelectorAll("#newsList .news-feed-card .news-open").forEach(b=>b.setAttribute("aria-label","Открыть новость"));
   document.querySelectorAll("#newsList [data-news-social]").forEach(root=>loadNewsSocial(root.dataset.newsSocial));
 }
@@ -1354,7 +1359,7 @@ route();
 
 // Календарь мероприятий Совета Первых — карточка дня + компактный календарь
 const localDateKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-let PUBLIC_EVENTS=[],calendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1),selectedEventDay=localDateKey(new Date());
+let PUBLIC_EVENTS=[],calendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1),selectedEventDay=localDateKey(new Date()),selectedEventCategory="all";
 const eventDateFromKey=key=>new Date(key+'T12:00:00');
 function shiftSelectedDay(amount){const d=eventDateFromKey(selectedEventDay);d.setDate(d.getDate()+amount);selectedEventDay=localDateKey(d);calendarCursor=new Date(d.getFullYear(),d.getMonth(),1);renderPublicCalendar();renderPublicEvents()}
 function renderPublicCalendar(){
@@ -1369,18 +1374,38 @@ function renderPublicEvents(){
  const root=$('#publicEventsList'),dateLabel=$('#dayDate');if(!root||!dateLabel)return;
  const d=eventDateFromKey(selectedEventDay),today=localDateKey(new Date()),isToday=selectedEventDay===today;
  dateLabel.innerHTML='<strong>'+ (isToday?'Сегодня':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})) +'</strong><span>'+d.toLocaleDateString('ru-RU',{weekday:'long',year:'numeric'})+'</span>';
- const filtered=PUBLIC_EVENTS.filter(e=>e.event_date===selectedEventDay);
+ const categoryFilter=$('#eventCategoryFilter');
+ if(categoryFilter){
+  const categories=[...new Set(PUBLIC_EVENTS.map(e=>String(e.category||"Мероприятие").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ru"));
+  const options=[["all","Все категории"],...categories.map(value=>[value,value])];
+  categoryFilter.replaceChildren(...options.map(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;return option;}));
+  if(!options.some(([value])=>value===selectedEventCategory))selectedEventCategory="all";
+  categoryFilter.value=selectedEventCategory;
+ }
+ const filtered=PUBLIC_EVENTS.filter(e=>e.event_date===selectedEventDay&&(selectedEventCategory==="all"||String(e.category||"Мероприятие").trim()===selectedEventCategory));
  root.innerHTML=filtered.length?filtered.map(e=>{const registration=safeUrl(e.registration_url||"");return '<article class="day-event-card"><div class="day-event-top"><span class="day-event-category">'+esc(e.category||'Мероприятие')+'</span>'+(e.event_time?'<span class="day-event-time">'+esc(e.event_time)+'</span>':'')+'</div><h3>'+esc(e.title)+'</h3>'+(e.description?'<p>'+esc(e.description)+'</p>':'')+(e.location?'<div class="day-event-meta">📍 '+esc(e.location)+'</div>':'')+(registration&&new URL(registration).protocol==="https:"?'<a class="event-register" href="'+esc(registration)+'" target="_blank" rel="noopener noreferrer">Участвовать / регистрация ↗</a>':'')+'<div class="event-actions"><button type="button" data-add-calendar>＋ Добавить в календарь</button><button type="button" data-share-event>↗ Поделиться</button></div></article>'}).join(''):'<div class="day-empty"><b>📅</b><strong>На этот день событий нет</strong><span>Попробуй соседние даты или выбери день в календаре ниже</span></div>';
  root.querySelectorAll(".day-event-card").forEach((card,index)=>{const event=filtered[index];card.querySelector("[data-add-calendar]")?.addEventListener("click",()=>addEventToCalendar(event));card.querySelector("[data-share-event]")?.addEventListener("click",()=>shareEvent(event));});
 }
 function icsEscape(value){return String(value||"").replace(/[\\\r\n,;]/g,c=>({"\\":"\\\\","\r":"\\n","\n":"\\n",",":"\\,", ";":"\\;"}[c]));}
 function addEventToCalendar(event){
  if(!event||!event.event_date)return;
- const start=String(event.event_date).replace(/-/g,""),d=new Date(event.event_date+"T12:00:00");d.setDate(d.getDate()+1);const end=localDateKey(d).replace(/-/g,"");
- const description=[event.description||"",event.location?"Место: "+event.location:"",event.event_time?"Время: "+event.event_time:""].filter(Boolean).join("\n");
+ const start=String(event.event_date).replace(/-/g,""),description=[event.description||"",event.location?"Место: "+event.location:"",event.event_time?"Время: "+event.event_time:""].filter(Boolean).join("\n");
  const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
- const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//S1Sch9//School Council//RU","CALSCALE:GREGORIAN","BEGIN:VEVENT","UID:"+icsEscape(event.id||event.title+"-"+event.event_date)+"@s1sch9.github.io","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+start,"DTEND;VALUE=DATE:"+end,"SUMMARY:"+icsEscape(event.title),"DESCRIPTION:"+icsEscape(description),event.location?"LOCATION:"+icsEscape(event.location):"","URL:https://s1sch9.github.io/#events","END:VEVENT","END:VCALENDAR"].filter(Boolean);
- const blob=new Blob([lines.join("\r\n")],{type:"text/calendar;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="s1sch9-event-"+start+".ics";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);showSiteToast("Файл события подготовлен для календаря");
+ const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//S1Sch9//School Council//RU","CALSCALE:GREGORIAN","BEGIN:VEVENT","UID:"+icsEscape(event.id||event.title+"-"+event.event_date)+"@s1sch9.github.io","DTSTAMP:"+stamp];
+ const time=String(event.event_time||"").match(/(\d{1,2}):(\d{2})/);
+ if(time){
+  const startMinutes=Number(time[1])*60+Number(time[2]),rangeEnd=String(event.event_time||"").match(/(?:-|–|—|до)\s*(\d{1,2}):(\d{2})/i);
+  let endMinutes=rangeEnd?Number(rangeEnd[1])*60+Number(rangeEnd[2]):startMinutes+60;
+  if(endMinutes<=startMinutes)endMinutes+=1440;
+  const base=new Date(event.event_date+"T12:00:00");
+  const formatClock=minutes=>{const d=new Date(base);d.setDate(d.getDate()+Math.floor(minutes/1440));d.setHours(0,0,0,0);d.setMinutes(minutes%1440);return localDateKey(d).replace(/-/g,"")+"T"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0")+"00";};
+  lines.push("DTSTART;TZID=Europe/Moscow:"+formatClock(startMinutes),"DTEND;TZID=Europe/Moscow:"+formatClock(endMinutes));
+ }else{
+  const d=new Date(event.event_date+"T12:00:00");d.setDate(d.getDate()+1);
+  lines.push("DTSTART;VALUE=DATE:"+start,"DTEND;VALUE=DATE:"+localDateKey(d).replace(/-/g,""));
+ }
+ lines.push("SUMMARY:"+icsEscape(event.title),"DESCRIPTION:"+icsEscape(description),event.location?"LOCATION:"+icsEscape(event.location):"","URL:https://s1sch9.github.io/#events","END:VEVENT","END:VCALENDAR");
+ const blob=new Blob([lines.filter(Boolean).join("\r\n")],{type:"text/calendar;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="s1sch9-event-"+start+".ics";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);showSiteToast("Файл события подготовлен для календаря");
 }
 async function shareEvent(event){
  if(!event)return;const text=[event.title,event.event_date,event.event_time||"",event.location||"",event.description||""].filter(Boolean).join(" · "),url="https://s1sch9.github.io/#events";
@@ -1396,6 +1421,7 @@ $('#goToday')?.addEventListener('click',()=>{selectedEventDay=localDateKey(new D
 $('#prevMonth')?.addEventListener('click',()=>{calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()-1,1);renderPublicCalendar()});
 $('#nextMonth')?.addEventListener('click',()=>{calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()+1,1);renderPublicCalendar()});
 $('#calendarGrid')?.addEventListener('click',e=>{const b=e.target.closest('[data-event-day]');if(!b)return;selectedEventDay=b.dataset.eventDay;renderPublicCalendar();renderPublicEvents()});
+$('#eventCategoryFilter')?.addEventListener('change',e=>{selectedEventCategory=e.target.value||"all";renderPublicEvents()});
 const daySwipe=$('#dayShowcase');let dayTouchX=null;
 daySwipe?.addEventListener('touchstart',e=>{dayTouchX=e.changedTouches[0].clientX},{passive:true});
 daySwipe?.addEventListener('touchend',e=>{if(dayTouchX===null)return;const dx=e.changedTouches[0].clientX-dayTouchX;if(Math.abs(dx)>45)shiftSelectedDay(dx<0?1:-1);dayTouchX=null},{passive:true});
@@ -1422,6 +1448,14 @@ loadPublicEvents();
 })();
 $("#siteInstallHelp")?.addEventListener("click",()=>showSiteToast(/iPhone|iPad|iPod/i.test(navigator.userAgent)?"В Safari нажми «Поделиться» → «На экран Домой».":"В меню браузера выбери «Установить приложение» или «Добавить на главный экран»."));
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
+
+
+document.addEventListener("click",async e=>{
+ const button=e.target.closest("[data-news-share]");if(!button)return;
+ const id=button.closest("[data-news-social]")?.dataset.newsSocial,n=NEWS.find(item=>newsSocialId(item)===id);if(!n)return;
+ const title=String(n.t||"Новость Совета Первых"),text=[n.d||"",String(n.x||"").slice(0,500)].filter(Boolean).join(" · "),url="https://s1sch9.github.io/#news";
+ try{if(navigator.share)await navigator.share({title,text,url});else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(title+" — "+url);showSiteToast("Ссылка на новость скопирована");}else showSiteToast("Открой меню браузера, чтобы поделиться ссылкой");}catch(error){if(error?.name!=="AbortError")showSiteToast("Не удалось открыть меню отправки");}
+});
 
 </script>
 <footer class="site-credit" aria-label="Информация о создателе сайта">Создатель сайта — Михеев Д. А. · 9 «А» класс</footer>
