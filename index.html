@@ -159,16 +159,7 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .home-appeal-icon{width:45px;height:45px;flex:none;display:grid;place-items:center;border-radius:15px;background:#3d000d;color:#f0c869;font-size:22px;box-shadow:none}
 .home-appeal span:nth-child(2){display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
 .home-appeal b{font-size:14px;line-height:1.25;font-weight:900}.home-appeal small{font-size:10.5px;color:#68404a;line-height:1.3;font-weight:650}.home-appeal strong{font-size:26px;color:#3d000d}
-.appeal-heading{margin:14px 0 8px;padding:4px 2px 0}.appeal-heading h1{margin:0}
 #appeal{padding-bottom:18px}
-.appeal-hero{position:relative;display:flex;align-items:center;gap:15px;margin:8px 0 14px;padding:20px 18px;border:1px solid #ead7dc;border-radius:25px;background:linear-gradient(145deg,#fff 0%,#fff7f8 100%);box-shadow:0 9px 24px rgba(61,0,13,.045);overflow:hidden}
-.appeal-hero:after{content:"";position:absolute;width:130px;height:130px;right:-65px;top:-72px;border-radius:50%;background:rgba(240,200,105,.22);pointer-events:none}
-.appeal-hero-mark{position:relative;z-index:1;width:58px;height:58px;flex:none;display:grid;place-items:center;border-radius:19px;background:linear-gradient(145deg,#a90029,#3d000d);color:#f0c869;font-size:26px;box-shadow:0 7px 16px rgba(61,0,13,.16)}
-.appeal-hero-copy{position:relative;z-index:1;min-width:0}
-.appeal-hero-copy small{display:block;margin-bottom:5px;color:#a1001f;font-size:9px;font-weight:900;letter-spacing:1.2px}
-.appeal-hero-copy h1{margin:0 0 5px;font-size:25px;line-height:1.1;letter-spacing:-.7px}
-.appeal-hero-copy p{color:#75686c;font-size:12px;line-height:1.45}
-.appeal-intro{margin:0 2px 16px;color:#695b60;font-size:13px;line-height:1.6}
 .appeal-form-card{padding:18px 16px 16px;border:1px solid #eadfe1;border-radius:25px;background:#fff;box-shadow:0 10px 28px rgba(61,0,13,.055)}
 .appeal-form-head{display:flex;align-items:center;gap:10px;margin:0 2px 16px}
 .appeal-form-head>span{width:34px;height:34px;display:grid;place-items:center;border-radius:12px;background:#f8e8ec;color:#a1001f;font-size:17px}
@@ -193,7 +184,7 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .appeal-alt-copy b{display:block;font-size:13px}
 .appeal-alt-copy small{display:block;margin-top:3px;color:#81747a;font-size:11px;line-height:1.4}
 .appeal-alt a{flex:none;padding:10px 13px;border-radius:13px;background:#e9f5fc;color:#1479ae;text-decoration:none;font-size:12px;font-weight:800}
-@media(max-width:380px){.appeal-hero{gap:11px;padding:17px 14px}.appeal-hero-mark{width:50px;height:50px;border-radius:16px}.appeal-hero-copy h1{font-size:22px}.appeal-form-card{padding:15px 12px}.appeal-fields{grid-template-columns:1fr}.appeal-field-wide{grid-column:auto}.appeal-alt{align-items:flex-start;flex-direction:column}.appeal-alt a{width:100%;text-align:center}}
+@media(max-width:380px){.appeal-form-card{padding:15px 12px}.appeal-fields{grid-template-columns:1fr}.appeal-field-wide{grid-column:auto}.appeal-alt{align-items:flex-start;flex-direction:column}.appeal-alt a{width:100%;text-align:center}}
 .home-section-title{display:flex;flex-direction:column;gap:3px;margin:0 2px 12px}
 .home-section-title span{color:var(--red);font-size:9px;font-weight:900;letter-spacing:1.3px}
 .home-section-title b{font-size:21px;letter-spacing:-.5px}
@@ -406,16 +397,16 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   </div>
   <div class="appeal-alt rv"><div class="appeal-alt-copy"><b>Отправить обращение в Telegram</b><small>Бот примет сообщение и передаст его Совету.</small></div><a href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener noreferrer">Открыть бота ↗</a></div>
 </section>
-<section id="games"><div class="section-heading rv"><small>ИНТЕРАКТИВ</small><h1>Мини-игры</h1><p>Проверь точность и чувство момента: ставь блоки ровно и поднимай башню выше.</p></div>
+<section id="games"><div class="section-heading rv"><small>ИНТЕРАКТИВ</small><h1>Мини-игры</h1><p>Проверь реакцию и точность в игре «Башня Первых».</p></div>
   <div class="game rv">
     <div class="game-art">
       <div class="game-emblem"><img src="gerb.png" alt="Герб школы №9"></div>
-      <div class="game-copy"><span class="game-kicker">ИГРАЙ • СОБИРАЙ • ДОСТИГАЙ</span><h2>Башня Первых</h2><p>Ставь блоки как можно точнее, чтобы построить высокую башню и установить новый рекорд.</p></div>
+      <div class="game-copy"><span class="game-kicker">ИГРАЙ • СОБИРАЙ • ДОСТИГАЙ</span><h2>Башня Первых</h2><p>Ставь блоки как можно точнее: чем ровнее они ложатся, тем выше получится башня.</p></div>
     </div>
     <div class="game-bottom"><span class="game-hint">🏆 Лучший результат сохранится на этом устройстве</span><button class="btn" id="play" type="button">Играть <span aria-hidden="true">→</span></button></div>
   </div>
 </section>
-<section id="links"><div class="section-heading rv"><small>ПОЛЕЗНЫЕ ССЫЛКИ</small><h1>Наши ресурсы</h1><p>Официальные каналы Совета и полезные школьные сайты.</p></div>
+<section id="links"><div class="section-heading rv"><small>ПОЛЕЗНЫЕ ССЫЛКИ</small><h1>Наши ресурсы</h1><p>Ссылки на официальные каналы Совета и сайты школы.</p></div>
   <p class="resource-caption rv">Ресурсы Совета</p>
   <a class="row link rv" id="tg" href="#"><i style="background:#2aa3e0"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21.5 3.5 18.2 20c-.25 1.17-.9 1.46-1.82.91l-5.03-3.7-2.43 2.34c-.27.27-.5.5-1.02.5l.36-5.12 9.32-8.42c.4-.36-.09-.56-.62-.2L5.44 13.5.49 11.95c-1.08-.34-1.1-1.08.23-1.58L20.1 2.9c.9-.33 1.69.22 1.4.6Z" fill="white"/></svg></i>Telegram-канал Совета</a>
   <a class="row link rv" id="mx" href="#"><i style="background:#fff;padding:0"><img src="https://max.ru/s/img/big-logo.png" alt="Логотип MAX" loading="lazy"></i>MAX-канал Совета</a>
