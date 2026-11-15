@@ -835,6 +835,16 @@ nav .nav-indicator{top:5px;bottom:5px;border-radius:17px;box-shadow:0 4px 12px r
   .news-feed-card,.btn,.news-like,.news-comments-jump{transition:none!important}
 }
 
+/* Roomier section gutters: give every screen a calm, consistent edge inset */
+main{padding-left:22px;padding-right:22px;padding-bottom:30px}
+.section-heading{padding-left:2px;padding-right:2px}
+@media(max-width:420px){
+  main{padding-left:20px;padding-right:20px}
+}
+@media(max-width:360px){
+  main{padding-left:18px;padding-right:18px}
+}
+
 /* Quiet connection feedback: visible only when the device is offline */
 .connection-status{position:fixed;z-index:40;top:calc(env(safe-area-inset-top) + 66px);left:50%;transform:translateX(-50%);width:min(560px,calc(100% - 28px));padding:11px 15px;border:1px solid rgba(255,255,255,.14);border-radius:15px;background:rgba(57,7,19,.94);color:#fff;font-size:12px;line-height:1.4;font-weight:600;text-align:center;box-shadow:0 8px 24px rgba(30,5,12,.18);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 .connection-status[hidden]{display:none}
