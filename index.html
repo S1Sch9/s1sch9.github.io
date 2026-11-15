@@ -376,7 +376,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 
   <div class="appeal-form-card rv">
     <div class="appeal-form-head"><span aria-hidden="true">✍️</span><div><b>Новое обращение</b><small>Опиши идею, вопрос или предложение — сообщение увидит Совет.</small></div></div>
-    <div id="appealBlockNotice" role="alert" aria-live="polite"><strong>⛔ Отправка обращений временно ограничена</strong><p>Сервис сообщает, что отправка с этого подключения сейчас недоступна.</p><p id="appealBlockReason"></p><p>Если считаешь, что это ошибка, свяжись с Советом через Telegram.</p></div>
+    <div id="appealBlockNotice" role="alert" aria-live="polite"><strong>⛔ Отправка обращений временно ограничена</strong><p>С этого подключения сейчас нельзя отправить обращение.</p><p id="appealBlockReason"></p><p>Если считаешь, что это ошибка, свяжись с Советом через Telegram.</p></div>
     <form id="form" style="margin-top:8px">
       <div class="appeal-fields">
         <div class="appeal-field"><label for="who">Кто ты</label><select id="who" name="Кто"><option>Ученик</option><option>Родитель</option><option>Учитель</option></select></div>
@@ -401,7 +401,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   <div class="game rv">
     <div class="game-art">
       <div class="game-emblem"><img src="gerb.png" alt="Герб школы №9"></div>
-      <div class="game-copy"><span class="game-kicker">ИГРАЙ • СОБИРАЙ • ДОСТИГАЙ</span><h2>Башня Первых</h2><p>Ставь блоки как можно точнее: чем ровнее они ложатся, тем выше получится башня.</p></div>
+      <div class="game-copy"><h2>Башня Первых</h2><p>Ставь блоки как можно точнее: чем ровнее они ложатся, тем выше получится башня.</p></div>
     </div>
     <div class="game-bottom"><span class="game-hint">🏆 Лучший результат сохранится на этом устройстве</span><button class="btn" id="play" type="button">Играть <span aria-hidden="true">→</span></button></div>
   </div>
@@ -709,9 +709,9 @@ function setAppealRulesAccepted(){
   send.disabled = !accepted;
   send.textContent = accepted ? "Отправить обращение" : "Сначала ознакомьтесь с правилами";
   gate.classList.toggle("is-accepted", accepted);
-  gate.querySelector(".rules-gate-copy b").textContent = accepted ? "✓ Правила приняты" : "Один короткий шаг перед отправкой";
-  button.textContent = accepted ? "Изменить" : "Открыть правила";
-  button.setAttribute("aria-label", accepted ? "Повторно открыть правила пользования" : "Открыть правила пользования");
+  gate.querySelector(".rules-gate-copy b").textContent = accepted ? "✓ Правила приняты" : "Перед отправкой";
+  button.textContent = accepted ? "Изменить" : "Прочитать правила";
+  button.setAttribute("aria-label", accepted ? "Повторно открыть правила пользования" : "Прочитать правила пользования");
   $("#rulesGateStatus").textContent = accepted ? "Согласие сохранено на этом устройстве." : "После подтверждения форма станет доступна.";
 }
 $("#openAppealRules").addEventListener("click", () => {
@@ -934,7 +934,7 @@ $("#form").addEventListener("submit", async e => {
     if (!response.ok || !result || !result.success) {
       throw new Error(result && result.error ? result.error + (result.diagnostic ? " Код: " + result.diagnostic : "") : ("Сервис вернул ошибку (HTTP " + response.status + ")."));
     }
-    e.target.innerHTML = '<div class="ok"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/><path d="M30 52l14 14 27-30"/></svg><h3 style="margin-top:14px">Спасибо, что написали! 💙</h3><p class="note">Мы получили ваше обращение. Мы внимательно прочитаем его, обсудим предложение и постараемся воплотить полезную идею в школьной жизни.</p><button class="btn full" type="button" style="margin-top:22px" onclick="location.reload()">Написать ещё одно обращение</button></div>';
+    e.target.innerHTML = '<div class="ok"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/><path d="M30 52l14 14 27-30"/></svg><h3 style="margin-top:14px">Спасибо, что написали! 💙</h3><p class="note">Совет получил ваше сообщение и рассмотрит его. Если это предложение, мы оценим, как его можно реализовать.</p><button class="btn full" type="button" style="margin-top:22px" onclick="location.reload()">Написать ещё одно обращение</button></div>';
   } catch (error) {
     console.error("Ошибка отправки обращения:", error);
     st.textContent = error && error.message
