@@ -834,12 +834,18 @@ nav .nav-indicator{top:5px;bottom:5px;border-radius:17px;box-shadow:0 4px 12px r
   section.on,.sh .pn{animation:none!important}
   .news-feed-card,.btn,.news-like,.news-comments-jump{transition:none!important}
 }
+
+/* Quiet connection feedback: visible only when the device is offline */
+.connection-status{position:fixed;z-index:40;top:calc(env(safe-area-inset-top) + 66px);left:50%;transform:translateX(-50%);width:min(560px,calc(100% - 28px));padding:11px 15px;border:1px solid rgba(255,255,255,.14);border-radius:15px;background:rgba(57,7,19,.94);color:#fff;font-size:12px;line-height:1.4;font-weight:600;text-align:center;box-shadow:0 8px 24px rgba(30,5,12,.18);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.connection-status[hidden]{display:none}
+@media(prefers-reduced-motion:reduce){.connection-status{transition:none}}
 </style>
 </head>
 <body>
 <div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button></div>
 <div class="site-search-panel" id="siteSearchPanel" hidden><div class="site-search-head"><label for="siteSearchInput">Поиск по всему сайту</label><button type="button" id="siteSearchClose" aria-label="Закрыть поиск">×</button></div><input id="siteSearchInput" type="search" placeholder="Новости, мероприятия, люди, ссылки…" autocomplete="off"><div id="siteSearchResults" class="site-search-results"><p class="note">Начни вводить запрос — найдём нужное.</p></div><button type="button" id="siteInstallHelp" class="site-install-help">Как добавить сайт на экран телефона</button></div>
 <div id="siteToast" class="site-toast" role="status" aria-live="polite"></div>
+<div id="connectionStatus" class="connection-status" role="status" aria-live="polite" hidden></div>
 <main>
 <section id="home">
   <div class="home-hero home-hero-flip rv" role="button" tabindex="0" aria-label="О Совете Первых школы №9. Нажмите, чтобы узнать больше" aria-pressed="false">
@@ -1695,6 +1701,19 @@ loadPublicEvents();
  document.addEventListener("click",e=>{if(!panel.hidden&&!panel.contains(e.target)&&!trigger.contains(e.target))close();});
 })();
 $("#siteInstallHelp")?.addEventListener("click",()=>showSiteToast(/iPhone|iPad|iPod/i.test(navigator.userAgent)?"В Safari нажми «Поделиться» → «На экран Домой».":"В меню браузера выбери «Установить приложение» или «Добавить на главный экран»."));
+const connectionStatus=$("#connectionStatus");
+function refreshConnectionStatus(){
+ if(!connectionStatus)return;
+ connectionStatus.hidden=!!navigator.onLine;
+ connectionStatus.textContent="Нет интернета. Сайт открыт в офлайн-режиме; новости и отправка обращений обновятся после подключения.";
+}
+window.addEventListener("offline",refreshConnectionStatus);
+window.addEventListener("online",()=>{
+ const wasOffline=connectionStatus&&!connectionStatus.hidden;
+ refreshConnectionStatus();
+ if(wasOffline)showSiteToast("Соединение восстановлено");
+});
+refreshConnectionStatus();
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
 
 
