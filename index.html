@@ -1882,7 +1882,8 @@ document.addEventListener("submit",async e=>{
 });
 document.addEventListener("submit",async e=>{const form=e.target.closest("[data-comment-form],[data-comment-reply-form]");if(!form)return;e.preventDefault();const root=form.closest("[data-news-social]"),status=form.querySelector("[data-comment-status]"),button=form.querySelector("button[type=submit]");const edit=document.querySelector("[data-name-edit]"),author=(edit&&edit.value.trim())||newsCommentName(),message=form.elements.message.value.trim(),article=form.closest("[data-comment-id]"),parent_id=article?article.dataset.commentId:null;button.disabled=true;if(status)status.textContent="Отправляем…";try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({news_id:root.dataset.newsSocial,visitor_id:newsVisitorId(),author,message,parent_id})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось отправить комментарий");if(status)status.textContent=d.message;form.reset();const nameEdit=document.querySelector("[data-name-edit]");if(nameEdit)nameEdit.value=newsCommentName();if(d.status==="published")await loadNewsSocial(root.dataset.newsSocial)}catch(err){if(status)status.textContent=err.message}finally{button.disabled=false}});
 
-$("#q").addEventListener("input", drawNews);\n$("#clearNewsSearch")?.addEventListener("click",()=>{$("#q").value="";drawNews();$("#q").focus();});
+$("#q").addEventListener("input", drawNews);
+$("#clearNewsSearch")?.addEventListener("click",()=>{$("#q").value="";drawNews();$("#q").focus();});
 $("#newsAllTab")?.addEventListener("click",()=>{showSavedNews=false;drawNews();});
 $("#newsSavedTab")?.addEventListener("click",()=>{showSavedNews=true;drawNews();});
 drawTeam(); drawNews();
