@@ -212,7 +212,6 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .news-detail-dock .news-like{min-width:76px;padding:10px 17px;background:#fff5f6;border-color:#f0dce1}
 .news-detail-dock .news-comments-jump{flex:1;justify-content:center;gap:8px;padding:10px 16px;background:#f7f3f4;border-color:#eee5e7}
 .news-detail-dock .news-like.is-liked{background:#fff0f3;border-color:#e8bdc7}
-.news-detail-dock .news-share-button{flex:0 0 46px;width:46px;padding:8px;border:1px solid #eee5e7;background:#fff;color:var(--red);font-size:20px}
 @media(min-width:700px){.news-detail-panel{border-radius:28px 28px 0 0}.news-detail-dock{border-radius:0 0 28px 28px}}
 /* Переворот главной карточки: спокойная подсказка и свободное место для текста */
 .home-hero-flip{perspective:1100px;perspective-origin:50% 48%;cursor:pointer;outline:none;padding:0;min-height:270px}
@@ -458,6 +457,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .news-comments-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 0 14px;border-bottom:1px solid #f0e8ea}
 .news-comments-head small{display:block;margin-bottom:3px;color:var(--red);font-size:9px;font-weight:850;letter-spacing:1.1px}
 .news-comments-head h3{margin:0;font-size:23px;letter-spacing:-.6px}
+.news-comments-back{flex:none;border:1px solid #eee1e5;border-radius:12px;background:#faf6f7;color:#8f1733;padding:9px 11px;font:750 12px Onest,system-ui;white-space:nowrap}.news-comments-back:active{background:#f3e7ea;transform:scale(.98)}
 .news-comments-panel .news-comment-name-edit{flex:none}
 .news-comments-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 0 20px}
 .news-comments-empty{text-align:center;padding:28px 12px;color:var(--mut);font-size:13px}
@@ -989,7 +989,7 @@ function openSh(h){
     s1BodyStyleBeforeSheet={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,right:document.body.style.right,width:document.body.style.width,overflow:document.body.style.overflow};
     document.body.style.position="fixed";document.body.style.top=(-s1SheetScrollY)+"px";document.body.style.left="0";document.body.style.right="0";document.body.style.width="100%";document.body.style.overflow="hidden";
   }
-  $("#pn").classList.remove("more-panel","news-detail-panel");if(h.includes("news-detail-content"))$("#pn").classList.add("news-detail-panel");const hasOwnClose=h.includes("more-menu-heading");$("#pn").innerHTML='<div class="grip"></div>'+(hasOwnClose?"":'<button class="sh-close" type="button" onclick="closeSh()" aria-label="Закрыть окно">×</button>')+h;
+  $("#pn").classList.remove("more-panel","news-detail-panel");if(h.includes("news-detail-content"))$("#pn").classList.add("news-detail-panel");const hasOwnClose=h.includes("more-menu-heading")||h.includes("news-comments-modal");$("#pn").innerHTML='<div class="grip"></div>'+(hasOwnClose?"":'<button class="sh-close" type="button" onclick="closeSh()" aria-label="Закрыть окно">×</button>')+h;
   updateS1VisualHeight();$("#sh").classList.add("on");
 }
 function closeSh(){
@@ -1128,7 +1128,7 @@ function drawNews(){
   $("#latest").innerHTML = L ? '<button class="row rv" data-k="0"><small>Последняя новость</small><b>' + esc(L.t) + '</b>' + preview(L) + '<em style="display:block;margin-top:9px">Открыть новость →</em></button>' : "";
   document.querySelectorAll("#newsList .news-feed-card,#latest .row").forEach((b, i) => { b.style.setProperty("--i", Math.min(i, 9)); b.onclick = e => {
     if(e.target.closest(".news-social")) return;
-    const n = NEWS[b.dataset.k]; if(!n)return; openSh('<div class="news-detail-content"><span class="chip">' + esc(n.d) + '</span><h3 style="margin-top:12px">' + esc(n.t) + '</h3>' + (n.x ? '<p style="white-space:pre-line;line-height:1.65">' + esc(n.x) + '</p>' : '') + mediaMarkup(n) + '</div><div class="news-detail-dock" data-news-social="' + esc(newsSocialId(n)) + '"><button type="button" class="news-like" data-news-like aria-label="Поставить лайк"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10A4.8 4.8 0 0 1 12 6.2a4.8 4.8 0 0 1 8.8 2.6Z"/></svg></span><span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump aria-label="Открыть комментарии"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/><path d="M8 11h8M8 14h5"/></svg></span><span class="news-comments-label">Комментарии</span><span class="news-dock-count" data-comment-count></span></button><button type="button" class="news-share-button" data-news-share aria-label="Поделиться новостью">↗</button></div>'); loadNewsSocial(newsSocialId(n)); }; });
+    const n = NEWS[b.dataset.k]; if(!n)return; openSh('<div class="news-detail-content"><span class="chip">' + esc(n.d) + '</span><h3 style="margin-top:12px">' + esc(n.t) + '</h3>' + (n.x ? '<p style="white-space:pre-line;line-height:1.65">' + esc(n.x) + '</p>' : '') + mediaMarkup(n) + '</div><div class="news-detail-dock" data-news-social="' + esc(newsSocialId(n)) + '"><button type="button" class="news-like" data-news-like aria-label="Поставить лайк"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10A4.8 4.8 0 0 1 12 6.2a4.8 4.8 0 0 1 8.8 2.6Z"/></svg></span><span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump aria-label="Открыть комментарии"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/><path d="M8 11h8M8 14h5"/></svg></span><span class="news-comments-label">Комментарии</span><span class="news-dock-count" data-comment-count></span></button></div>'); loadNewsSocial(newsSocialId(n)); }; });
   document.querySelectorAll("#newsList .news-feed-card .news-open").forEach(b=>b.setAttribute("aria-label","Открыть новость"));
   document.querySelectorAll("#newsList [data-news-social]").forEach(root=>loadNewsSocial(root.dataset.newsSocial));
 }
@@ -1169,9 +1169,18 @@ async function loadNewsSocial(newsId){
   }catch{roots.forEach(root=>{const list=root.querySelector("[data-comments-list]");if(list)list.textContent="Не удалось загрузить обсуждение."})}
 }
 function newsCommentName(){return (localStorage.getItem("s1sch9_comment_name")||"Аноним").trim().slice(0,32)||"Аноним"}
+let newsDetailReturnHtml=null;
+function closeNewsComments(){
+  if(!newsDetailReturnHtml){closeSh();return;}
+  const html=newsDetailReturnHtml;newsDetailReturnHtml=null;
+  openSh(html);
+  const root=$("#pn [data-news-social]");if(root)loadNewsSocial(root.dataset.newsSocial);
+}
 function openNewsComments(newsId){
+  const current=$("#pn");
+  if(current&&current.innerHTML.includes("news-detail-content"))newsDetailReturnHtml=current.innerHTML;
   const name=newsCommentName();
-  openSh('<div class="news-comments-modal" data-news-social="'+esc(newsId)+'"><div class="news-comments-head"><div><small>ОБСУЖДЕНИЕ НОВОСТИ</small><h3>Комментарии</h3></div><button type="button" class="news-comment-name" data-name-toggle>'+esc(name)+'</button></div><input class="news-comment-name-edit" data-name-edit maxlength="32" value="'+esc(name)+'" placeholder="Как вас называть" aria-label="Имя для комментариев"><div class="news-comments-list" data-comments-list><p class="note">Загружаем комментарии…</p></div><div class="news-comments-compose"><form data-comment-form><div class="news-comment-compose-row"><textarea name="message" maxlength="600" minlength="2" required placeholder="Написать комментарий…" aria-label="Текст комментария"></textarea><button class="btn" type="submit" aria-label="Отправить комментарий">↑</button></div><p class="news-comment-compose-hint">Общайтесь уважительно — комментарии видны всем</p><p class="note" data-comment-status role="status"></p></form></div></div>');
+  openSh('<div class="news-comments-modal" data-news-social="'+esc(newsId)+'"><div class="news-comments-head"><div><small>ОБСУЖДЕНИЕ НОВОСТИ</small><h3>Комментарии</h3></div><button type="button" class="news-comments-back" onclick="closeNewsComments()" aria-label="Вернуться к новости">← К новости</button><button type="button" class="news-comment-name" data-name-toggle>'+esc(name)+'</button></div><input class="news-comment-name-edit" data-name-edit maxlength="32" value="'+esc(name)+'" placeholder="Как вас называть" aria-label="Имя для комментариев"><div class="news-comments-list" data-comments-list><p class="note">Загружаем комментарии…</p></div><div class="news-comments-compose"><form data-comment-form><div class="news-comment-compose-row"><textarea name="message" maxlength="600" minlength="2" required placeholder="Написать комментарий…" aria-label="Текст комментария"></textarea><button class="btn" type="submit" aria-label="Отправить комментарий">↑</button></div><p class="news-comment-compose-hint">Общайтесь уважительно — комментарии видны всем</p><p class="note" data-comment-status role="status"></p></form></div></div>');
   $("#pn").classList.add("news-comments-panel");
   loadNewsSocial(newsId);
 }
@@ -1460,12 +1469,6 @@ $("#siteInstallHelp")?.addEventListener("click",()=>showSiteToast(/iPhone|iPad|i
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
 
 
-document.addEventListener("click",async e=>{
- const button=e.target.closest("[data-news-share]");if(!button)return;
- const id=button.closest("[data-news-social]")?.dataset.newsSocial,n=NEWS.find(item=>newsSocialId(item)===id);if(!n)return;
- const title=String(n.t||"Новость Совета Первых"),text=[n.d||"",String(n.x||"").slice(0,500)].filter(Boolean).join(" · "),url="https://s1sch9.github.io/#news";
- try{if(navigator.share)await navigator.share({title,text,url});else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(title+" — "+url);showSiteToast("Ссылка на новость скопирована");}else showSiteToast("Открой меню браузера, чтобы поделиться ссылкой");}catch(error){if(error?.name!=="AbortError")showSiteToast("Не удалось открыть меню отправки");}
-});
 
 </script>
 <footer class="site-credit" aria-label="Информация о создателе сайта">Создатель сайта — Михеев Д. А. · 9 «А» класс</footer>
