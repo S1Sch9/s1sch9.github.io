@@ -290,8 +290,13 @@ nav a:active,nav button:active{transform:scale(.96)}
 .more-menu-item span{line-height:1.2}
 .sh{position:fixed;inset:0;z-index:20;display:none}.sh.on{display:block}
 .sh .bg{position:absolute;inset:0;background:rgba(30,0,8,.5);animation:fd .25s}
-.sh .pn{position:absolute;left:0;right:0;bottom:0;max-width:640px;margin:auto;max-height:calc(var(--s1-visual-height, 100dvh) - 12px);overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#fff;border-radius:28px 28px 0 0;padding:14px 22px calc(30px + env(safe-area-inset-bottom));animation:sl .38s cubic-bezier(.2,.9,.25,1)}
-@keyframes sl{from{transform:translateY(100%)}}@keyframes fd{from{opacity:0}}
+.sh .pn{position:absolute;left:0;right:0;bottom:0;max-width:640px;margin:auto;max-height:calc(var(--s1-visual-height, 100dvh) - 12px);overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#fff;border-radius:28px 28px 0 0;padding:14px 22px calc(30px + env(safe-area-inset-bottom));animation:sl .48s cubic-bezier(.18,1.18,.32,1)}
+.sh-close{position:absolute;z-index:8;top:13px;right:16px;width:38px;height:38px;display:grid;place-items:center;border:1px solid #f0e2e5;border-radius:50%;background:rgba(255,255,255,.96);color:#8f1733;font:500 25px/1 system-ui;box-shadow:0 3px 12px rgba(61,0,13,.09);cursor:pointer;transition:transform .24s cubic-bezier(.2,1.35,.35,1),background .18s}
+.sh-close:active{transform:scale(.86) rotate(8deg);background:#f9e9ed}
+@keyframes sl{0%{transform:translateY(100%)}72%{transform:translateY(-5px)}88%{transform:translateY(2px)}100%{transform:translateY(0)}}@keyframes fd{from{opacity:0}}
+.news-feed-card,.home-upcoming,.day-event-card{transition:transform .32s cubic-bezier(.2,1.35,.35,1),box-shadow .25s ease,border-color .25s ease;transform-origin:center}
+.news-feed-card:active,.home-upcoming:active,.day-event-card:active{transform:scale(.985);box-shadow:0 7px 19px rgba(61,0,13,.09)}
+@media(prefers-reduced-motion:reduce){.sh .pn,.sh-close,.news-feed-card,.home-upcoming,.day-event-card{animation:none!important;transition:none!important}}
 .grip{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 18px}
 .rules-scroll-cue{position:fixed;right:max(18px,calc((100vw - 600px)/2));bottom:calc(22px + env(safe-area-inset-bottom));z-index:30;width:46px;height:46px;padding:0;border:1px solid #eadfe1;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.97);color:var(--red);font-size:25px;font-weight:800;line-height:1;box-shadow:0 5px 18px rgba(61,0,13,.2);cursor:pointer;animation:rulesCueBounce 1.5s ease-in-out infinite;transition:opacity .2s,visibility .2s,transform .2s}.rules-scroll-cue:active{transform:scale(.92)}.rules-scroll-cue.is-hidden{opacity:0;visibility:hidden;pointer-events:none}@keyframes rulesCueBounce{0%,100%{translate:0 0}50%{translate:0 4px}}
 .big{width:130px;height:130px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(160deg,#c10030,var(--deep));overflow:hidden;position:relative;display:grid;place-items:center;color:#fff;font-weight:800;font-size:40px}
@@ -802,7 +807,7 @@ function openSh(h){
     s1BodyStyleBeforeSheet={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,right:document.body.style.right,width:document.body.style.width,overflow:document.body.style.overflow};
     document.body.style.position="fixed";document.body.style.top=(-s1SheetScrollY)+"px";document.body.style.left="0";document.body.style.right="0";document.body.style.width="100%";document.body.style.overflow="hidden";
   }
-  $("#pn").classList.remove("more-panel","news-detail-panel");if(h.includes("news-detail-content"))$("#pn").classList.add("news-detail-panel");$("#pn").innerHTML='<div class="grip"></div>'+h;
+  $("#pn").classList.remove("more-panel","news-detail-panel");if(h.includes("news-detail-content"))$("#pn").classList.add("news-detail-panel");const hasOwnClose=h.includes("more-menu-heading");$("#pn").innerHTML='<div class="grip"></div>'+(hasOwnClose?"":'<button class="sh-close" type="button" onclick="closeSh()" aria-label="Закрыть окно">×</button>')+h;
   updateS1VisualHeight();$("#sh").classList.add("on");
 }
 function closeSh(){
