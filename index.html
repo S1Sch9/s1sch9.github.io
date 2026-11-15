@@ -1271,7 +1271,7 @@ document.addEventListener("keydown",e=>{if(!e.target.matches("[data-name-edit]")
 document.addEventListener("click",async e=>{
  const like=e.target.closest("[data-comment-like]");if(!like||like.disabled)return;
  const article=like.closest("[data-comment-id]");if(!article)return;
- const wasLiked=like.classList.contains("is-liked"),nextLiked=!wasLiked,match=like.textContent.match(/\\d+/),oldCount=match?Number(match[0]):0,optimisticCount=Math.max(0,oldCount+(nextLiked?1:-1));
+ const wasLiked=like.classList.contains("is-liked"),nextLiked=!wasLiked,match=like.textContent.match(/\d+/),oldCount=match?Number(match[0]):0,optimisticCount=Math.max(0,oldCount+(nextLiked?1:-1));
  like.classList.toggle("is-liked",nextLiked);like.setAttribute("aria-pressed",String(nextLiked));like.textContent="♥ "+optimisticCount;like.disabled=true;
  try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comment-like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({comment_id:article.dataset.commentId,visitor_id:newsVisitorId()})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось изменить реакцию");like.classList.toggle("is-liked",!!d.liked);like.setAttribute("aria-pressed",String(!!d.liked));like.textContent="♥ "+Number(d.likes||0)}
  catch(err){like.classList.toggle("is-liked",wasLiked);like.setAttribute("aria-pressed",String(wasLiked));like.textContent="♥ "+oldCount;showSiteToast(err.message||"Не удалось изменить реакцию")}finally{like.disabled=false}
