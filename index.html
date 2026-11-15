@@ -1170,12 +1170,18 @@ function renderNewsComment(c,all=[],depth=0){
   const children=depth<4?all.filter(x=>x.parent_id===c.id).map(x=>renderNewsComment(x,all,depth+1)).join(""):"";
   return '<article class="news-comment'+(depth?' is-reply':'')+'" data-comment-id="'+esc(c.id)+'"><div class="news-comment-avatar" aria-hidden="true">'+initial+'</div><div class="news-comment-main"><div class="news-comment-bubble"><div class="news-comment-meta"><b>'+esc(author)+'</b><time>'+date+'</time></div><p>'+esc(c.message)+'</p></div>'+actions+tools+(children?'<div class="news-comment-children">'+children+'</div>':'')+'</div></article>';
  }
-async function loadNewsSocial(newsId){
+const NEWS_SOCIAL_CACHE=new Map(),NEWS_SOCIAL_PENDING=new Map();
+async function loadNewsSocial(newsId,force=false){
   const roots=Array.from(document.querySelectorAll("[data-news-social]")).filter(r=>r.dataset.newsSocial===String(newsId));
   if(!roots.length)return;
   try{
-    const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-social?news_id="+encodeURIComponent(newsId)+"&visitor_id="+encodeURIComponent(newsVisitorId()));
-    const d=await r.json();if(!r.ok)throw Error();
+    let d;const cached=NEWS_SOCIAL_CACHE.get(String(newsId));
+    if(!force&&cached&&Date.now()-cached.at<20000)d=cached.data;
+    else{
+      let pending=NEWS_SOCIAL_PENDING.get(String(newsId));
+      if(!pending){pending=(async()=>{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-social?news_id="+encodeURIComponent(newsId)+"&visitor_id="+encodeURIComponent(newsVisitorId()));const data=await r.json();if(!r.ok)throw Error(data.error||"Не удалось загрузить реакции");NEWS_SOCIAL_CACHE.set(String(newsId),{at:Date.now(),data});return data;})();NEWS_SOCIAL_PENDING.set(String(newsId),pending);}
+      try{d=await pending;}finally{if(NEWS_SOCIAL_PENDING.get(String(newsId))===pending)NEWS_SOCIAL_PENDING.delete(String(newsId));}
+    }
     roots.forEach(root=>{
       const like=root.querySelector("[data-news-like]");
       if(like){like.classList.toggle("is-liked",!!d.liked);like.innerHTML=(d.liked?"♥ Нравится ":"♡ Нравится ")+'<span data-like-count>'+d.likes+'</span>'}
