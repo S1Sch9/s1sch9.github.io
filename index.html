@@ -118,7 +118,10 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .rules-consent a:active{opacity:.7}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .ok{text-align:center;padding:40px 10px;animation:in .5s both}
-.ok svg{width:84px;height:84px;stroke:var(--red);fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.ok svg{width:84px;height:84px;stroke:#91898d;fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.ok h3{color:#625b5f}
+.ok .note{color:#777075;line-height:1.6}
+.ok .privacy-confirm{max-width:390px;margin:14px auto 0;padding:12px 14px;border:1px solid #e8e4e5;border-radius:14px;background:#f7f6f6;color:#716a6e;font-size:12px;line-height:1.55}
 .ok circle{stroke-dasharray:260;stroke-dashoffset:260;animation:dr .7s .1s forwards}.ok path{stroke-dasharray:60;stroke-dashoffset:60;animation:dr .4s .7s forwards}
 @keyframes dr{to{stroke-dashoffset:0}}
 .game{position:relative;overflow:hidden;padding:0;border-radius:28px;background:#fff;border:1px solid var(--line);box-shadow:0 12px 30px rgba(61,0,13,.09)}
@@ -958,7 +961,7 @@ $("#form").addEventListener("submit", async e => {
     if (!response.ok || !result || !result.success) {
       throw new Error(result && result.error ? result.error + (result.diagnostic ? " Код: " + result.diagnostic : "") : ("Сервис вернул ошибку (HTTP " + response.status + ")."));
     }
-    e.target.innerHTML = '<div class="ok"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/><path d="M30 52l14 14 27-30"/></svg><h3 style="margin-top:14px">Спасибо, что написали! 💙</h3><p class="note">Совет получил ваше сообщение и рассмотрит его. Если это предложение, мы оценим, как его можно реализовать.</p><button class="btn full" type="button" style="margin-top:22px" onclick="location.reload()">Написать ещё одно обращение</button></div>';
+    e.target.innerHTML = '<div class="ok"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42"/><path d="M30 52l14 14 27-30"/></svg><h3 style="margin-top:14px">Обращение отправлено</h3><p class="note">Спасибо, что поделились своей идеей. Совет получил сообщение и рассмотрит его.</p><p class="privacy-confirm">🔒 Всё конфиденциально: обращение увидит только Совет. Сообщение и личные данные не публикуются на сайте и не становятся общедоступными.</p><button class="btn full" type="button" style="margin-top:22px" onclick="location.reload()">Написать ещё одно обращение</button></div>';
   } catch (error) {
     console.error("Ошибка отправки обращения:", error);
     st.textContent = error && error.message
