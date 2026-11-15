@@ -457,7 +457,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .news-comments-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 0 14px;border-bottom:1px solid #f0e8ea}
 .news-comments-head small{display:block;margin-bottom:3px;color:var(--red);font-size:9px;font-weight:850;letter-spacing:1.1px}
 .news-comments-head h3{margin:0;font-size:23px;letter-spacing:-.6px}
-.news-comments-back{flex:none;border:1px solid #eee1e5;border-radius:12px;background:#faf6f7;color:#8f1733;padding:9px 11px;font:750 12px Onest,system-ui;white-space:nowrap}.news-comments-back:active{background:#f3e7ea;transform:scale(.98)}
+.news-comments-back{flex:none;width:42px;height:42px;display:grid;place-items:center;border:1px solid #eee1e5;border-radius:50%;background:#faf6f7;color:#8f1733;padding:0;font:400 29px/1 system-ui;cursor:pointer;transition:background .18s,transform .18s}.news-comments-back:active{background:#f3e7ea;transform:scale(.94)}
 .news-comments-panel .news-comment-name-edit{flex:none}
 .news-comments-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 0 20px}
 .news-comments-empty{text-align:center;padding:28px 12px;color:var(--mut);font-size:13px}
@@ -673,7 +673,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   .appeal-alt a{width:100%;min-height:46px;white-space:normal}
 }
 
-.news-comments-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center!important;gap:10px!important}.news-comments-head>div{min-width:0}.news-comments-back{max-width:164px;min-height:42px;padding:9px 12px!important;font-size:11px!important;line-height:1.2!important;white-space:normal!important}.news-comments-name-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 10px;border-bottom:1px solid #f2e9eb}.news-comments-name-caption{display:grid;gap:3px;min-width:0}.news-comments-name-caption span{color:#94848a;font-size:11px;font-weight:650}.news-comments-name-caption b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#482630;font-size:14px;font-weight:800}.news-comments-name-tools .news-comment-name{flex:none;max-width:none;min-height:40px;padding:9px 13px;border-radius:12px;font-size:12px;white-space:nowrap}.news-comments-name-tools .news-comment-name:after{content:none}.news-comments-name-row{display:none;flex:none;padding:10px 0 12px}.news-comments-name-row.on{display:grid;gap:6px}.news-comments-name-help{color:#94848a;font-size:10px;line-height:1.35}.news-comments-panel{height:auto!important;max-height:calc(var(--s1-visual-height,100dvh) - 12px)!important;min-height:0}.news-comments-panel .news-comments-modal{min-height:0}.news-comments-panel .news-comments-list{min-height:70px}.news-comments-compose{flex:none;position:relative!important;top:auto!important;margin-bottom:0!important}.news-comments-compose-row textarea{font-size:16px!important}.news-comments-panel .news-comments-name-row:not(.on){display:none!important}@media(max-width:390px){.news-comments-head h3{font-size:21px!important}.news-comments-back{max-width:145px;font-size:10px!important;padding:8px 9px!important}.news-comments-name-tools{gap:7px}.news-comments-name-tools .news-comment-name{padding:8px 10px;font-size:11px}}
+.news-comments-head{display:grid!important;grid-template-columns:minmax(0,1fr) 42px;align-items:center!important;gap:10px!important}.news-comments-head>div{min-width:0}.news-comments-back{width:42px!important;height:42px!important;min-height:42px!important;padding:0!important;font-size:29px!important;line-height:1!important;white-space:nowrap!important}.news-comments-name-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 10px;border-bottom:1px solid #f2e9eb}.news-comments-name-caption{display:grid;gap:3px;min-width:0}.news-comments-name-caption span{color:#94848a;font-size:11px;font-weight:650}.news-comments-name-caption b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#482630;font-size:14px;font-weight:800}.news-comments-name-tools .news-comment-name{flex:none;max-width:none;min-height:40px;padding:9px 13px;border-radius:12px;font-size:12px;white-space:nowrap}.news-comments-name-tools .news-comment-name:after{content:none}.news-comments-name-row{display:none;flex:none;padding:10px 0 12px}.news-comments-name-row.on{display:grid;gap:6px}.news-comments-name-help{color:#94848a;font-size:10px;line-height:1.35}.news-comments-panel{height:auto!important;max-height:calc(var(--s1-visual-height,100dvh) - 12px)!important;min-height:0}.news-comments-panel .news-comments-modal{min-height:0}.news-comments-panel .news-comments-list{min-height:70px}.news-comments-compose{flex:none;position:relative!important;top:auto!important;margin-bottom:0!important}.news-comments-compose-row textarea{font-size:16px!important}.news-comments-panel .news-comments-name-row:not(.on){display:none!important}@media(max-width:390px){.news-comments-head h3{font-size:21px!important}.news-comments-back{width:40px!important;height:40px!important;min-height:40px!important;font-size:27px!important;padding:0!important}.news-comments-name-tools{gap:7px}.news-comments-name-tools .news-comment-name{padding:8px 10px;font-size:11px}}
 </style></head>
 <body>
 <div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button></div>
@@ -1194,11 +1194,50 @@ function openNewsComments(newsId){
   const current=$("#pn");
   if(current&&current.innerHTML.includes("news-detail-content")){const snapshot=current.cloneNode(true);snapshot.querySelectorAll(".grip,.sh-close").forEach(node=>node.remove());newsDetailReturnHtml=snapshot.innerHTML;}
   const name=newsCommentName();
-  openSh('<div class="news-comments-modal" data-news-social="'+esc(newsId)+'"><div class="news-comments-head"><div><small>ОБСУЖДЕНИЕ НОВОСТИ</small><h3>Комментарии</h3></div><button type="button" class="news-comments-back" onclick="closeNewsComments()" aria-label="Вернуться к новости">← Вернуться к новости</button></div><div class="news-comments-name-tools"><div class="news-comments-name-caption"><span>Ваше имя в комментариях</span><b data-name-current>'+esc(name)+'</b></div><button type="button" class="news-comment-name" data-name-toggle aria-expanded="false">Изменить имя</button></div><div class="news-comments-name-row"><input class="news-comment-name-edit" data-name-edit maxlength="32" value="'+esc(name)+'" placeholder="Введите имя" aria-label="Новое имя для комментариев"><span class="news-comments-name-help">Это имя будут видеть другие участники обсуждения</span></div><div class="news-comments-list" data-comments-list><p class="note">Загружаем комментарии…</p></div><div class="news-comments-compose"><form data-comment-form><div class="news-comment-compose-row"><textarea name="message" maxlength="600" minlength="2" required placeholder="Написать комментарий…" aria-label="Текст комментария"></textarea><button class="btn" type="submit" aria-label="Отправить комментарий">↑</button></div><p class="news-comment-compose-hint">Общайтесь уважительно — комментарии видны всем</p><p class="note" data-comment-status role="status"></p></form></div></div>');
+  openSh('<div class="news-comments-modal" data-news-social="'+esc(newsId)+'"><div class="news-comments-head"><div><small>ОБСУЖДЕНИЕ НОВОСТИ</small><h3>Комментарии</h3></div><button type="button" class="news-comments-back" onclick="closeNewsComments()" aria-label="Закрыть комментарии и вернуться к новости" title="Вернуться к новости">×</button></div><div class="news-comments-name-tools"><div class="news-comments-name-caption"><span>Ваше имя в комментариях</span><b data-name-current>'+esc(name)+'</b></div><button type="button" class="news-comment-name" data-name-toggle aria-expanded="false">Изменить имя</button></div><div class="news-comments-name-row"><input class="news-comment-name-edit" data-name-edit maxlength="32" value="'+esc(name)+'" placeholder="Введите имя" aria-label="Новое имя для комментариев"><span class="news-comments-name-help">Это имя будут видеть другие участники обсуждения</span></div><div class="news-comments-list" data-comments-list><p class="note">Загружаем комментарии…</p></div><div class="news-comments-compose"><form data-comment-form><div class="news-comment-compose-row"><textarea name="message" maxlength="600" minlength="2" required placeholder="Написать комментарий…" aria-label="Текст комментария"></textarea><button class="btn" type="submit" aria-label="Отправить комментарий">↑</button></div><p class="news-comment-compose-hint">Общайтесь уважительно — комментарии видны всем</p><p class="note" data-comment-status role="status"></p></form></div></div>');
   $("#pn").classList.add("news-comments-panel");
   loadNewsSocial(newsId);
 }
 document.addEventListener("focusin",e=>{if(!e.target.matches("#pn input,#pn textarea"))return;requestAnimationFrame(()=>{requestAnimationFrame(()=>{if(e.target.isConnected)e.target.scrollIntoView({block:"nearest",inline:"nearest",behavior:"smooth"})})})});
+
+/* Swipe down from the upper sheet area to dismiss the current panel. */
+(function installSheetSwipeDismiss(){
+ const panel=$("#pn");if(!panel)return;
+ let start=null,dragging=false;
+ panel.addEventListener("touchstart",e=>{
+  if(e.touches.length!==1)return;
+  const target=e.target;
+  if(target.closest("input,textarea,select,[contenteditable=true],.news-comments-list,.news-comments-compose"))return;
+  const rect=panel.getBoundingClientRect(),y=e.touches[0].clientY;
+  if(y>rect.top+155)return;
+  start={x:e.touches[0].clientX,y,id:e.touches[0].identifier};dragging=false;
+ },{passive:true});
+ panel.addEventListener("touchmove",e=>{
+  if(!start||e.touches.length!==1)return;
+  const t=[...e.touches].find(x=>x.identifier===start.id);if(!t)return;
+  const dx=t.clientX-start.x,dy=t.clientY-start.y;
+  if(!dragging){
+   if(Math.abs(dx)>Math.abs(dy)*1.15||dy<8)return;
+   if(dy<14)return;
+   dragging=true;
+  }
+  if(dy>0&&e.cancelable)e.preventDefault();
+ },{passive:false});
+ panel.addEventListener("touchend",e=>{
+  if(!start)return;
+  const t=[...e.changedTouches].find(x=>x.identifier===start.id);
+  const dy=t?t.clientY-start.y:0,dx=t?t.clientX-start.x:0;
+  const shouldClose=dragging&&dy>72&&dy>Math.abs(dx)*1.2;
+  start=null;dragging=false;
+  if(shouldClose){
+   const active=document.activeElement;
+   if(active&&panel.contains(active))active.blur();
+   if(panel.classList.contains("news-comments-panel"))closeNewsComments();else closeSh();
+  }
+ },{passive:true});
+ panel.addEventListener("touchcancel",()=>{start=null;dragging=false},{passive:true});
+})();
+
 document.addEventListener("click",e=>{
   const jump=e.target.closest("[data-comments-jump]");
   if(jump){e.preventDefault();e.stopPropagation();const root=jump.closest("[data-news-social]");if(root)openNewsComments(root.dataset.newsSocial);return}
