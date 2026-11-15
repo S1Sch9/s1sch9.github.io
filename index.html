@@ -597,6 +597,44 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   .news-detail-dock .news-like,.news-detail-dock .news-comments-jump,.news-comment-actions button{transition:none}
 }
 
+
+/* Обращения: надёжный перенос текста и понятная альтернатива в Telegram */
+.appeal-form-card,.appeal-privacy,.appeal-privacy *,.appeal-alt,.appeal-alt *,.ok,.ok *{box-sizing:border-box;min-width:0;max-width:100%}
+.appeal-privacy{
+  display:flex;align-items:flex-start;gap:9px;
+  width:100%;margin:14px 0 0;padding:11px 12px;
+  border:1px solid #eee5e7;border-radius:13px;
+  background:#faf7f8;color:#786d72;
+  font-size:11px;line-height:1.55;
+  overflow-wrap:anywhere;word-break:normal;white-space:normal
+}
+.appeal-privacy span:first-child{flex:0 0 18px;width:18px}
+.appeal-privacy span:last-child{display:block;flex:1 1 0;width:0;min-width:0;overflow-wrap:anywhere;word-break:normal;white-space:normal}
+.appeal-alt{
+  align-items:center;gap:14px;padding:16px;
+  border:1px solid #e8dce0;border-radius:19px;
+  background:linear-gradient(135deg,#fff 0%,#fcf6f8 100%);
+  box-shadow:0 5px 18px rgba(76,13,31,.045)
+}
+.appeal-alt-copy{flex:1 1 auto;min-width:0}
+.appeal-alt-copy b{font-size:14px;line-height:1.35;color:#43232e}
+.appeal-alt-copy small{font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.appeal-alt a{
+  flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:42px;padding:10px 14px;border:1px solid #cce7f5;border-radius:13px;
+  background:linear-gradient(145deg,#eaf7fd,#dff1fa);color:#0876ad;
+  text-decoration:none;font-size:12px;font-weight:850;white-space:normal;text-align:center;
+  box-shadow:0 3px 9px rgba(18,126,180,.08)
+}
+.appeal-alt a:active{transform:scale(.98)}
+.ok .privacy-confirm{box-sizing:border-box;width:100%;max-width:100%;overflow-wrap:anywhere;white-space:normal}
+@media(max-width:480px){
+  .appeal-privacy{align-items:flex-start;padding:11px 10px;font-size:11px;line-height:1.5}
+  .appeal-alt{align-items:stretch;flex-direction:column;gap:12px;padding:15px}
+  .appeal-alt-copy{width:100%}
+  .appeal-alt a{width:100%;min-height:46px;white-space:normal}
+}
+
 </style></head>
 <body>
 <div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div></div>
@@ -686,7 +724,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
     </form>
     <p class="appeal-privacy"><span>🔒</span><span>Всё конфиденциально: обращение увидит только Совет. Личные данные не публикуются.</span></p>
   </div>
-  <div class="appeal-alt rv"><div class="appeal-alt-copy"><b>Отправить обращение в Telegram</b><small>Бот примет сообщение и передаст его Совету.</small></div><a href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener noreferrer">Открыть бота ↗</a></div>
+  <div class="appeal-alt rv"><div class="appeal-alt-copy"><b>Удобнее написать в Telegram?</b><small>Напишите Совету напрямую через нашего бота — он примет ваше сообщение и передаст его нам.</small></div><a href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">➤</span> Написать нам в Telegram</a></div>
 </section>
 <section id="games"><div class="section-heading rv"><small>ИНТЕРАКТИВ</small><h1>Мини-игры</h1><p>Проверь реакцию и точность в игре «Башня Первых».</p></div>
   <div class="game rv">
