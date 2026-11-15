@@ -315,8 +315,8 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .home-shortcuts-more{align-content:start}
 .home-shortcuts-more .home-shortcut{grid-column:auto;min-height:70px}
 .home-shortcuts-pagination{display:flex;align-items:center;justify-content:center;gap:7px;margin:10px 0 20px}
-.home-shortcuts-dot{width:6px;height:6px;padding:0;border:0;border-radius:99px;background:#d9c8cc;cursor:pointer;transition:width .22s ease,background .22s ease,transform .22s ease}
-.home-shortcuts-dot.is-active{width:19px;background:var(--red)}
+.home-shortcuts-dot{flex:0 0 6px;width:6px;height:6px;padding:0;border:0;border-radius:99px;background:#d9c8cc;cursor:pointer;transform:scale(1);transition:flex-basis .34s cubic-bezier(.22,.8,.2,1),width .34s cubic-bezier(.22,.8,.2,1),background-color .28s ease,transform .34s cubic-bezier(.22,.8,.2,1)}
+.home-shortcuts-dot.is-active{flex-basis:19px;width:19px;background:var(--red);transform:scale(1.02)}
 .home-shortcuts-dot:focus-visible{outline:2px solid var(--red);outline-offset:4px}
 @media(min-width:600px){.home-shortcuts-page{flex-basis:calc(100% - 54px)}}
 </style>
@@ -1079,24 +1079,34 @@ if(shortcutsViewport){
     });
   };
   let shortcutsScrollFrame=0;
-  let shortcutsThreshold=shortcutsPages[1]&&shortcutsPages[0]
-    ?shortcutsPages[1].offsetLeft-shortcutsPages[0].offsetLeft:0;
-  const updateShortcutsThreshold=()=>{
-    shortcutsThreshold=shortcutsPages[1]&&shortcutsPages[0]
-      ?shortcutsPages[1].offsetLeft-shortcutsPages[0].offsetLeft:0;
+  const pageOffset=page=>{
+    const viewportRect=shortcutsViewport.getBoundingClientRect();
+    const pageRect=page.getBoundingClientRect();
+    return shortcutsViewport.scrollLeft+pageRect.left-viewportRect.left;
   };
-  shortcutsViewport.addEventListener("scroll",()=>{
-    if(shortcutsScrollFrame)return;
-    shortcutsScrollFrame=requestAnimationFrame(()=>{
-      shortcutsScrollFrame=0;
-      if(shortcutsThreshold)setShortcutsPage(shortcutsViewport.scrollLeft>shortcutsThreshold/2?1:0);
+  const updateShortcutsPage=()=>{
+    shortcutsScrollFrame=0;
+    if(!shortcutsPages.length)return;
+    let nearest=0,best=Infinity;
+    shortcutsPages.forEach((page,index)=>{
+      const distance=Math.abs(pageOffset(page)-shortcutsViewport.scrollLeft);
+      if(distance<best){best=distance;nearest=index;}
     });
-  },{passive:true});
-  window.addEventListener("resize",updateShortcutsThreshold,{passive:true});
+    setShortcutsPage(nearest);
+  };
+  const scheduleShortcutsPageUpdate=()=>{
+    if(shortcutsScrollFrame)return;
+    shortcutsScrollFrame=requestAnimationFrame(updateShortcutsPage);
+  };
+  shortcutsViewport.addEventListener("scroll",scheduleShortcutsPageUpdate,{passive:true});
+  window.addEventListener("resize",scheduleShortcutsPageUpdate,{passive:true});
   shortcutsDots.forEach(dot=>dot.addEventListener("click",()=>{
-    const page=shortcutsPages[Number(dot.dataset.shortcutsPage)];
-    if(page)shortcutsViewport.scrollTo({left:page.offsetLeft-shortcutsPages[0].offsetLeft,behavior:"smooth"});
+    const index=Number(dot.dataset.shortcutsPage);
+    const page=shortcutsPages[index];
+    if(!page)return;
+    shortcutsViewport.scrollTo({left:pageOffset(page),behavior:"smooth"});
   }));
+  scheduleShortcutsPageUpdate();
 }
 route();
 
