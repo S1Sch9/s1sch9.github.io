@@ -1,0 +1,47 @@
+name: Validate site code
+on:
+  push:
+    branches: [main, site-upgrade-security-pwa]
+  pull_request:
+    branches: [main]
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check cloudflare/worker.js
+          node --check cloudflare/admin-page.js
+          node --check sw.js
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const marker = '/* ===== НАСТРОЙКИ ===== */';
+          const at = html.indexOf(marker);
+          const open = html.lastIndexOf('<script', at);
+          const close = html.indexOf('</script>', at);
+          if (at < 0 || open < 0 || close < 0) throw new Error('Main application script not found');
+          fs.writeFileSync('/tmp/s1sch9-inline.js', html.slice(html.indexOf('>', open) + 1, close));
+          NODE
+          node --check /tmp/s1sch9-inline.js
+      - name: Run Worker security smoke tests
+        run: |
+          npm install --prefix cloudflare --no-package-lock
+          node cloudflare/security-smoke-test.mjs
+      - name: Check required site safeguards
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const sw = fs.readFileSync('sw.js', 'utf8');
+          for (const text of ['newsFavoritesToggle','siteSearchTrigger','data-add-calendar','prefers-reduced-motion','&#39;']) {
+            if (!html.includes(text)) throw new Error('Missing expected feature or safeguard: ' + text);
+          }
+          if (!sw.includes('url.pathname.includes("/api/")')) throw new Error('Service worker must not cache API responses');
+          if (!sw.includes('request.mode === "navigate"')) throw new Error('Navigation offline fallback missing');
+          console.log('Site feature and offline-cache checks passed');
+          NODE
