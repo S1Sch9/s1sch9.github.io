@@ -355,6 +355,9 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .event-filter-row{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px 13px;border:1px solid var(--line);border-radius:16px;background:#fff}
 .event-filter-row label{flex:0 0 auto;font-size:12px;color:var(--mut)}
 .event-filter-row select{flex:1;min-width:0;margin:0;padding:10px 12px;border-radius:11px;font-size:12px}
+.event-filter-row button{flex:0 0 auto;padding:9px 11px;border:1px solid #ead3d9;border-radius:11px;background:#f8edf0;color:var(--red);font:700 11px Onest,system-ui;cursor:pointer}
+.event-filter-row button[hidden]{display:none}
+.event-filter-status{min-height:16px;margin:-6px 2px 12px;color:var(--mut);font-size:10px;line-height:1.45}
 :focus-visible{outline:3px solid #c27a8a!important;outline-offset:3px}
 @media(max-width:380px){.site-search-panel{left:8px;right:8px;padding:13px}.site-search-trigger{width:39px;height:39px;flex-basis:39px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
@@ -726,7 +729,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
   <div id="newsList"></div>
 </section>
 <section id="events"><div class="section-heading rv"><small>КАЛЕНДАРЬ</small><h1>Мероприятия</h1><p>Выбери дату, чтобы посмотреть запланированные события Совета.</p></div>
-  <div class="event-filter-row rv"><label for="eventCategoryFilter">Категория событий</label><select id="eventCategoryFilter"><option value="all">Все категории</option></select></div>
+  <div class="event-filter-row rv"><label for="eventCategoryFilter">Показать</label><select id="eventCategoryFilter" aria-label="Фильтр мероприятий по категории"><option value="all">Все мероприятия</option></select><button type="button" id="clearEventCategory" hidden>Сбросить</button></div><p class="event-filter-status" id="eventFilterStatus" aria-live="polite"></p>
   <div class="day-showcase rv" id="dayShowcase">
     <div class="day-showcase-head"><span class="day-kicker">ВЫБРАННЫЙ ДЕНЬ</span><button class="day-today" id="goToday" type="button">Сегодня</button></div>
     <div class="day-switch"><button class="day-arrow" id="prevDay" type="button" aria-label="Предыдущий день">‹</button><div class="day-date" id="dayDate"><strong>Сегодня</strong><span>Загружаем дату…</span></div><button class="day-arrow" id="nextDay" type="button" aria-label="Следующий день">›</button></div>
@@ -1366,8 +1369,9 @@ function renderPublicCalendar(){
  const label=$('#monthLabel'),grid=$('#calendarGrid');if(!label||!grid)return;
  label.textContent=calendarCursor.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
  const year=calendarCursor.getFullYear(),month=calendarCursor.getMonth(),first=new Date(year,month,1),offset=(first.getDay()+6)%7,start=new Date(year,month,1-offset),today=localDateKey(new Date()),days=[];
+ const visibleEvents=PUBLIC_EVENTS.filter(e=>selectedEventCategory==="all"||String(e.category||"Мероприятие").trim()===selectedEventCategory);
  const totalDays=new Date(year,month+1,0).getDate(),totalCells=Math.ceil((offset+totalDays)/7)*7;
- for(let n=0;n<totalCells;n++){const d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+n),key=localDateKey(d),inMonth=d.getMonth()===month,has=PUBLIC_EVENTS.some(e=>e.event_date===key);days.push('<button type="button" class="calendar-day'+(inMonth?'':' muted-day')+(key===today?' today':'')+(key===selectedEventDay?' selected':'')+(has?' has-event':'')+'" data-event-day="'+key+'" aria-label="'+d.toLocaleDateString('ru-RU')+(has?', есть мероприятие':'')+'">'+d.getDate()+'</button>')}
+ for(let n=0;n<totalCells;n++){const d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+n),key=localDateKey(d),inMonth=d.getMonth()===month,has=visibleEvents.some(e=>e.event_date===key);days.push('<button type="button" class="calendar-day'+(inMonth?'':' muted-day')+(key===today?' today':'')+(key===selectedEventDay?' selected':'')+(has?' has-event':'')+'" data-event-day="'+key+'" aria-label="'+d.toLocaleDateString('ru-RU')+(has?', есть мероприятие':'')+'">'+d.getDate()+'</button>')}
  grid.innerHTML=days.join('');
 }
 function renderPublicEvents(){
@@ -1377,13 +1381,16 @@ function renderPublicEvents(){
  const categoryFilter=$('#eventCategoryFilter');
  if(categoryFilter){
   const categories=[...new Set(PUBLIC_EVENTS.map(e=>String(e.category||"Мероприятие").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ru"));
-  const options=[["all","Все категории"],...categories.map(value=>[value,value])];
+  const options=[["all","Все мероприятия"],...categories.map(value=>[value,value])];
   categoryFilter.replaceChildren(...options.map(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;return option;}));
   if(!options.some(([value])=>value===selectedEventCategory))selectedEventCategory="all";
   categoryFilter.value=selectedEventCategory;
  }
  const filtered=PUBLIC_EVENTS.filter(e=>e.event_date===selectedEventDay&&(selectedEventCategory==="all"||String(e.category||"Мероприятие").trim()===selectedEventCategory));
- root.innerHTML=filtered.length?filtered.map(e=>{const registration=safeUrl(e.registration_url||"");return '<article class="day-event-card"><div class="day-event-top"><span class="day-event-category">'+esc(e.category||'Мероприятие')+'</span>'+(e.event_time?'<span class="day-event-time">'+esc(e.event_time)+'</span>':'')+'</div><h3>'+esc(e.title)+'</h3>'+(e.description?'<p>'+esc(e.description)+'</p>':'')+(e.location?'<div class="day-event-meta">📍 '+esc(e.location)+'</div>':'')+(registration&&new URL(registration).protocol==="https:"?'<a class="event-register" href="'+esc(registration)+'" target="_blank" rel="noopener noreferrer">Участвовать / регистрация ↗</a>':'')+'<div class="event-actions"><button type="button" data-add-calendar>＋ Добавить в календарь</button><button type="button" data-share-event>↗ Поделиться</button></div></article>'}).join(''):'<div class="day-empty"><b>📅</b><strong>На этот день событий нет</strong><span>Попробуй соседние даты или выбери день в календаре ниже</span></div>';
+ const clearButton=$('#clearEventCategory'),status=$('#eventFilterStatus');
+ if(clearButton)clearButton.hidden=selectedEventCategory==="all";
+ if(status){const total=PUBLIC_EVENTS.filter(e=>selectedEventCategory==="all"||String(e.category||"Мероприятие").trim()===selectedEventCategory).length;status.textContent=selectedEventCategory==="all"?"Показываем все мероприятия. Выбери категорию, чтобы оставить только нужные события.":"Фильтр: "+selectedEventCategory+" · найдено событий: "+total;}
+ root.innerHTML=filtered.length?filtered.map(e=>{const registration=safeUrl(e.registration_url||"");return '<article class="day-event-card"><div class="day-event-top"><span class="day-event-category">'+esc(e.category||'Мероприятие')+'</span>'+(e.event_time?'<span class="day-event-time">'+esc(e.event_time)+'</span>':'')+'</div><h3>'+esc(e.title)+'</h3>'+(e.description?'<p>'+esc(e.description)+'</p>':'')+(e.location?'<div class="day-event-meta">📍 '+esc(e.location)+'</div>':'')+(registration&&new URL(registration).protocol==="https:"?'<a class="event-register" href="'+esc(registration)+'" target="_blank" rel="noopener noreferrer">Участвовать / регистрация ↗</a>':'')+'<div class="event-actions"><button type="button" data-add-calendar>＋ Добавить в календарь</button><button type="button" data-share-event>↗ Поделиться</button></div></article>'}).join(''):'<div class="day-empty"><b>📅</b><strong>'+(selectedEventCategory==="all"?"На этот день событий нет":"В этой категории на выбранную дату событий нет")+'</strong><span>'+(selectedEventCategory==="all"?"Попробуй соседние даты или выбери день в календаре ниже":"Выбери другую дату или нажми «Сбросить», чтобы снова увидеть все мероприятия")+'</span></div>';
  root.querySelectorAll(".day-event-card").forEach((card,index)=>{const event=filtered[index];card.querySelector("[data-add-calendar]")?.addEventListener("click",()=>addEventToCalendar(event));card.querySelector("[data-share-event]")?.addEventListener("click",()=>shareEvent(event));});
 }
 function icsEscape(value){return String(value||"").replace(/[\\\r\n,;]/g,c=>({"\\":"\\\\","\r":"\\n","\n":"\\n",",":"\\,", ";":"\\;"}[c]));}
@@ -1421,7 +1428,8 @@ $('#goToday')?.addEventListener('click',()=>{selectedEventDay=localDateKey(new D
 $('#prevMonth')?.addEventListener('click',()=>{calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()-1,1);renderPublicCalendar()});
 $('#nextMonth')?.addEventListener('click',()=>{calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()+1,1);renderPublicCalendar()});
 $('#calendarGrid')?.addEventListener('click',e=>{const b=e.target.closest('[data-event-day]');if(!b)return;selectedEventDay=b.dataset.eventDay;renderPublicCalendar();renderPublicEvents()});
-$('#eventCategoryFilter')?.addEventListener('change',e=>{selectedEventCategory=e.target.value||"all";renderPublicEvents()});
+$('#eventCategoryFilter')?.addEventListener('change',e=>{selectedEventCategory=e.target.value||"all";renderPublicCalendar();renderPublicEvents()});
+$('#clearEventCategory')?.addEventListener('click',()=>{selectedEventCategory="all";renderPublicCalendar();renderPublicEvents()});
 const daySwipe=$('#dayShowcase');let dayTouchX=null;
 daySwipe?.addEventListener('touchstart',e=>{dayTouchX=e.changedTouches[0].clientX},{passive:true});
 daySwipe?.addEventListener('touchend',e=>{if(dayTouchX===null)return;const dx=e.changedTouches[0].clientX-dayTouchX;if(Math.abs(dx)>45)shiftSelectedDay(dx<0?1:-1);dayTouchX=null},{passive:true});
