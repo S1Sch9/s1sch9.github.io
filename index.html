@@ -989,7 +989,7 @@ function openSh(h){
     s1BodyStyleBeforeSheet={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,right:document.body.style.right,width:document.body.style.width,overflow:document.body.style.overflow};
     document.body.style.position="fixed";document.body.style.top=(-s1SheetScrollY)+"px";document.body.style.left="0";document.body.style.right="0";document.body.style.width="100%";document.body.style.overflow="hidden";
   }
-  $("#pn").classList.remove("more-panel","news-detail-panel");if(h.includes("news-detail-content"))$("#pn").classList.add("news-detail-panel");const hasOwnClose=h.includes("more-menu-heading")||h.includes("news-comments-modal");$("#pn").innerHTML='<div class="grip"></div>'+(hasOwnClose?"":'<button class="sh-close" type="button" onclick="closeSh()" aria-label="Закрыть окно">×</button>')+h;
+  $("#pn").classList.remove("more-panel","news-detail-panel","news-comments-panel");if(h.includes("news-detail-content"))$("#pn").classList.add("news-detail-panel");const hasOwnClose=h.includes("more-menu-heading")||h.includes("news-comments-modal");$("#pn").innerHTML='<div class="grip"></div>'+(hasOwnClose?"":'<button class="sh-close" type="button" onclick="closeSh()" aria-label="Закрыть окно">×</button>')+h;
   updateS1VisualHeight();$("#sh").classList.add("on");
 }
 function closeSh(){
@@ -1178,7 +1178,7 @@ function closeNewsComments(){
 }
 function openNewsComments(newsId){
   const current=$("#pn");
-  if(current&&current.innerHTML.includes("news-detail-content"))newsDetailReturnHtml=current.innerHTML;
+  if(current&&current.innerHTML.includes("news-detail-content")){const snapshot=current.cloneNode(true);snapshot.querySelectorAll(".grip,.sh-close").forEach(node=>node.remove());newsDetailReturnHtml=snapshot.innerHTML;}
   const name=newsCommentName();
   openSh('<div class="news-comments-modal" data-news-social="'+esc(newsId)+'"><div class="news-comments-head"><div><small>ОБСУЖДЕНИЕ НОВОСТИ</small><h3>Комментарии</h3></div><button type="button" class="news-comments-back" onclick="closeNewsComments()" aria-label="Вернуться к новости">← К новости</button><button type="button" class="news-comment-name" data-name-toggle>'+esc(name)+'</button></div><input class="news-comment-name-edit" data-name-edit maxlength="32" value="'+esc(name)+'" placeholder="Как вас называть" aria-label="Имя для комментариев"><div class="news-comments-list" data-comments-list><p class="note">Загружаем комментарии…</p></div><div class="news-comments-compose"><form data-comment-form><div class="news-comment-compose-row"><textarea name="message" maxlength="600" minlength="2" required placeholder="Написать комментарий…" aria-label="Текст комментария"></textarea><button class="btn" type="submit" aria-label="Отправить комментарий">↑</button></div><p class="news-comment-compose-hint">Общайтесь уважительно — комментарии видны всем</p><p class="note" data-comment-status role="status"></p></form></div></div>');
   $("#pn").classList.add("news-comments-panel");
