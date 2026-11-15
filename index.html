@@ -1447,7 +1447,7 @@ document.addEventListener("focusin",e=>{if(!e.target.matches("#pn input,#pn text
   start=null;dragging=false;velocity=0;
   shell.classList.remove("is-dragging","is-dismissing");
   shell.style.removeProperty("--sheet-drag");
-  panel.style.transform="";panel.style.transition="";
+  panel.style.transform="";panel.style.transition="";panel.style.animation="";
   const bg=shell.querySelector(".bg");if(bg)bg.style.opacity="";
  };
  const springBack=()=>{
