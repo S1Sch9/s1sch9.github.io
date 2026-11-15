@@ -183,12 +183,12 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 #appealBlockNotice{margin:0 0 15px;padding:16px;border:1px solid #ead8bd;border-radius:18px;background:linear-gradient(145deg,#fffaf0,#fff);color:#594329;box-shadow:none}
 #appealBlockNotice strong{display:flex;align-items:center;gap:8px;color:#6b4718;font-size:14px}
 #appealBlockNotice p{margin:7px 0 0;color:#75634d;font-size:12px;line-height:1.5}
-.appeal-alt{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 0;padding:14px 15px;border:1px solid #eadfe1;border-radius:18px;background:#fff}
-.appeal-alt-copy{min-width:0}
-.appeal-alt-copy b{display:block;font-size:13px}
-.appeal-alt-copy small{display:block;margin-top:3px;color:#81747a;font-size:11px;line-height:1.4}
-.appeal-alt a{flex:none;padding:10px 13px;border-radius:13px;background:#e9f5fc;color:#1479ae;text-decoration:none;font-size:12px;font-weight:800}
-@media(max-width:380px){.appeal-form-card{padding:15px 12px}.appeal-fields{grid-template-columns:1fr}.appeal-field-wide{grid-column:auto}.appeal-alt{align-items:flex-start;flex-direction:column}.appeal-alt a{width:100%;text-align:center}}
+.appeal-alt{display:block;margin:13px 0 0;padding:12px 14px;border:1px solid #eee5e7;border-radius:15px;background:#fff;color:inherit;text-decoration:none;transition:border-color .18s,background .18s,transform .18s}
+.appeal-alt:active{transform:scale(.99);background:#fdf9fa;border-color:#dfc4cb}
+.appeal-alt-copy{display:block;min-width:0}
+.appeal-alt-copy b{display:block;font-size:12px;font-weight:700;color:var(--ink);line-height:1.4}
+.appeal-alt-copy b span{color:#2789bd;white-space:nowrap}
+.appeal-alt-copy small{display:block;margin-top:3px;color:#81747a;font-size:10px;line-height:1.45}
 .home-section-title{display:flex;flex-direction:column;gap:3px;margin:0 2px 12px}
 .home-section-title span{color:var(--red);font-size:9px;font-weight:900;letter-spacing:1.3px}
 .home-section-title b{font-size:21px;letter-spacing:-.5px}
@@ -724,7 +724,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
     </form>
     <p class="appeal-privacy"><span>🔒</span><span>Всё конфиденциально: обращение увидит только Совет. Личные данные не публикуются.</span></p>
   </div>
-  <div class="appeal-alt rv"><div class="appeal-alt-copy"><b>Можно написать нам и в Telegram</b><small>Если вам удобнее общаться в Telegram, напишите Совету через нашего бота — мы получим ваше сообщение.</small></div><a href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">➤</span> Написать в Telegram</a></div>
+  <a class="appeal-alt rv" href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener noreferrer"><span class="appeal-alt-copy"><b>Удобнее в Telegram? <span>Напишите нам ↗</span></b><small>Можно отправить обращение через нашего бота — как вам удобнее.</small></span></a>
 </section>
 <section id="games"><div class="section-heading rv"><small>ИНТЕРАКТИВ</small><h1>Мини-игры</h1><p>Проверь реакцию и точность в игре «Башня Первых».</p></div>
   <div class="game rv">
