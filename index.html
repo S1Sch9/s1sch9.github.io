@@ -36,6 +36,29 @@
   },
   "description": "Сайт Совета Первых школы №9 города Казани: новости, команда, проекты, мероприятия и обращения."
 }
+
+/* Единый поиск по новостям, календарю, команде и полезным ссылкам */
+(function installSiteSearch(){
+ const panel=$("#siteSearchPanel"),trigger=$("#siteSearchTrigger"),input=$("#siteSearchInput"),results=$("#siteSearchResults");if(!panel||!trigger||!input||!results)return;
+ const close=()=>{panel.hidden=true;trigger.setAttribute("aria-expanded","false");};
+ const open=()=>{panel.hidden=false;trigger.setAttribute("aria-expanded","true");setTimeout(()=>input.focus(),30);};
+ trigger.addEventListener("click",()=>panel.hidden?open():close());$("#siteSearchClose")?.addEventListener("click",close);
+ document.addEventListener("keydown",e=>{if(e.key==="Escape")close();if(e.key==="/"&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||"")){e.preventDefault();open();}});
+ function addResult(type,title,subtitle,action){const b=document.createElement("button");b.type="button";b.className="site-search-result";const left=document.createElement("span"),small=document.createElement("small"),bold=document.createElement("b"),arrow=document.createElement("span");small.textContent=type;bold.textContent=title;left.append(small,bold);if(subtitle){const desc=document.createElement("small");desc.textContent=subtitle;left.append(desc);}arrow.textContent="›";b.append(left,arrow);b.addEventListener("click",()=>{close();action();});results.append(b);}
+ function search(){
+  const q=input.value.trim().toLocaleLowerCase("ru");results.replaceChildren();if(!q){const p=document.createElement("p");p.className="note";p.textContent="Начни вводить запрос — найдём нужное.";results.append(p);return;}
+  let count=0;const add=(...args)=>{if(count<12){addResult(...args);count++;}};
+  NEWS.forEach((n,index)=>{if((n.t+" "+n.x+" "+n.d).toLocaleLowerCase("ru").includes(q))add("Новость",n.t,n.d,()=>{location.hash="#news";route();drawNews();document.querySelector('#newsList .news-feed-card[data-k="'+index+'"] .news-open')?.click();});});
+  PUBLIC_EVENTS.forEach(e=>{if((e.title+" "+(e.description||"")+" "+(e.category||"")+" "+e.event_date).toLocaleLowerCase("ru").includes(q))add("Мероприятие",e.title,e.event_date,()=>{selectedEventDay=e.event_date;const d=eventDateFromKey(e.event_date);calendarCursor=new Date(d.getFullYear(),d.getMonth(),1);renderPublicCalendar();renderPublicEvents();location.hash="#events";if(location.hash==="#events")route();});});
+  TEAM.forEach((m,index)=>{if(m.join(" ").toLocaleLowerCase("ru").includes(q))add("Команда",m[1]||m[0],m[0],()=>{location.hash="#team";route();document.querySelector('#teamList .card[data-k="'+index+'"]')?.click();});});
+  document.querySelectorAll('#links a.row').forEach(a=>{if(a.textContent.toLocaleLowerCase("ru").includes(q))add("Ресурс",a.textContent.trim(),"Полезная ссылка",()=>{location.hash="#links";route();a.click();});});
+  if(!count){const p=document.createElement("p");p.className="note";p.textContent="Ничего не найдено. Попробуй другое слово.";results.append(p);}
+ }
+ input.addEventListener("input",search);
+ document.addEventListener("click",e=>{if(!panel.hidden&&!panel.contains(e.target)&&!trigger.contains(e.target))close();});
+})();
+$("#siteInstallHelp")?.addEventListener("click",()=>showSiteToast(/iPhone|iPad|iPod/i.test(navigator.userAgent)?"В Safari нажми «Поделиться» → «На экран Домой».":"В меню браузера выбери «Установить приложение» или «Добавить на главный экран»."));
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
 </script>
 
 <link rel="icon" type="image/svg+xml" href="official-logo.svg?v=20261114-final">
@@ -324,6 +347,36 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .home-shortcuts-dot.is-active{flex-basis:19px;width:19px;background:var(--red);transform:scale(1.02)}
 .home-shortcuts-dot:focus-visible{outline:2px solid var(--red);outline-offset:4px}
 @media(min-width:600px){.home-shortcuts-page{flex-basis:calc(100% - 54px)}}
+
+/* Поиск по всему сайту, сохранённые новости и доступность */
+.site-search-trigger{margin-left:auto;flex:0 0 42px;width:42px;height:42px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--deep);font:700 27px/1 system-ui;cursor:pointer;box-shadow:0 3px 10px rgba(61,0,13,.07)}
+.site-search-panel{position:fixed;z-index:30;top:calc(68px + env(safe-area-inset-top));left:12px;right:12px;max-width:616px;margin:0 auto;padding:16px;border:1px solid var(--line);border-radius:22px;background:rgba(255,255,255,.98);box-shadow:0 18px 55px rgba(35,0,10,.2);max-height:72vh;overflow:auto;overscroll-behavior:contain}
+.site-search-panel[hidden]{display:none}
+.site-search-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.site-search-head label{font-size:14px;font-weight:800}
+.site-search-head button{width:34px;height:34px;border:0;border-radius:50%;background:#f4e9ec;color:var(--deep);font-size:24px;line-height:1;cursor:pointer}
+.site-search-panel input{margin:0 0 10px;padding:13px 14px}
+.site-search-results{display:grid;gap:7px}
+.site-search-result{display:flex;align-items:center;gap:12px;width:100%;padding:12px;border:1px solid #eee5e7;border-radius:14px;background:#fff;text-align:left;color:var(--ink);font:inherit;cursor:pointer}
+.site-search-result:active{transform:scale(.99);background:#fff8f9}
+.site-search-result small{display:block;color:var(--red);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.site-search-result b{display:block;font-size:13px;line-height:1.35}
+.site-search-result span:last-child{margin-left:auto;color:var(--red);font-size:20px}
+.site-install-help{width:100%;margin-top:10px;padding:10px;border:0;border-radius:12px;background:#f7f1f2;color:#75686c;font:600 12px Onest,system-ui;cursor:pointer}
+.site-toast{position:fixed;z-index:50;left:50%;bottom:calc(94px + env(safe-area-inset-bottom));transform:translate(-50%,12px);max-width:calc(100vw - 32px);padding:11px 16px;border-radius:14px;background:#2b171d;color:#fff;font-size:12px;line-height:1.4;box-shadow:0 8px 28px #0002;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.site-toast.is-visible{opacity:1;transform:translate(-50%,0)}
+.news-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-5px 0 12px;color:var(--mut);font-size:11px}
+.news-tools button{padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--deep);font:700 12px Onest,system-ui;cursor:pointer}
+.news-tools button[aria-pressed="true"]{background:#f6e4e8;border-color:#e5c4cd;color:var(--red)}
+.news-bookmark{padding:7px 9px;border:1px solid #eadfe1;border-radius:10px;background:#fff;color:var(--red);font:700 12px Onest,system-ui;cursor:pointer}
+.news-bookmark.is-saved{background:#fff2d8;border-color:#efd9a4;color:#76520b}
+.event-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.event-actions button{flex:1 1 145px;min-height:40px;padding:9px 12px;border:1px solid #eadfe1;border-radius:12px;background:#fff;color:var(--deep);font:700 11px Onest,system-ui;cursor:pointer}
+.event-actions button:first-child{background:#f7edf0;color:var(--red);border-color:#ead3d9}
+:focus-visible{outline:3px solid #c27a8a!important;outline-offset:3px}
+@media(max-width:380px){.site-search-panel{left:8px;right:8px;padding:13px}.site-search-trigger{width:39px;height:39px;flex-basis:39px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
 </style>
   <meta name="google-site-verification" content="OeqPg6QGqLsGVY-m0d_avxqMQK16st13n9Bg8HKyTgY" />
   <meta name="yandex-verification" content="11d02a95d88a1d8a" />
@@ -637,7 +690,9 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 
 </style></head>
 <body>
-<div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div></div>
+<div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button></div>
+<div class="site-search-panel" id="siteSearchPanel" hidden><div class="site-search-head"><label for="siteSearchInput">Поиск по всему сайту</label><button type="button" id="siteSearchClose" aria-label="Закрыть поиск">×</button></div><input id="siteSearchInput" type="search" placeholder="Новости, мероприятия, люди, ссылки…" autocomplete="off"><div id="siteSearchResults" class="site-search-results"><p class="note">Начни вводить запрос — найдём нужное.</p></div><button type="button" id="siteInstallHelp" class="site-install-help">Как добавить сайт на экран телефона</button></div>
+<div id="siteToast" class="site-toast" role="status" aria-live="polite"></div>
 <main>
 <section id="home">
   <div class="home-hero home-hero-flip rv" role="button" tabindex="0" aria-label="О Совете Первых школы №9. Нажмите, чтобы узнать больше" aria-pressed="false">
@@ -685,6 +740,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 <section id="team"><div class="section-heading rv"><small>КОМАНДА СОВЕТА</small><h1>Состав</h1><p>Участники Совета и их роли в школьных инициативах.</p></div><div class="grid" id="teamList"></div></section>
 <section id="news"><div class="section-heading rv"><small>НОВОСТИ СОВЕТА</small><h1>Новости</h1><p>Публикации о проектах, событиях и жизни нашей школы.</p></div>
   <input id="q" class="rv" type="search" placeholder="Искать новости" aria-label="Поиск по новостям">
+  <div class="news-tools"><button type="button" id="newsFavoritesToggle" aria-pressed="false">☆ Сохранённые</button><span id="newsResultCount" aria-live="polite"></span></div>
   <div id="newsList"></div>
 </section>
 <section id="events"><div class="section-heading rv"><small>КАЛЕНДАРЬ</small><h1>Мероприятия</h1><p>Выбери дату, чтобы посмотреть запланированные события Совета.</p></div>
@@ -780,15 +836,14 @@ let TEAM = [
 ];
 let NEWS = [];
 const $ = s => document.querySelector(s);
-const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeUrl = value => { try { const u = new URL(String(value || ""), location.origin); return u.protocol === "https:" || u.origin === location.origin ? u.href : ""; } catch { return ""; } };
 const src = p => p;
 const ini = s => s.split(/\s+/).filter(w => /^[А-ЯЁA-Z]/.test(w)).slice(0,2).map(w => w[0]).join("");
 /* Если фото есть — показываем только фото; если нет — инициалы */
 const placeholderHTML = () => '<div class="photo-placeholder"><small>ФОТО СКОРО<br>ПОЯВИТСЯ</small></div>';
 function photoError(el){ el.outerHTML = placeholderHTML(); }
-const photo = (p, i) => p
-  ? '<img src="' + esc(src(p)) + '" alt="" loading="lazy" onerror="photoError(this)">'
-  : placeholderHTML();
+const photo = (p, i) => { const safe = safeUrl(src(p)); return safe ? '<img src="' + esc(safe) + '" alt="" loading="lazy" onerror="photoError(this)">' : placeholderHTML(); };
 
 function route(){
   const id = (location.hash || "#home").slice(1);
@@ -1058,9 +1113,9 @@ function drawTeam(){
       (m[2] ? '<p>Класс: <b>' + esc(m[2]) + '</b></p>' : "") + (m[3] ? '<p>' + esc(m[3]) + '</p>' : "") + '</div>'); }; });
 }
 function drawNews(){
-  const q = $("#q").value.toLowerCase(), list = NEWS.filter(n => (n.t + " " + n.x).toLowerCase().includes(q));
+  const q = $("#q").value.toLocaleLowerCase("ru"), list = NEWS.filter(n => (!showSavedNews || NEWS_FAVORITES.has(newsSocialId(n))) && (n.t + " " + n.x + " " + n.d).toLocaleLowerCase("ru").includes(q));
   const mediaMarkup = n => (n.media || []).map(m => {
-    const url = esc(m.url || "");
+    const url = esc(safeUrl(m.url || ""));
     return m.type === "video"
       ? '<video controls playsinline preload="metadata" style="display:block;width:100%;max-height:420px;border-radius:18px;margin:12px 0;background:#111"><source src="' + url + '" type="video/mp4"></video>'
       : '<img src="' + url + '" alt="Фото к новости" loading="lazy" style="display:block;width:100%;max-height:420px;object-fit:cover;border-radius:18px;margin:12px 0">';
@@ -1068,7 +1123,7 @@ function drawNews(){
   const preview = n => {
     const first = (n.media || [])[0];
     const cover = first && first.type !== "video"
-      ? '<img src="' + esc(first.url || "") + '" alt="" loading="lazy" style="display:block;width:100%;max-height:190px;object-fit:cover;border-radius:14px;margin:10px 0">'
+      ? '<img src="' + esc(safeUrl(first.url || "")) + '" alt="" loading="lazy" style="display:block;width:100%;max-height:190px;object-fit:cover;border-radius:14px;margin:10px 0">'
       : (first ? '<small style="display:block;margin:8px 0">▶ Видеоновость</small>' : '');
     const fullText = String(n.x || "").trim();
     const teaser = fullText.length > 150 ? fullText.slice(0, 147).replace(/\s+\S*$/, "") + "…" : fullText;
@@ -1078,8 +1133,11 @@ function drawNews(){
     const id = newsSocialId(n);
     return '<article class="row rv news-feed-card" data-k="' + NEWS.indexOf(n) + '"><button type="button" class="news-open"><small>' + esc(n.d) + '</small><b>' + esc(n.t) + '</b>' + preview(n) + '<em style="display:block;margin-top:9px">Открыть новость →</em></button>' +
       '<div class="news-social news-social-feed" data-news-social="' + esc(id) + '">' +
-      '<div class="news-social-actions"><button type="button" class="news-like" data-news-like>♡ Нравится <span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump>Комментарии <span data-comment-count></span></button></div></div></article>';
+      '<div class="news-social-actions"><button type="button" class="news-like" data-news-like>♡ Нравится <span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump>Комментарии <span data-comment-count></span></button><button type="button" class="news-bookmark" data-bookmark-news>☆ Сохранить</button></div></div></article>';
   }).join("") : '<p class="note">Ничего не найдено.</p>';
+  const savedToggle = $("#newsFavoritesToggle"); if(savedToggle){savedToggle.setAttribute("aria-pressed",String(showSavedNews));savedToggle.textContent=showSavedNews?"★ Все новости":"☆ Сохранённые";}
+  const countLabel=$("#newsResultCount");if(countLabel)countLabel.textContent=list.length+" из "+NEWS.length;
+  document.querySelectorAll("#newsList [data-bookmark-news]").forEach(button=>{const key=button.closest("[data-news-social]")?.dataset.newsSocial;const saved=NEWS_FAVORITES.has(key);button.classList.toggle("is-saved",saved);button.textContent=saved?"★ Сохранено":"☆ Сохранить";button.setAttribute("aria-pressed",String(saved));button.addEventListener("click",()=>toggleNewsFavorite(key));});
   const L = NEWS[0];
   $("#latest").innerHTML = L ? '<button class="row rv" data-k="0"><small>Последняя новость</small><b>' + esc(L.t) + '</b>' + preview(L) + '<em style="display:block;margin-top:9px">Открыть новость →</em></button>' : "";
   document.querySelectorAll("#newsList .news-feed-card,#latest .row").forEach((b, i) => { b.style.setProperty("--i", Math.min(i, 9)); b.onclick = e => {
@@ -1088,6 +1146,11 @@ function drawNews(){
   document.querySelectorAll("#newsList .news-feed-card .news-open").forEach(b=>b.setAttribute("aria-label","Открыть новость"));
   document.querySelectorAll("#newsList [data-news-social]").forEach(root=>loadNewsSocial(root.dataset.newsSocial));
 }
+const NEWS_FAVORITES_KEY="s1sch9_news_favorites_v1";
+let NEWS_FAVORITES=new Set();let showSavedNews=false;
+try{const stored=JSON.parse(localStorage.getItem(NEWS_FAVORITES_KEY)||"[]");if(Array.isArray(stored))NEWS_FAVORITES=new Set(stored.filter(x=>typeof x==="string").slice(0,300));}catch{}
+function showSiteToast(message){const el=$("#siteToast");if(!el)return;el.textContent=message;el.classList.add("is-visible");clearTimeout(showSiteToast.timer);showSiteToast.timer=setTimeout(()=>el.classList.remove("is-visible"),2400);}
+function toggleNewsFavorite(key){if(!key)return;if(NEWS_FAVORITES.has(key))NEWS_FAVORITES.delete(key);else NEWS_FAVORITES.add(key);try{localStorage.setItem(NEWS_FAVORITES_KEY,JSON.stringify([...NEWS_FAVORITES]));}catch{}drawNews();showSiteToast(NEWS_FAVORITES.has(key)?"Новость сохранена":"Новость убрана из сохранённых");}
 function newsSocialId(n){if(n.id)return String(n.id);let h=2166136261;for(const ch of String(n.t||"Новость")){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return "static-"+(h>>>0).toString(36)}
 function newsVisitorId(){const key="s1sch9_news_visitor";let id=localStorage.getItem(key);if(!id){id=Array.from(crypto.getRandomValues(new Uint8Array(18)),b=>b.toString(16).padStart(2,"0")).join("");localStorage.setItem(key,id)}return id}
 function renderNewsComment(c,all=[],depth=0){
@@ -1185,6 +1248,7 @@ document.addEventListener("submit",async e=>{
 document.addEventListener("submit",async e=>{const form=e.target.closest("[data-comment-form],[data-comment-reply-form]");if(!form)return;e.preventDefault();const root=form.closest("[data-news-social]"),status=form.querySelector("[data-comment-status]"),button=form.querySelector("button[type=submit]");const edit=document.querySelector("[data-name-edit]"),author=(edit&&edit.value.trim())||newsCommentName(),message=form.elements.message.value.trim(),article=form.closest("[data-comment-id]"),parent_id=article?article.dataset.commentId:null;button.disabled=true;if(status)status.textContent="Отправляем…";try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({news_id:root.dataset.newsSocial,visitor_id:newsVisitorId(),author,message,parent_id})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось отправить комментарий");if(status)status.textContent=d.message;form.reset();const nameEdit=document.querySelector("[data-name-edit]");if(nameEdit)nameEdit.value=newsCommentName();if(d.status==="published")await loadNewsSocial(root.dataset.newsSocial)}catch(err){if(status)status.textContent=err.message}finally{button.disabled=false}});
 
 $("#q").addEventListener("input", drawNews);
+$("#newsFavoritesToggle")?.addEventListener("click",()=>{showSavedNews=!showSavedNews;drawNews();});
 drawTeam(); drawNews();
 Promise.all([
   fetch("./news.json?v=" + Date.now()).then(r => r.ok ? r.json() : []).catch(() => []),
@@ -1328,7 +1392,21 @@ function renderPublicEvents(){
  const d=eventDateFromKey(selectedEventDay),today=localDateKey(new Date()),isToday=selectedEventDay===today;
  dateLabel.innerHTML='<strong>'+ (isToday?'Сегодня':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})) +'</strong><span>'+d.toLocaleDateString('ru-RU',{weekday:'long',year:'numeric'})+'</span>';
  const filtered=PUBLIC_EVENTS.filter(e=>e.event_date===selectedEventDay);
- root.innerHTML=filtered.length?filtered.map(e=>{return '<article class="day-event-card"><div class="day-event-top"><span class="day-event-category">'+esc(e.category||'Мероприятие')+'</span>'+(e.event_time?'<span class="day-event-time">'+esc(e.event_time)+'</span>':'')+'</div><h3>'+esc(e.title)+'</h3>'+(e.description?'<p>'+esc(e.description)+'</p>':'')+(e.location?'<div class="day-event-meta">📍 '+esc(e.location)+'</div>':'')+(e.registration_url?'<a class="event-register" href="'+esc(e.registration_url)+'" target="_blank" rel="noopener noreferrer">Участвовать / регистрация ↗</a>':'')+'</article>'}).join(''):'<div class="day-empty"><b>📅</b><strong>На этот день событий нет</strong><span>Попробуй соседние даты или выбери день в календаре ниже</span></div>';
+ root.innerHTML=filtered.length?filtered.map(e=>{const registration=safeUrl(e.registration_url||"");return '<article class="day-event-card"><div class="day-event-top"><span class="day-event-category">'+esc(e.category||'Мероприятие')+'</span>'+(e.event_time?'<span class="day-event-time">'+esc(e.event_time)+'</span>':'')+'</div><h3>'+esc(e.title)+'</h3>'+(e.description?'<p>'+esc(e.description)+'</p>':'')+(e.location?'<div class="day-event-meta">📍 '+esc(e.location)+'</div>':'')+(registration&&new URL(registration).protocol==="https:"?'<a class="event-register" href="'+esc(registration)+'" target="_blank" rel="noopener noreferrer">Участвовать / регистрация ↗</a>':'')+'<div class="event-actions"><button type="button" data-add-calendar>＋ Добавить в календарь</button><button type="button" data-share-event>↗ Поделиться</button></div></article>'}).join(''):'<div class="day-empty"><b>📅</b><strong>На этот день событий нет</strong><span>Попробуй соседние даты или выбери день в календаре ниже</span></div>';
+ root.querySelectorAll(".day-event-card").forEach((card,index)=>{const event=filtered[index];card.querySelector("[data-add-calendar]")?.addEventListener("click",()=>addEventToCalendar(event));card.querySelector("[data-share-event]")?.addEventListener("click",()=>shareEvent(event));});
+}
+function icsEscape(value){return String(value||"").replace(/[\\\r\n,;]/g,c=>({"\\":"\\\\","\r":"\\n","\n":"\\n",",":"\\,", ";":"\\;"}[c]));}
+function addEventToCalendar(event){
+ if(!event||!event.event_date)return;
+ const start=String(event.event_date).replace(/-/g,""),d=new Date(event.event_date+"T12:00:00");d.setDate(d.getDate()+1);const end=localDateKey(d).replace(/-/g,"");
+ const description=[event.description||"",event.location?"Место: "+event.location:"",event.event_time?"Время: "+event.event_time:""].filter(Boolean).join("\n");
+ const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+ const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//S1Sch9//School Council//RU","CALSCALE:GREGORIAN","BEGIN:VEVENT","UID:"+icsEscape(event.id||event.title+"-"+event.event_date)+"@s1sch9.github.io","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+start,"DTEND;VALUE=DATE:"+end,"SUMMARY:"+icsEscape(event.title),"DESCRIPTION:"+icsEscape(description),event.location?"LOCATION:"+icsEscape(event.location):"","URL:https://s1sch9.github.io/#events","END:VEVENT","END:VCALENDAR"].filter(Boolean);
+ const blob=new Blob([lines.join("\r\n")],{type:"text/calendar;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="s1sch9-event-"+start+".ics";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);showSiteToast("Файл события подготовлен для календаря");
+}
+async function shareEvent(event){
+ if(!event)return;const text=[event.title,event.event_date,event.event_time||"",event.location||"",event.description||""].filter(Boolean).join(" · "),url="https://s1sch9.github.io/#events";
+ try{if(navigator.share)await navigator.share({title:event.title,text,url});else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text+" "+url);showSiteToast("Информация о событии скопирована");}else showSiteToast("Скопируй ссылку на раздел мероприятий");}catch(error){if(error?.name!=="AbortError")showSiteToast("Не удалось открыть меню отправки");}
 }
 const SCHOOL_YEAR_EVENTS=[{"id":"school-year-2026-27-1","event_date":"2026-09-01","title":"День знаний","category":"Праздник"},{"id":"school-year-2026-27-2","event_date":"2026-09-03","title":"День окончания Второй мировой войны","category":"Памятная дата"},{"id":"school-year-2026-27-3","event_date":"2026-09-03","title":"День солидарности в борьбе с терроризмом","category":"Памятная дата"},{"id":"school-year-2026-27-4","event_date":"2026-09-08","title":"Международный день распространения грамотности","category":"Памятная дата"},{"id":"school-year-2026-27-5","event_date":"2026-09-10","title":"Международный день памяти жертв фашизма","category":"Памятная дата"},{"id":"school-year-2026-27-6","event_date":"2026-09-21","title":"День зарождения российской государственности","category":"Памятная дата"},{"id":"school-year-2026-27-7","event_date":"2026-10-01","title":"Международный день пожилых людей","category":"Памятная дата"},{"id":"school-year-2026-27-8","event_date":"2026-10-01","title":"Международный день музыки","category":"Памятная дата"},{"id":"school-year-2026-27-9","event_date":"2026-10-04","title":"День защиты животных","category":"Памятная дата"},{"id":"school-year-2026-27-10","event_date":"2026-10-05","title":"День учителя","category":"Праздник"},{"id":"school-year-2026-27-11","event_date":"2026-10-18","title":"День отца в России","category":"Праздник"},{"id":"school-year-2026-27-12","event_date":"2026-10-26","title":"Международный день школьных библиотек","category":"Памятная дата"},{"id":"school-year-2026-27-13","event_date":"2026-11-04","title":"День народного единства","category":"Праздник"},{"id":"school-year-2026-27-14","event_date":"2026-11-06","title":"День Конституции Республики Татарстан","category":"Региональная дата"},{"id":"school-year-2026-27-15","event_date":"2026-11-08","title":"День памяти погибших при исполнении служебных обязанностей сотрудников органов внутренних дел России","category":"Памятная дата"},{"id":"school-year-2026-27-16","event_date":"2026-11-20","title":"День начала Нюрнбергского процесса","category":"Памятная дата"},{"id":"school-year-2026-27-17","event_date":"2026-11-29","title":"День матери в России","category":"Праздник"},{"id":"school-year-2026-27-18","event_date":"2026-11-30","title":"День Государственного герба Российской Федерации","category":"Памятная дата"},{"id":"school-year-2026-27-19","event_date":"2026-12-01","title":"День математика","category":"Памятная дата"},{"id":"school-year-2026-27-20","event_date":"2026-12-03","title":"День неизвестного солдата","category":"Памятная дата"},{"id":"school-year-2026-27-21","event_date":"2026-12-03","title":"Международный день инвалидов","category":"Памятная дата"},{"id":"school-year-2026-27-22","event_date":"2026-12-05","title":"Битва за Москву в период Великой Отечественной войны 1941–1945 гг.","category":"Памятная дата"},{"id":"school-year-2026-27-23","event_date":"2026-12-05","title":"День добровольца (волонтера) в России","category":"Праздник"},{"id":"school-year-2026-27-24","event_date":"2026-12-09","title":"День Героев Отечества","category":"Памятная дата"},{"id":"school-year-2026-27-25","event_date":"2026-12-12","title":"День Конституции Российской Федерации","category":"Памятная дата"},{"id":"school-year-2026-27-26","event_date":"2026-12-25","title":"День принятия Федеральных конституционных законов о Государственных символах Российской Федерации","category":"Памятная дата"},{"id":"school-year-2026-27-27","event_date":"2027-01-01","title":"Новый год","category":"Праздник"},{"id":"school-year-2026-27-28","event_date":"2027-01-07","title":"Рождество","category":"Праздник"},{"id":"school-year-2026-27-29","event_date":"2027-01-25","title":"День российского студенчества","category":"Праздник"},{"id":"school-year-2026-27-30","event_date":"2027-01-25","title":"Международный день без Интернета","category":"Памятная дата"},{"id":"school-year-2026-27-31","event_date":"2027-01-27","title":"День полного освобождения Ленинграда от фашистской блокады","category":"Памятная дата"},{"id":"school-year-2026-27-32","event_date":"2027-01-27","title":"День освобождения Красной армией крупнейшего «лагеря смерти» Аушвиц-Биркенау (Освенцима) — День памяти жертв Холокоста","category":"Памятная дата"}];
 function renderHomeUpcoming(){const next=PUBLIC_EVENTS.filter(e=>e.event_date&&String(e.event_date).length===10&&e.event_date>=localDateKey(new Date())).sort((a,b)=>String(a.event_date).localeCompare(String(b.event_date)))[0];const home=$('#latest');if(!home)return;let card=document.getElementById('homeUpcoming');if(!next){if(card)card.remove();return}if(!card){card=document.createElement('article');card.id='homeUpcoming';card.className='home-upcoming';home.insertAdjacentElement('afterend',card)}const date=eventDateFromKey(next.event_date);const day=date.toLocaleDateString('ru-RU',{day:'2-digit'});const month=date.toLocaleDateString('ru-RU',{month:'short'}).replace('.','');const meta=[next.event_time?'◷ '+esc(next.event_time):'',next.location?'⌖ '+esc(next.location):''].filter(Boolean);card.setAttribute('role','link');card.setAttribute('tabindex','0');card.setAttribute('aria-label','Открыть календарь на дату ближайшего события');card.style.cursor='pointer';card.innerHTML='<div class="home-upcoming-date"><strong>'+day+'</strong><span>'+esc(month)+'</span></div><div class="home-upcoming-content"><div class="home-upcoming-kicker">Ближайшее событие</div><h3>'+esc(next.title)+'</h3>'+(meta.length?'<div class="home-upcoming-meta">'+meta.map(x=>'<span>'+x+'</span>').join('')+'</div>':'')+'<span class="home-upcoming-link" id="homeUpcomingLink" data-event-date="'+esc(next.event_date)+'">Смотреть в календаре <span>→</span></span></div>';card.hidden=false}
