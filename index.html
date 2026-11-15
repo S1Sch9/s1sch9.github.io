@@ -260,7 +260,7 @@ nav a,nav button{position:relative;z-index:1;flex:1 1 0;min-width:0;text-align:c
 nav a i,nav button i{display:block;font-style:normal;font-size:19px;line-height:1.25;transition:transform .32s cubic-bezier(.2,.8,.25,1)}
 nav a.on,nav button.on{background:transparent;color:#fff}
 nav a.on i,nav button.on i{transform:scale(1.08)}
-nav .nav-indicator{position:absolute;z-index:0;left:6px;top:6px;bottom:6px;width:0;border-radius:20px;background:linear-gradient(145deg,#b50931 0%,var(--red) 58%,#85001d 100%);box-shadow:0 5px 13px rgba(161,0,31,.2),inset 0 1px 0 rgba(255,255,255,.16);pointer-events:none;transform:translate3d(0,0,0);opacity:0;will-change:transform,width;transition:transform .28s cubic-bezier(.22,.8,.2,1),width .22s cubic-bezier(.22,.8,.2,1),opacity .16s ease}
+nav .nav-indicator{position:absolute;z-index:0;left:6px;top:6px;bottom:6px;width:0;border-radius:20px;background:linear-gradient(145deg,#c10b38 0%,var(--red) 55%,#790019 100%);box-shadow:0 7px 18px rgba(161,0,31,.25),inset 0 1px 0 rgba(255,255,255,.2);pointer-events:none;transform:translate3d(0,0,0);opacity:0;will-change:transform,width;transition:transform .46s cubic-bezier(.18,.88,.22,1),width .32s cubic-bezier(.18,.88,.22,1),opacity .2s ease,box-shadow .3s ease}
 nav .nav-indicator:after{content:"";position:absolute;inset:1px;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.13),transparent 58%);pointer-events:none}
 nav.nav-dragging .nav-indicator{transition:none!important;box-shadow:0 6px 15px rgba(161,0,31,.22),inset 0 1px 0 rgba(255,255,255,.16)}
 nav.nav-dragging a,nav.nav-dragging button{transition:color .16s ease,transform .16s ease}
@@ -810,168 +810,129 @@ function route(){
 }
 addEventListener("hashchange", route);
 
-/* Интерактивная нижняя навигация: горизонтальный свайп + обычные нажатия */
+/* Плавающая нижняя навигация: индикатор следует за пальцем и мягко фиксируется на разделе */
 (function installNavScrubbing(){
-  const nav = document.querySelector("body > nav");
-  if(!nav) return;
-  const selector = "a[href^='#'],button[data-more='true']";
-  const indicator = document.createElement("span");
-  indicator.className = "nav-indicator";
+  const nav=document.querySelector("body > nav");
+  if(!nav)return;
+  const selector="a[href^='#'],button[data-more='true']";
+  const indicator=document.createElement("span");
+  indicator.className="nav-indicator";
   indicator.setAttribute("aria-hidden","true");
   nav.prepend(indicator);
 
-  let candidate = null;
-  let touchStart = null;
-  let touchDragging = false;
-  let suppressClickUntil = 0;
-  let mousePointer = null;
-
-  let syncFrame = 0;
-  const sync = () => {
-    syncFrame = 0;
-    const active = nav.querySelector(".on");
-    const target = candidate || active;
-    if(!target){ indicator.style.opacity = "0"; return; }
-    const nr = nav.getBoundingClientRect(), r = target.getBoundingClientRect();
-    indicator.style.opacity = "1";
-    indicator.style.width = r.width + "px";
-    indicator.style.transform = "translate3d(" + (r.left - nr.left - 6) + "px,0,0)";
+  let candidate=null,touchStart=null,touchDragging=false,suppressClickUntil=0,mousePointer=null;
+  let syncFrame=0;
+  const navItems=()=>[...nav.querySelectorAll(selector)];
+  const itemLeft=item=>{const nr=nav.getBoundingClientRect(),r=item.getBoundingClientRect();return r.left-nr.left-6};
+  const setIndicator=(left,width)=>{indicator.style.opacity="1";indicator.style.width=width+"px";indicator.style.transform="translate3d("+left+"px,0,0)";};
+  const sync=()=>{
+    syncFrame=0;
+    const active=nav.querySelector(".on")||navItems()[0];
+    if(!active){indicator.style.opacity="0";return;}
+    setIndicator(itemLeft(active),active.getBoundingClientRect().width);
   };
-  const syncSoon = () => {
-    if(syncFrame) return;
-    syncFrame = requestAnimationFrame(sync);
-  };
-  window.syncNavIndicator = syncSoon;
+  const syncSoon=()=>{if(!syncFrame)syncFrame=requestAnimationFrame(sync);};
+  window.syncNavIndicator=syncSoon;
   syncSoon();
-  window.addEventListener("resize", syncSoon, {passive:true});
-  window.addEventListener("orientationchange", syncSoon, {passive:true});
-  if("ResizeObserver" in window){
-    const observer = new ResizeObserver(syncSoon);
-    observer.observe(nav);
-    nav.querySelectorAll("a,button").forEach(el => observer.observe(el));
-  }
+  window.addEventListener("resize",syncSoon,{passive:true});
+  window.addEventListener("orientationchange",syncSoon,{passive:true});
+  if("ResizeObserver"in window){const observer=new ResizeObserver(syncSoon);observer.observe(nav);navItems().forEach(el=>observer.observe(el));}
 
-  const itemAt = (x,y) => {
-    const el = document.elementFromPoint(x,y);
-    const item = el && el.closest(selector);
-    return item && nav.contains(item) ? item : null;
+  const nearestItem=center=>{
+    const items=navItems();
+    let best=null,distance=Infinity;
+    items.forEach(item=>{const r=item.getBoundingClientRect(),d=Math.abs(center-(r.left+r.width/2));if(d<distance){distance=d;best=item;}});
+    return best;
   };
-  const choose = el => {
-    if(!el || el === candidate) return;
-    if(candidate) candidate.classList.remove("scrub-target");
-    candidate = el;
-    candidate.classList.add("scrub-target");
+  const choose=el=>{
+    if(!el||el===candidate)return;
+    if(candidate)candidate.classList.remove("scrub-target");
+    candidate=el;candidate.classList.add("scrub-target");
     nav.classList.add("nav-dragging");
+  };
+  const clearGesture=()=>{
+    if(candidate)candidate.classList.remove("scrub-target");
+    candidate=null;nav.classList.remove("nav-dragging");
+    touchStart=null;touchDragging=false;mousePointer=null;
     syncSoon();
   };
-  const clearGesture = () => {
-    if(candidate) candidate.classList.remove("scrub-target");
-    candidate = null;
-    nav.classList.remove("nav-dragging");
-    touchStart = null;
-    touchDragging = false;
-    mousePointer = null;
-    syncSoon();
-  };
-  const activate = item => {
-    if(!item) return;
+  const activate=item=>{
+    if(!item)return;
     if(item.matches("a[href^='#']")){
-      const hash = item.getAttribute("href");
-      if(location.hash === hash) route();
-      else location.hash = hash;
-    }else if(item.matches("button[data-more='true']")){
-      openMoreMenu();
-    }
+      const hash=item.getAttribute("href");
+      if(location.hash===hash)route();else location.hash=hash;
+    }else if(item.matches("button[data-more='true']"))openMoreMenu();
+  };
+  const beginDrag=(state,clientX)=>{
+    const active=nav.querySelector(".on")||state.item;
+    state.baseLeft=itemLeft(active);
+    state.width=active.getBoundingClientRect().width;
+    state.navLeft=nav.getBoundingClientRect().left;
+    state.minLeft=itemLeft(navItems()[0]);
+    const last=navItems().at(-1);
+    state.maxLeft=itemLeft(last)+last.getBoundingClientRect().width-state.width;
+    state.startX=clientX;
+  };
+  const moveIndicator=(state,x)=>{
+    const left=Math.max(state.minLeft,Math.min(state.maxLeft,state.baseLeft+x-state.startX));
+    setIndicator(left,state.width);
+    const nr=nav.getBoundingClientRect();
+    choose(nearestItem(nr.left+left+state.width/2));
   };
 
-  // iPhone/iPad: native touch events are more predictable than pointer capture here.
-  nav.addEventListener("touchstart", e => {
-    if(e.touches.length !== 1) { touchStart = null; return; }
-    const t = e.touches[0], item = e.target.closest(selector);
-    if(!item || !nav.contains(item)) return;
-    suppressClickUntil = 0;
-    touchStart = {id:t.identifier,x:t.clientX,y:t.clientY,item};
-    candidate = item;
-    candidate.classList.add("scrub-target");
-    touchDragging = false;
-  }, {passive:true});
-
-  nav.addEventListener("touchmove", e => {
-    if(!touchStart || e.touches.length !== 1) return;
-    const t = [...e.touches].find(x => x.identifier === touchStart.id);
-    if(!t) return;
-    const dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
+  nav.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1){touchStart=null;return;}
+    const t=e.touches[0],item=e.target.closest(selector);
+    if(!item||!nav.contains(item))return;
+    suppressClickUntil=0;
+    touchStart={id:t.identifier,x:t.clientX,y:t.clientY,item,baseLeft:0,width:0,minLeft:0,maxLeft:0,startX:t.clientX};
+    candidate=item;candidate.classList.add("scrub-target");
+  },{passive:true});
+  nav.addEventListener("touchmove",e=>{
+    if(!touchStart||e.touches.length!==1)return;
+    const t=[...e.touches].find(x=>x.identifier===touchStart.id);if(!t)return;
+    const dx=t.clientX-touchStart.x,dy=t.clientY-touchStart.y;
     if(!touchDragging){
-      if(Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { clearGesture(); return; }
-      if(Math.abs(dx) < 9 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
-      touchDragging = true;
-      nav.classList.add("nav-dragging");
-      if(navigator.vibrate) { try{navigator.vibrate(5);}catch(_){} }
+      if(Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx)){clearGesture();return;}
+      if(Math.abs(dx)<7||Math.abs(dx)<Math.abs(dy)*1.15)return;
+      touchDragging=true;nav.classList.add("nav-dragging");beginDrag(touchStart,touchStart.x);
+      if(navigator.vibrate){try{navigator.vibrate(5);}catch(_){}}
     }
-    if(touchDragging){
-      if(e.cancelable) e.preventDefault();
-      choose(itemAt(t.clientX,t.clientY));
-    }
-  }, {passive:false});
+    if(touchDragging){if(e.cancelable)e.preventDefault();moveIndicator(touchStart,t.clientX);}
+  },{passive:false});
+  nav.addEventListener("touchend",e=>{
+    if(!touchStart)return;
+    const wasDragging=touchDragging,selected=candidate;
+    if(wasDragging){suppressClickUntil=Date.now()+900;if(e.cancelable)e.preventDefault();clearGesture();activate(selected);}
+    else clearGesture();
+  },{passive:false});
+  nav.addEventListener("touchcancel",clearGesture,{passive:true});
 
-  nav.addEventListener("touchend", e => {
-    if(!touchStart) return;
-    const wasDragging = touchDragging;
-    const selected = candidate;
-    if(wasDragging){
-      suppressClickUntil = Date.now() + 900;
-      if(e.cancelable) e.preventDefault();
-      clearGesture();
-      activate(selected);
-    }else{
-      clearGesture();
-    }
-  }, {passive:false});
-  nav.addEventListener("touchcancel", clearGesture, {passive:true});
-
-  // Desktop mouse dragging, while ordinary clicks remain native.
-  nav.addEventListener("pointerdown", e => {
-    if(e.pointerType !== "mouse" || e.button !== 0) return;
-    const item = e.target.closest(selector);
-    if(!item || !nav.contains(item)) return;
-    mousePointer = {id:e.pointerId,x:e.clientX,y:e.clientY,dragging:false};
-    candidate = item;
+  nav.addEventListener("pointerdown",e=>{
+    if(e.pointerType!=="mouse"||e.button!==0)return;
+    const item=e.target.closest(selector);if(!item||!nav.contains(item))return;
+    mousePointer={id:e.pointerId,x:e.clientX,y:e.clientY,item,dragging:false,baseLeft:0,width:0,minLeft:0,maxLeft:0,startX:e.clientX};
   });
-  window.addEventListener("pointermove", e => {
-    if(!mousePointer || e.pointerId !== mousePointer.id) return;
-    const dx=e.clientX-mousePointer.x, dy=e.clientY-mousePointer.y;
+  window.addEventListener("pointermove",e=>{
+    if(!mousePointer||e.pointerId!==mousePointer.id)return;
+    const dx=e.clientX-mousePointer.x,dy=e.clientY-mousePointer.y;
     if(!mousePointer.dragging){
-      if(Math.abs(dx)<9 || Math.abs(dx)<Math.abs(dy)*1.2) return;
-      mousePointer.dragging=true;
-      nav.classList.add("nav-dragging");
+      if(Math.abs(dx)<7||Math.abs(dx)<Math.abs(dy)*1.15)return;
+      mousePointer.dragging=true;nav.classList.add("nav-dragging");beginDrag(mousePointer,mousePointer.x);
     }
-    e.preventDefault();
-    choose(itemAt(e.clientX,e.clientY));
-  }, {passive:false});
-  window.addEventListener("pointerup", e => {
-    if(!mousePointer || e.pointerId !== mousePointer.id) return;
-    if(mousePointer.dragging){
-      const selected=candidate;
-      suppressClickUntil=Date.now()+900;
-      clearGesture();
-      activate(selected);
-    }else clearGesture();
+    e.preventDefault();moveIndicator(mousePointer,e.clientX);
+  },{passive:false});
+  window.addEventListener("pointerup",e=>{
+    if(!mousePointer||e.pointerId!==mousePointer.id)return;
+    if(mousePointer.dragging){const selected=candidate;suppressClickUntil=Date.now()+900;clearGesture();activate(selected);}
+    else clearGesture();
   });
-  window.addEventListener("pointercancel", () => { if(mousePointer) clearGesture(); });
-
-  nav.addEventListener("click", e => {
-    if(suppressClickUntil && Date.now() < suppressClickUntil){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      suppressClickUntil = 0;
-    }
-  }, true);
-  nav.addEventListener("contextmenu", e => {
-    if(e.target.closest(selector)) e.preventDefault();
-  });
-  nav.addEventListener("dragstart", e => {
-    if(e.target.closest(selector)) e.preventDefault();
-  });
+  window.addEventListener("pointercancel",()=>{if(mousePointer)clearGesture();});
+  nav.addEventListener("click",e=>{
+    if(suppressClickUntil&&Date.now()<suppressClickUntil){e.preventDefault();e.stopImmediatePropagation();suppressClickUntil=0;}
+  },true);
+  nav.addEventListener("contextmenu",e=>{if(e.target.closest(selector))e.preventDefault();});
+  nav.addEventListener("dragstart",e=>{if(e.target.closest(selector))e.preventDefault();});
 })();
 let s1SheetScrollY=0,s1BodyStyleBeforeSheet=null;
 function updateS1VisualHeight(){
