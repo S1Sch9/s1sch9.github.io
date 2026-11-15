@@ -212,7 +212,6 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .news-detail-dock .news-like{min-width:76px;padding:10px 17px;background:#fff5f6;border-color:#f0dce1}
 .news-detail-dock .news-comments-jump{flex:1;justify-content:center;gap:8px;padding:10px 16px;background:#f7f3f4;border-color:#eee5e7}
 .news-detail-dock .news-like.is-liked{background:#fff0f3;border-color:#e8bdc7}
-.news-detail-dock .news-share-button{flex:0 0 46px;width:46px;padding:8px;border:1px solid #eee5e7;background:#fff;color:var(--red);font-size:20px}
 @media(min-width:700px){.news-detail-panel{border-radius:28px 28px 0 0}.news-detail-dock{border-radius:0 0 28px 28px}}
 /* Переворот главной карточки: спокойная подсказка и свободное место для текста */
 .home-hero-flip{perspective:1100px;perspective-origin:50% 48%;cursor:pointer;outline:none;padding:0;min-height:270px}
@@ -458,6 +457,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .news-comments-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 0 14px;border-bottom:1px solid #f0e8ea}
 .news-comments-head small{display:block;margin-bottom:3px;color:var(--red);font-size:9px;font-weight:850;letter-spacing:1.1px}
 .news-comments-head h3{margin:0;font-size:23px;letter-spacing:-.6px}
+.news-comments-back{flex:none;border:1px solid #eee1e5;border-radius:12px;background:#faf6f7;color:#8f1733;padding:9px 11px;font:750 12px Onest,system-ui;white-space:nowrap}.news-comments-back:active{background:#f3e7ea;transform:scale(.98)}
 .news-comments-panel .news-comment-name-edit{flex:none}
 .news-comments-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 0 20px}
 .news-comments-empty{text-align:center;padding:28px 12px;color:var(--mut);font-size:13px}
@@ -989,7 +989,7 @@ function openSh(h){
     s1BodyStyleBeforeSheet={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,right:document.body.style.right,width:document.body.style.width,overflow:document.body.style.overflow};
     document.body.style.position="fixed";document.body.style.top=(-s1SheetScrollY)+"px";document.body.style.left="0";document.body.style.right="0";document.body.style.width="100%";document.body.style.overflow="hidden";
   }
-  $("#pn").classList.remove("more-panel","news-detail-panel");if(h.includes("news-detail-content"))$("#pn").classList.add("news-detail-panel");const hasOwnClose=h.includes("more-menu-heading");$("#pn").innerHTML='<div class="grip"></div>'+(hasOwnClose?"":'<button class="sh-close" type="button" onclick="closeSh()" aria-label="Закрыть окно">×</button>')+h;
+  $("#pn").classList.remove("more-panel","news-detail-panel");if(h.includes("news-detail-content"))$("#pn").classList.add("news-detail-panel");const hasOwnClose=h.includes("more-menu-heading")||h.includes("news-comments-modal");$("#pn").innerHTML='<div class="grip"></div>'+(hasOwnClose?"":'<button class="sh-close" type="button" onclick="closeSh()" aria-label="Закрыть окно">×</button>')+h;
   updateS1VisualHeight();$("#sh").classList.add("on");
 }
 function closeSh(){
