@@ -201,8 +201,13 @@ async function ensureNewsSocial(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_likes (news_id TEXT NOT NULL, visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (news_id, visitor_hash))`).run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_likes_news ON news_likes(news_id)").run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_comments (id TEXT PRIMARY KEY, news_id TEXT NOT NULL, author TEXT NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'published', visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
-  try { await env.DB.prepare("ALTER TABLE news_comments ADD COLUMN profanity_flag INTEGER NOT NULL DEFAULT 0").run(); } catch {}
+  for (const sql of [
+    "ALTER TABLE news_comments ADD COLUMN profanity_flag INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE news_comments ADD COLUMN parent_id TEXT"
+  ]) { try { await env.DB.prepare(sql).run(); } catch {} }
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_comments_news ON news_comments(news_id, status, created_at)").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_comment_likes (comment_id TEXT NOT NULL, visitor_hash TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (comment_id, visitor_hash))`).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_news_comment_likes_comment ON news_comment_likes(comment_id)").run();
 }
 async function ensureTelegramNews(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_news (
@@ -806,13 +811,18 @@ self.addEventListener("notificationclick", event => {
         const likeHash = validVisitor ? await sha256("s1sch9-news-like:" + visitorId) : "";
         const commentHash = validVisitor ? await sha256("s1sch9-news-comment:" + visitorId) : "";
         const liked = likeHash ? !!(await env.DB.prepare("SELECT 1 FROM news_likes WHERE news_id = ? AND visitor_hash = ?").bind(newsId, likeHash).first()) : false;
-        const comments = await env.DB.prepare("SELECT id, author, message, created_at, visitor_hash FROM news_comments WHERE news_id = ? AND status = 'published' ORDER BY created_at ASC LIMIT 100").bind(newsId).all();
+        const comments = await env.DB.prepare(`SELECT c.id, c.parent_id, c.author, c.message, c.created_at, c.visitor_hash,
+          COUNT(l.comment_id) AS likes,
+          MAX(CASE WHEN l.visitor_hash = ? THEN 1 ELSE 0 END) AS liked
+          FROM news_comments c LEFT JOIN news_comment_likes l ON l.comment_id = c.id
+          WHERE c.news_id = ? AND c.status = 'published'
+          GROUP BY c.id ORDER BY c.created_at ASC LIMIT 200`).bind(commentHash, newsId).all();
         const myComments = commentHash
-          ? await env.DB.prepare("SELECT id, author, message, status, created_at, profanity_flag FROM news_comments WHERE news_id = ? AND visitor_hash = ? ORDER BY created_at ASC LIMIT 100").bind(newsId, commentHash).all()
+          ? await env.DB.prepare("SELECT id, parent_id, author, message, status, created_at, profanity_flag FROM news_comments WHERE news_id = ? AND visitor_hash = ? ORDER BY created_at ASC LIMIT 100").bind(newsId, commentHash).all()
           : { results: [] };
         return json({
           likes: Number(likes?.count || 0), liked,
-          comments: (comments.results || []).map(({ visitor_hash, ...comment }) => ({ ...comment, is_mine: !!commentHash && visitor_hash === commentHash })),
+          comments: (comments.results || []).map(({ visitor_hash, ...comment }) => ({ ...comment, likes: Number(comment.likes || 0), liked: !!comment.liked, is_mine: !!commentHash && visitor_hash === commentHash })),
           my_comments: myComments.results || []
         }, 200, { ...headers, ...cors(origin) });
       } catch { return json({ error: "Не удалось загрузить обсуждение." }, 500, { ...headers, ...cors(origin) }); }
@@ -834,13 +844,35 @@ self.addEventListener("notificationclick", event => {
         return json({ liked: !existing, likes: Number(count?.count || 0) }, 200, { ...headers, ...cors(origin) });
       } catch { return json({ error: "Не удалось изменить реакцию." }, 500, { ...headers, ...cors(origin) }); }
     }
+    if (url.pathname === "/api/news-comment-like" && request.method === "POST") {
+      if (origin !== SITE_ORIGIN) return json({ error: "Недопустимый источник запроса." }, 403, headers);
+      try {
+        await ensureNewsSocial(env);
+        const body = await readJsonBody(request), commentId = cleanText(body.comment_id, 80), visitorId = cleanText(body.visitor_id, 100);
+        if (!commentId || !/^[a-zA-Z0-9_-]{12,100}$/.test(visitorId)) return json({ error: "Некорректный запрос." }, 400, { ...headers, ...cors(origin) });
+        const ipHash = await clientIpHash(request), ipLimit = await rateAllowed(env, "news-comment-like:" + ipHash, 120);
+        if (!ipLimit.allowed) return json({ error: "Слишком много реакций. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
+        const visitorHash = await sha256("s1sch9-news-comment:" + visitorId);
+        const comment = await env.DB.prepare("SELECT id FROM news_comments WHERE id = ? AND status = 'published'").bind(commentId).first();
+        if (!comment) return json({ error: "Комментарий не найден." }, 404, { ...headers, ...cors(origin) });
+        const existing = await env.DB.prepare("SELECT 1 FROM news_comment_likes WHERE comment_id = ? AND visitor_hash = ?").bind(commentId, visitorHash).first();
+        if (existing) await env.DB.prepare("DELETE FROM news_comment_likes WHERE comment_id = ? AND visitor_hash = ?").bind(commentId, visitorHash).run();
+        else await env.DB.prepare("INSERT OR IGNORE INTO news_comment_likes (comment_id, visitor_hash, created_at) VALUES (?, ?, ?)").bind(commentId, visitorHash, new Date().toISOString()).run();
+        const count = await env.DB.prepare("SELECT COUNT(*) AS count FROM news_comment_likes WHERE comment_id = ?").bind(commentId).first();
+        return json({ liked: !existing, likes: Number(count?.count || 0) }, 200, { ...headers, ...cors(origin) });
+      } catch { return json({ error: "Не удалось изменить лайк." }, 500, { ...headers, ...cors(origin) }); }
+    }
     if (url.pathname === "/api/news-comments" && request.method === "POST") {
       if (origin !== SITE_ORIGIN) return json({ error: "Недопустимый источник запроса." }, 403, headers);
       try {
         await ensureNewsSocial(env);
         const body = await readJsonBody(request), newsId = cleanText(body.news_id, 180), visitorId = cleanText(body.visitor_id, 100);
-        const author = cleanText(body.author, 32), message = cleanText(body.message, 600);
+        const author = cleanText(body.author, 32), message = cleanText(body.message, 600), parentId = body.parent_id ? cleanText(body.parent_id, 80) : null;
         if (!newsId || !/^[a-zA-Z0-9_-]{12,100}$/.test(visitorId) || author.length < 2 || message.length < 2) return json({ error: "Проверьте имя и текст комментария." }, 400, { ...headers, ...cors(origin) });
+        if (parentId) {
+          const parent = await env.DB.prepare("SELECT id FROM news_comments WHERE id = ? AND news_id = ? AND status = 'published'").bind(parentId, newsId).first();
+          if (!parent) return json({ error: "Комментарий, на который вы отвечаете, уже недоступен." }, 404, { ...headers, ...cors(origin) });
+        }
         const visitorHash = await sha256("s1sch9-news-comment:" + visitorId);
         const recent = await env.DB.prepare("SELECT COUNT(*) AS count FROM news_comments WHERE visitor_hash = ? AND created_at > ?").bind(visitorHash, new Date(Date.now()-600000).toISOString()).first();
         if (Number(recent?.count || 0) >= 3) return json({ error: "Слишком часто. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
@@ -848,7 +880,7 @@ self.addEventListener("notificationclick", event => {
         const ipLimit = await rateAllowed(env, "news-comment:" + ipHash, 10);
         if (!ipLimit.allowed) return json({ error: "С этого подключения можно отправить не более 10 комментариев в час. Попробуйте позже." }, 429, { ...headers, ...cors(origin) });
         const profanityFlag = containsProfanity(author + " " + message) ? 1 : 0, status = profanityFlag ? "moderation" : "published", id = crypto.randomUUID();
-        await env.DB.prepare("INSERT INTO news_comments (id, news_id, author, message, status, visitor_hash, created_at, profanity_flag) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(id, newsId, author, message, status, visitorHash, new Date().toISOString(), profanityFlag).run();
+        await env.DB.prepare("INSERT INTO news_comments (id, news_id, author, message, status, visitor_hash, created_at, profanity_flag, parent_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(id, newsId, author, message, status, visitorHash, new Date().toISOString(), profanityFlag, parentId).run();
         return json({ success: true, status, flagged: !!profanityFlag, message: profanityFlag ? "Комментарий скрыт до проверки: обнаружены слова из стоп-листа." : "Комментарий опубликован." }, 201, { ...headers, ...cors(origin) });
       } catch { return json({ error: "Не удалось отправить комментарий." }, 500, { ...headers, ...cors(origin) }); }
     }
