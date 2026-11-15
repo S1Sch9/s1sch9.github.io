@@ -901,6 +901,32 @@ html{scroll-behavior:smooth}
 .sh.is-dismissing .pn{pointer-events:none}
 @media(prefers-reduced-motion:reduce){.sh .pn{will-change:auto}.sh.is-dragging .pn{box-shadow:none}}
 </style>
+<style id="section-and-calendar-redesign">
+.section-heading{margin:10px 0 18px!important;padding:5px 2px 0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+.section-heading small{margin:0 0 7px!important;color:#9b5264!important;font-size:9px!important;letter-spacing:1.35px!important}
+.section-heading h1{margin:0 0 6px!important;font-size:31px!important;line-height:1.12!important;letter-spacing:-1px!important;color:var(--deep)!important}
+.section-heading p{max-width:34em;color:var(--mut)!important;font-size:12.5px!important;line-height:1.5!important}
+@media(max-width:360px){.section-heading h1{font-size:28px!important}}
+.day-showcase{position:relative;margin:8px 0 18px!important;padding:19px 16px 14px!important;overflow:hidden;border:1px solid #ead6dc!important;border-radius:25px!important;background:linear-gradient(150deg,#fff 0%,#fff8f9 62%,#f7edf0 100%)!important;box-shadow:0 9px 25px rgba(61,0,13,.065)!important}
+.day-showcase-head{align-items:center}
+.day-kicker{color:#9a5364!important;font-size:9px!important;letter-spacing:.14em!important}
+.day-today{padding:8px 14px!important;border:1px solid #e7cbd2!important;background:#fff!important;color:var(--red)!important;font-weight:800!important}
+.day-switch{grid-template-columns:42px minmax(0,1fr) 42px!important;gap:10px!important;margin:16px 0 15px!important}
+.day-arrow{width:40px!important;height:40px!important;border:1px solid #ead8dd!important;border-radius:14px!important;background:#fff!important;color:var(--red)!important;box-shadow:0 2px 7px rgba(61,0,13,.045)!important;transition:transform .18s ease,background .18s ease!important}
+.day-arrow:active{transform:scale(.92)!important;background:#f9edf0!important}
+.day-date strong{font-size:clamp(23px,6vw,28px)!important;color:var(--deep)!important;letter-spacing:-.045em!important}
+.day-date span{font-size:12px!important;color:#85747a!important}
+.day-event-list{min-height:100px!important}
+.day-event-card{padding:16px!important;border:1px solid #eee1e4!important;border-radius:18px!important;background:#fff!important;box-shadow:0 4px 13px rgba(61,0,13,.045)!important}
+.day-event-card h3{font-size:17px!important;color:var(--deep)!important}
+.day-empty{border-color:#eadde0!important;background:rgba(255,255,255,.72)!important}
+.day-swipe-hint{margin-top:10px!important;color:#a58d94!important;font-size:10px!important}
+.event-filter-row{margin:0 0 14px!important;padding:9px 11px!important;border:1px solid #eee3e6!important;border-radius:15px!important;background:#fff!important}
+.event-filter-row label{font-size:11px!important;font-weight:700!important}
+.event-filter-row select{min-height:40px!important;margin:0!important}
+.mini-calendar-wrap{margin-top:0!important}
+@media(max-width:380px){.day-showcase{padding:16px 12px 12px!important;border-radius:22px!important}.day-switch{grid-template-columns:38px minmax(0,1fr) 38px!important;gap:6px!important}.day-arrow{width:36px!important;height:36px!important}.day-date strong{font-size:22px!important}}
+</style>
 <style id="restore-original-home-tiles">
 /* Restore the original home section tiles; keep the newer panel gestures and navigation. */
 .tiles{gap:12px!important;margin:14px 0!important}
@@ -976,14 +1002,14 @@ html{scroll-behavior:smooth}
   <div class="news-tabs" role="tablist" aria-label="Разделы новостей"><button type="button" class="news-tab is-active" id="newsAllTab" role="tab" aria-selected="true" aria-controls="newsList" data-news-tab="all">Все новости <span id="newsAllCount">0</span></button><button type="button" class="news-tab" id="newsSavedTab" role="tab" aria-selected="false" aria-controls="newsList" data-news-tab="saved">★ Сохранённые <span id="newsSavedCount">0</span></button></div><p class="news-result-count" id="newsResultCount" aria-live="polite"></p>
   <div id="newsList"></div>
 </section>
-<section id="events"><div class="section-heading rv"><small>КАЛЕНДАРЬ</small><h1>Мероприятия</h1><p>Выбери дату, чтобы посмотреть запланированные события Совета.</p></div>
-  <div class="event-filter-row rv"><label for="eventCategoryFilter">Показать</label><select id="eventCategoryFilter" aria-label="Фильтр мероприятий по категории"><option value="all">Все мероприятия</option></select><button type="button" id="clearEventCategory" hidden>Сбросить</button></div><p class="event-filter-status" id="eventFilterStatus" aria-live="polite"></p><div class="event-category-overview" id="eventCategoryOverview" hidden aria-live="polite"></div>
+<section id="events"><div class="section-heading rv"><small>КАЛЕНДАРЬ СОБЫТИЙ</small><h1>Мероприятия</h1><p>Выбери день или листай даты, чтобы увидеть, что нас ждёт.</p></div>
   <div class="day-showcase rv" id="dayShowcase">
     <div class="day-showcase-head"><span class="day-kicker">ВЫБРАННЫЙ ДЕНЬ</span><button class="day-today" id="goToday" type="button">Сегодня</button></div>
     <div class="day-switch"><button class="day-arrow" id="prevDay" type="button" aria-label="Предыдущий день">‹</button><div class="day-date" id="dayDate"><strong>Сегодня</strong><span>Загружаем дату…</span></div><button class="day-arrow" id="nextDay" type="button" aria-label="Следующий день">›</button></div>
     <div class="day-event-list" id="publicEventsList"><p class="note">Загружаем мероприятия…</p></div>
     <div class="day-swipe-hint">← Листай дни вправо и влево →</div>
   </div>
+  <div class="event-filter-row rv"><label for="eventCategoryFilter">Категория</label><select id="eventCategoryFilter" aria-label="Фильтр мероприятий по категории"><option value="all">Все мероприятия</option></select><button type="button" id="clearEventCategory" hidden>Сбросить</button></div><p class="event-filter-status" id="eventFilterStatus" aria-live="polite"></p><div class="event-category-overview" id="eventCategoryOverview" hidden aria-live="polite"></div>
   <div class="mini-calendar-wrap rv">
     <div class="mini-calendar-title"><div><strong>Другие даты</strong><span>Выбери день в календаре</span></div><div class="mini-month-nav"><button class="btn ghost" id="prevMonth" type="button" aria-label="Предыдущий месяц">‹</button><b id="monthLabel">Месяц</b><button class="btn ghost" id="nextMonth" type="button" aria-label="Следующий месяц">›</button></div></div>
     <div class="calendar-grid calendar-weekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
