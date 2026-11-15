@@ -215,24 +215,24 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 /* Переворот главной карточки: лицевая обложка и кратко о школьном Совете */
 .home-hero-flip{perspective:1200px;cursor:pointer;outline:none;padding:0;min-height:252px}
 .home-hero-flip:focus-visible{box-shadow:0 0 0 3px #f0c869,0 14px 32px rgba(83,0,22,.16)}
-.home-hero-flip-inner{position:relative;min-height:252px;transform-style:preserve-3d;transition:transform .72s cubic-bezier(.2,.72,.18,1)}
-.home-hero-flip.is-flipped .home-hero-flip-inner{transform:rotateY(180deg)}
+.home-hero-flip-inner{position:relative;min-height:252px;transform-style:preserve-3d;transition:transform .86s cubic-bezier(.22,.78,.18,1);will-change:transform}
+.home-hero-flip.is-flipped .home-hero-flip-inner{transform:rotateY(180deg) scale(.985)}
 .home-hero-face{position:absolute;inset:0;min-height:252px;display:flex;flex-direction:column;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.home-hero-front{padding:22px 20px 15px}
-.home-hero-back{transform:rotateY(180deg);padding:24px 22px 17px;align-items:flex-start;background:radial-gradient(circle at 100% 0,rgba(240,200,105,.22),transparent 42%),linear-gradient(145deg,#a90029 0%,#720019 58%,#3d000d 100%);border-radius:29px}
-.home-back-kicker{color:#f2d58c;font-size:9px;font-weight:900;letter-spacing:1.4px;margin-bottom:10px}
+.home-hero-front{padding:22px 20px 48px}
+.home-hero-back{transform:rotateY(180deg);padding:24px 22px 52px;align-items:flex-start;background:radial-gradient(circle at 100% 0,rgba(240,200,105,.13),transparent 42%),linear-gradient(145deg,#a90029 0%,#720019 58%,#3d000d 100%);border-radius:29px}
+.home-back-kicker{color:#f2d58c;font-size:9px;font-weight:850;letter-spacing:1.2px;margin-bottom:10px}
 .home-hero-back h2{font-size:25px;line-height:1.08;letter-spacing:-.7px;margin:0 0 9px;color:#fff}
 .home-hero-back p{max-width:460px;color:rgba(255,255,255,.88);font-size:12.5px;line-height:1.5;margin:0 0 15px}
-.home-join-button{display:flex;align-items:center;justify-content:space-between;gap:18px;width:100%;min-height:46px;padding:11px 15px;border:1px solid rgba(255,231,169,.7);border-radius:15px;background:linear-gradient(110deg,#fff1c7,#f0c869);color:#3d000d;font:800 13px Onest,system-ui;box-shadow:0 5px 14px rgba(20,0,5,.14);opacity:1}
+.home-join-button{display:flex;align-items:center;justify-content:space-between;gap:18px;width:100%;min-height:46px;padding:11px 15px;border:1px solid rgba(255,231,169,.55);border-radius:14px;background:#f3d58c;color:#3d000d;font:800 13px Onest,system-ui;opacity:1}
 .home-join-button:disabled{cursor:default}
 .home-join-button span{font-size:19px}
-.home-flip-hint{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:auto;padding-top:12px;color:rgba(255,255,255,.67);font-size:9px;font-weight:650;letter-spacing:.02em}
+.home-flip-hint{position:absolute;bottom:15px;display:flex;align-items:center;gap:7px;padding:5px 2px;color:rgba(255,255,255,.62);font-size:10px;font-weight:650;letter-spacing:.01em;pointer-events:none}
 .home-flip-hint span{font-size:14px;color:#f0c869}
-.home-hero-back .home-flip-hint{width:100%;min-height:54px;box-sizing:border-box;margin-top:auto;padding:12px 16px;border:1.5px solid rgba(255,231,169,.72);border-radius:16px;background:linear-gradient(110deg,rgba(255,241,199,.18),rgba(240,200,105,.13));color:#fff5dc;font-size:13px;font-weight:850;letter-spacing:.01em;justify-content:center;gap:11px;box-shadow:0 5px 16px rgba(20,0,5,.13);cursor:pointer;-webkit-tap-highlight-color:rgba(255,231,169,.2)}
-.home-hero-back .home-flip-hint span{display:grid;place-items:center;flex:none;width:29px;height:29px;border-radius:50%;background:#f0c869;color:#4b0717;font-size:19px;font-weight:900}
-.home-hero-back .home-flip-hint:active{background:rgba(255,241,199,.25);transform:scale(.985)}
-.home-hero-front .home-flip-hint{min-height:42px;margin-top:10px;padding:9px 13px;border:1px solid #ead5d9;border-radius:14px;background:#fff7f8;color:#8f1735;font-size:11px;font-weight:800;gap:8px;cursor:pointer;-webkit-tap-highlight-color:rgba(176,0,43,.08)}
-.home-hero-front .home-flip-hint span{color:#a90029;font-size:17px}
+.home-hero-front .home-flip-hint{right:19px}
+.home-hero-back .home-flip-hint{left:21px;color:rgba(255,255,255,.72)}
+.home-hero-back .home-flip-hint span{color:#f0c869}
+.home-hero-front .home-flip-hint:after{content:"";position:absolute;inset:-5px -9px;border:1px solid rgba(169,0,41,.14);border-radius:20px;background:rgba(255,255,255,.16);z-index:-1}
+.home-hero-back .home-flip-hint:after{content:"";position:absolute;inset:-5px -9px;border:1px solid rgba(255,255,255,.16);border-radius:20px;background:rgba(255,255,255,.055);z-index:-1}
 .home-hero-flip .home-appeal{margin-top:18px}
 @media(max-width:380px){.home-hero-flip,.home-hero-flip-inner,.home-hero-face{min-height:260px}.home-hero-front{padding:19px 15px 14px}.home-hero-back{padding:20px 17px 15px}.home-hero-back h2{font-size:23px}.home-hero-back p{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.home-hero-flip-inner{transition:none}}
@@ -406,14 +406,14 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
           <div class="home-brand-title"><h1>СОВЕТ ПЕРВЫХ</h1><h2>ШКОЛЫ ДЕВЯТЬ</h2><span>НОВО-САВИНОВСКИЙ РАЙОН · КАЗАНЬ</span></div>
         </div>
         <a class="home-appeal" href="#appeal" aria-label="Оставить обращение Совету Первых школы №9"><span class="home-appeal-icon">✍️</span><span><b>Есть идея? Предложи её!</b><small>Напиши Совету Первых школы №9 — твоё мнение важно</small></span><strong>→</strong></a>
-        <div class="home-flip-hint"><span>＋</span> Нажми, чтобы узнать о Совете</div>
+        <div class="home-flip-hint"><span>＋</span> Подробнее о Совете</div>
       </div>
       <div class="home-hero-face home-hero-back" aria-hidden="true">
         <div class="home-back-kicker">СОВЕТ ПЕРВЫХ · ШКОЛА №9</div>
-        <h2>О нашем Совете</h2>
-        <p>Мы объединяем учеников, которые хотят предлагать идеи, создавать проекты и менять школьную жизнь к лучшему. Здесь можно не только участвовать в делах Совета, но и самому предложить инициативу.</p>
+        <h2>Чем занимается Совет</h2>
+        <p>Мы — команда учеников школы №9. Обсуждаем идеи, готовим школьные события и проекты, помогаем воплощать предложения ребят в жизнь.</p>
         <button class="home-join-button" type="button" disabled aria-disabled="true">Вступить в Совет <span>↗</span></button>
-        <div class="home-flip-hint"><span>↻</span> Нажми, чтобы вернуться</div>
+        <div class="home-flip-hint"><span>↻</span> На главную</div>
       </div>
     </div>
   </div>
