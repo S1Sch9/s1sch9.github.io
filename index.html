@@ -431,9 +431,9 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset
 .news-comment-actions .news-comment-like{color:#9b5362;min-width:52px;padding-left:12px;padding-right:12px}
 .news-comment-actions .news-comment-like.is-liked{color:#b0002b}
 .news-comment-children{margin:8px 0 0 12px;padding-left:12px;border-left:1px solid #eadde0}
-.news-comment-reply-form{display:grid;gap:7px;margin:9px 0 5px}
-.news-comment-reply-form textarea{width:100%;min-height:58px;padding:9px 11px;border:1px solid #e9dfe1;border-radius:11px;font:16px/1.4 Onest,system-ui}
-.news-comment-reply-form button{justify-self:end;border:0;border-radius:10px;background:var(--red);color:#fff;padding:8px 12px;font:700 11px Onest,system-ui}
+.news-comment-reply-form{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;width:100%;max-width:100%;min-width:0;box-sizing:border-box;margin:9px 0 5px;overflow:hidden}
+.news-comment-reply-form textarea{display:block;width:100%;min-width:0;max-width:100%;min-height:58px;box-sizing:border-box;padding:9px 11px;border:1px solid #e9dfe1;border-radius:11px;font:16px/1.4 Onest,system-ui}
+.news-comment-reply-form button{justify-self:end;max-width:100%;border:0;border-radius:10px;background:var(--red);color:#fff;padding:8px 12px;font:700 11px Onest,system-ui}
 .news-comment-editor{display:grid;gap:8px;margin-top:9px}
 .news-comment-editor input,.news-comment-editor textarea{width:100%;min-width:0;padding:9px 11px;border:1px solid #e9dfe1;border-radius:10px;font:16px/1.4 Onest,system-ui;background:#fff}
 .news-comment-editor textarea{min-height:76px;resize:vertical}
@@ -2626,7 +2626,7 @@ document.addEventListener("click",e=>{
   const toggle=e.target.closest("[data-name-toggle]");
   if(toggle){const row=document.querySelector(".news-comments-name-row"),edit=document.querySelector("[data-name-edit]");if(row&&edit){const opening=!row.classList.contains("on");row.classList.toggle("on",opening);toggle.setAttribute("aria-expanded",String(opening));toggle.textContent=opening?"Готово":"Изменить имя";if(opening){try{edit.focus({preventScroll:true})}catch{edit.focus()}edit.select()}else{edit.blur()}}}
   const reply=e.target.closest("[data-comment-reply]");
-  if(reply){const article=reply.closest("[data-comment-id]");if(!article)return;const existing=article.querySelector(".news-comment-reply-form");if(existing){existing.remove();return}const form=document.createElement("form");form.className="news-comment-reply-form";form.dataset.commentReplyForm="";form.innerHTML='<textarea name="message" maxlength="600" minlength="2" required placeholder="Ваш ответ…"></textarea><button type="submit">Ответить</button><p class="note" data-comment-status role="status"></p>';article.appendChild(form);form.querySelector("textarea").focus();return}
+  if(reply){const article=reply.closest("[data-comment-id]");if(!article)return;const existing=article.querySelector(".news-comment-reply-form");if(existing){existing.remove();return}const form=document.createElement("form");form.className="news-comment-reply-form";form.dataset.commentReplyForm="";form.innerHTML='<textarea name="message" maxlength="600" minlength="2" required placeholder="Ваш ответ…"></textarea><button type="submit">Ответить</button><p class="note" data-comment-status role="status"></p>';const main=article.querySelector(".news-comment-main"),children=main?.querySelector(".news-comment-children");if(main)main.insertBefore(form,children||null);else article.appendChild(form);form.querySelector("textarea").focus();return}
 });
 document.addEventListener("input",e=>{
   if(e.target.matches("[data-name-edit]")){
@@ -2663,7 +2663,7 @@ document.addEventListener("click",async e=>{
     try{
       const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comments/"+encodeURIComponent(article.dataset.commentId)+"/delete",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:newsVisitorId()})});
       const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось удалить комментарий");
-      await loadNewsSocial(root.dataset.newsSocial);
+      await loadNewsSocial(root.dataset.newsSocial,true);
     }catch(err){alert(err.message);deleteButton.disabled=false}
   }
 });
@@ -2675,7 +2675,7 @@ document.addEventListener("submit",async e=>{
   try{
     const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comments/"+encodeURIComponent(article.dataset.commentId)+"/edit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:newsVisitorId(),author:form.elements.author.value.trim(),message:form.elements.message.value.trim()})});
     const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось изменить комментарий");
-    await loadNewsSocial(root.dataset.newsSocial);
+    await loadNewsSocial(root.dataset.newsSocial,true);
   }catch(err){alert(err.message);button.disabled=false;button.textContent="Сохранить"}
 });
 document.addEventListener("submit",async e=>{const form=e.target.closest("[data-comment-form],[data-comment-reply-form]");if(!form)return;e.preventDefault();const root=form.closest("[data-news-social]"),status=form.querySelector("[data-comment-status]"),button=form.querySelector("button[type=submit]");const edit=document.querySelector("[data-name-edit]"),author=(edit&&edit.value.trim())||newsCommentName(),message=form.elements.message.value.trim(),article=form.closest("[data-comment-id]"),parent_id=article?article.dataset.commentId:null;button.disabled=true;if(status)status.textContent="Отправляем…";try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({news_id:root.dataset.newsSocial,visitor_id:newsVisitorId(),author,message,parent_id})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось отправить комментарий");if(status)status.textContent=d.message;form.reset();const nameEdit=document.querySelector("[data-name-edit]");if(nameEdit)nameEdit.value=newsCommentName();NEWS_SOCIAL_CACHE.delete(root.dataset.newsSocial);await loadNewsSocial(root.dataset.newsSocial,true)}catch(err){if(status)status.textContent=err.message}finally{button.disabled=false}});
