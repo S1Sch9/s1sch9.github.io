@@ -3622,3 +3622,26 @@ html[data-s1-theme="dark"] .news-social-actions .news-like.is-liked,html[data-s1
 </style>
 </body>
 </html>
+
+
+<style id="s1-news-feed-like-visibility">
+/* Make likes clearly visible on the all-news cards, not only in the opened story. */
+#news .news-feed-card .news-social-actions .news-like{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:7px!important;min-width:58px!important;min-height:38px!important;padding:7px 12px!important;
+  border:1px solid #d9aab5!important;border-radius:12px!important;
+  background:#fff7f8!important;color:#941632!important;font-size:12px!important;font-weight:850!important;
+}
+#news .news-feed-card .news-social-actions .news-like .news-like-icon{width:20px!important;height:20px!important;flex:0 0 20px!important}
+#news .news-feed-card .news-social-actions .news-like.is-liked{
+  background:#a1001f!important;border-color:#a1001f!important;color:#fff!important;
+  box-shadow:0 3px 10px rgba(161,0,31,.2)!important;
+}
+#news .news-feed-card .news-social-actions .news-like.is-liked .news-like-icon path{fill:#fff!important;stroke:#fff!important}
+html[data-s1-theme="dark"] #news .news-feed-card .news-social-actions .news-like{
+  background:#351c24!important;border-color:#81505d!important;color:#ffdce4!important;
+}
+html[data-s1-theme="dark"] #news .news-feed-card .news-social-actions .news-like.is-liked{
+  background:#d12b50!important;border-color:#d12b50!important;color:#fff!important;
+}
+</style>
