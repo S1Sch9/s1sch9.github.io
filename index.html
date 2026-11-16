@@ -1325,6 +1325,71 @@ section.on{animation:s1-section-arrive .42s cubic-bezier(.2,.8,.2,1) both!import
 }
 </style>
 
+<style id="s1-white-ambient-performance-2026">
+html{background:#fff!important}
+body{background:transparent!important;position:relative!important;isolation:isolate!important}
+body::before,body::after{
+ content:""!important;display:block!important;position:fixed!important;z-index:-1!important;
+ width:clamp(230px,38vw,360px)!important;height:clamp(230px,38vw,360px)!important;
+ border-radius:50%!important;pointer-events:none!important;filter:none!important;
+ will-change:transform,opacity!important;
+}
+body::before{
+ left:-178px!important;top:18vh!important;right:auto!important;bottom:auto!important;
+ background:radial-gradient(circle,rgba(161,0,31,.105) 0%,rgba(161,0,31,.045) 38%,rgba(161,0,31,0) 72%)!important;
+ animation:s1-white-side-left 27s ease-in-out infinite alternate!important;
+}
+body::after{
+ right:-184px!important;bottom:9vh!important;left:auto!important;top:auto!important;
+ background:radial-gradient(circle,rgba(232,191,98,.16) 0%,rgba(232,191,98,.065) 39%,rgba(232,191,98,0) 73%)!important;
+ animation:s1-white-side-right 31s ease-in-out infinite alternate!important;
+}
+@keyframes s1-white-side-left{
+ from{transform:translate3d(0,0,0) scale(.94);opacity:.68}
+ to{transform:translate3d(34px,24px,0) scale(1.06);opacity:.92}
+}
+@keyframes s1-white-side-right{
+ from{transform:translate3d(0,0,0) scale(.96);opacity:.68}
+ to{transform:translate3d(-30px,-22px,0) scale(1.07);opacity:.94}
+}
+@media(max-width:600px){
+ body::before{width:270px!important;height:270px!important;left:-164px!important;top:22vh!important}
+ body::after{width:280px!important;height:280px!important;right:-172px!important;bottom:12vh!important}
+}
+.bar{background:rgba(255,255,255,.96)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+nav{background:rgba(255,255,255,.97)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.news-detail-dock,.news-comments-compose,.connection-status,.sh .bg{
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important
+}
+.news-feed-card::before,.day-event-card::before,.event-card::before,
+.home-shortcut::before,.card::before,.tile::before{
+ animation:none!important;display:none!important;content:none!important
+}
+#latest .home-latest,#homeUpcoming.home-upcoming{
+ animation:s1-light-feature-enter .42s ease both!important;
+ background:#fff!important;background-size:auto!important
+}
+@keyframes s1-light-feature-enter{
+ from{opacity:.78;transform:translateY(7px)}
+ to{opacity:1;transform:translateY(0)}
+}
+#latest .home-latest::before,#homeUpcoming.home-upcoming::before,
+#homeUpcoming.home-upcoming::after{animation:none!important;filter:none!important;opacity:.24!important}
+.home-hero-front::before{animation:none!important;filter:none!important;opacity:.38!important}
+.home-hero-front::after{animation:none!important;opacity:.12!important}
+.section-heading::before,#events .day-showcase::before{
+ animation:none!important;filter:none!important;opacity:.55!important
+}
+section.on{animation:s1-light-section-enter .22s ease both!important}
+@keyframes s1-light-section-enter{
+ from{opacity:.82;transform:translateY(5px)}
+ to{opacity:1;transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){
+ body::before,body::after{animation:none!important;transform:none!important;will-change:auto!important}
+ #latest .home-latest,#homeUpcoming.home-upcoming,section.on{animation:none!important}
+}
+</style>
 </head>
 <body>
 <div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button></div>
@@ -1750,7 +1815,7 @@ async function refreshAppealBlockStatus(){
   }catch{return appealSenderBlocked}
 }
 refreshAppealBlockStatus();
-setInterval(refreshAppealBlockStatus,30000);
+setInterval(()=>{if(!document.hidden)refreshAppealBlockStatus()},120000);
 addEventListener("keydown", e => e.key === "Escape" && (closeSh(), closeGame()));
 function csv(t){const r=[];let a=[],c="",q=false;for(let i=0;i<t.length;i++){const h=t[i];
   if(q){if(h=='"'&&t[i+1]=='"'){c+='"';i++}else if(h=='"')q=false;else c+=h}
@@ -1771,6 +1836,7 @@ function drawTeam(){
   });});
 }
 function drawNews(){
+  if (NEWS_SOCIAL_OBSERVER) NEWS_SOCIAL_OBSERVER.disconnect();
   const query=$("#q")?.value.trim().toLocaleLowerCase("ru")||"";
   const list=NEWS.filter(n=>(!showSavedNews||NEWS_FAVORITES.has(newsSocialId(n)))&&(String(n.t||"")+" "+String(n.x||"")+" "+String(n.d||"")).toLocaleLowerCase("ru").includes(query));
   const clear=$("#clearNewsSearch");if(clear)clear.hidden=!query;
@@ -1813,7 +1879,7 @@ function drawNews(){
   };
   document.querySelectorAll("#newsList .news-feed-card,#latest .home-latest").forEach(b=>{b.style.setProperty("--i",Math.min(Number(b.dataset.k)||0,9));const openLatest=e=>{if(e.target.closest("a,.news-social,[data-reset-news-search]"))return;openNewsCard(b)};b.addEventListener("click",openLatest);if(b.matches(".home-latest"))b.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&!e.target.closest("a")){e.preventDefault();openNewsCard(b)}});});
   $("#newsList [data-reset-news-search]")?.addEventListener("click",()=>{if($("#q"))$("#q").value="";drawNews();});
-  document.querySelectorAll("#newsList [data-news-social]").forEach(root=>loadNewsSocial(root.dataset.newsSocial));
+  document.querySelectorAll("#newsList [data-news-social]").forEach(root=>{if(NEWS_SOCIAL_OBSERVER)NEWS_SOCIAL_OBSERVER.observe(root);else loadNewsSocial(root.dataset.newsSocial)});
 }
 const NEWS_FAVORITES_KEY="s1sch9_news_favorites_v1";
 let NEWS_FAVORITES=new Set();let showSavedNews=false;
@@ -1865,6 +1931,15 @@ async function loadNewsSocial(newsId,force=false){
     });
   }catch{if(NEWS_SOCIAL_REQUESTS.get(key)!==version)return;roots.forEach(root=>{const list=root.querySelector("[data-comments-list]");if(list)list.textContent="Не удалось загрузить обсуждение."})}
 }
+const NEWS_SOCIAL_OBSERVER = "IntersectionObserver" in window
+  ? new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        NEWS_SOCIAL_OBSERVER.unobserve(entry.target);
+        loadNewsSocial(entry.target.dataset.newsSocial);
+      });
+    }, { rootMargin: "180px 0px", threshold: 0.01 })
+  : null;
 function newsCommentName(){return (localStorage.getItem("s1sch9_comment_name")||"Аноним").trim().slice(0,32)||"Аноним"}
 let newsDetailReturnHtml=null;
 function closeNewsComments(){
