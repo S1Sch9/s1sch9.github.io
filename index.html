@@ -3138,6 +3138,73 @@ section.on .game{
 }
 </style>
 
+
+<style id="s1-subtle-card-motion-and-home-hint-2026">
+/* Небольшое «дыхание» света на карточках по всему сайту — без прыжков и лишнего блеска. */
+.news-feed-card,.day-event-card,.event-card,.home-shortcut,.card,.tile{
+ position:relative;
+}
+.news-feed-card::before,.day-event-card::before,.event-card::before,.home-shortcut::before,.card::before,.tile::before{
+ content:"";position:absolute;z-index:0;pointer-events:none;
+ width:clamp(105px,34%,165px);height:clamp(90px,72%,140px);
+ right:-36px;top:-48px;border-radius:50%;
+ background:radial-gradient(circle,rgba(240,200,105,.16) 0%,rgba(161,0,31,.055) 42%,transparent 72%);
+ opacity:.58;transform:translate3d(0,0,0) scale(.88);
+ animation:s1-card-orb-breathe 12s ease-in-out infinite alternate;
+}
+.news-feed-card>* ,.day-event-card>* ,.event-card>* ,.home-shortcut>* ,.card>* ,.tile>*{
+ position:relative;z-index:1;
+}
+@keyframes s1-card-orb-breathe{
+ 0%{transform:translate3d(0,0,0) scale(.88);opacity:.42}
+ 55%{transform:translate3d(-13px,9px,0) scale(1.08);opacity:.78}
+ 100%{transform:translate3d(-5px,15px,0) scale(.96);opacity:.52}
+}
+/* На главных карточках и карточках событий используем уже имеющиеся световые круги, но делаем их мягче. */
+#latest .home-latest:before,#homeUpcoming.home-upcoming:before{
+ animation:s1-feature-glow-gentle 13s ease-in-out infinite alternate!important;
+ opacity:.58!important;
+}
+#homeUpcoming.home-upcoming:after{
+ animation:s1-feature-glow-gentle 16s ease-in-out -4s infinite alternate;
+}
+@keyframes s1-feature-glow-gentle{
+ from{transform:translate3d(0,0,0) scale(.86);opacity:.38}
+ to{transform:translate3d(-18px,13px,0) scale(1.12);opacity:.72}
+}
+/* Обратная сторона главной карточки тоже получает едва заметный живой свет. */
+.home-hero-back{position:absolute;isolation:isolate;overflow:hidden}
+.home-hero-back::before{
+ content:"";position:absolute;z-index:0;pointer-events:none;
+ width:250px;height:230px;right:-105px;top:-135px;border-radius:50%;
+ background:radial-gradient(circle,rgba(240,200,105,.23) 0%,rgba(240,200,105,.09) 40%,transparent 72%);
+ animation:s1-back-orb 14s ease-in-out infinite alternate;
+}
+.home-hero-back>*{position:relative;z-index:1}
+@keyframes s1-back-orb{
+ from{transform:translate3d(0,0,0) scale(.86);opacity:.55}
+ to{transform:translate3d(-32px,27px,0) scale(1.12);opacity:.9}
+}
+/* Исправление: общий слой частиц не должен сбрасывать абсолютное позиционирование подсказки переворота. */
+.home-hero-front>.home-flip-hint,.home-hero-back>.home-flip-hint{
+ position:absolute!important;z-index:3!important;bottom:16px!important;
+}
+.home-hero-front>.home-flip-hint{right:16px!important;left:auto!important}
+.home-hero-back>.home-flip-hint{left:16px!important;right:auto!important}
+.home-hero-front>.home-flip-hint{color:#8f5361!important}
+.home-hero-back>.home-flip-hint{color:rgba(255,255,255,.78)!important}
+@media(max-width:380px){
+ .home-hero-front>.home-flip-hint,.home-hero-back>.home-flip-hint{bottom:15px!important}
+ .home-hero-front>.home-flip-hint{right:15px!important}
+ .home-hero-back>.home-flip-hint{left:15px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .news-feed-card::before,.day-event-card::before,.event-card::before,.home-shortcut::before,.card::before,.tile::before,
+ #latest .home-latest:before,#homeUpcoming.home-upcoming:before,#homeUpcoming.home-upcoming:after,
+ .home-hero-back::before{animation:none!important;transform:none!important}
+}
+</style>
+
 </html>
 
 <style id="remove-gradient-accent-stripes-2026">
