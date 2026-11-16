@@ -1782,45 +1782,46 @@ function closeSh(){
 }
 
 const S1_PREFS_KEY="s1sch9_display_preferences_v1";
-const S1_DEFAULT_PREFS={theme:"light",motion:true,background:true};
+const S1_DEFAULT_PREFS={theme:"light",motion:true};
 function s1ReadPrefs(){try{return {...S1_DEFAULT_PREFS,...JSON.parse(localStorage.getItem(S1_PREFS_KEY)||"{}")};}catch(_){return {...S1_DEFAULT_PREFS};}}
 let S1_PREFS=s1ReadPrefs();
 function s1ApplyPrefs(){
  const root=document.documentElement;root.dataset.s1Theme=S1_PREFS.theme==="dark"?"dark":"light";
  document.body.classList.toggle("s1-motion-off",!S1_PREFS.motion);
- document.body.classList.toggle("s1-bg-static",!S1_PREFS.background||!S1_PREFS.motion);
  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=S1_PREFS.theme==="dark"?"#171216":"#3d000d";
 }
 function s1SavePrefs(){try{localStorage.setItem(S1_PREFS_KEY,JSON.stringify(S1_PREFS));}catch(_){}s1ApplyPrefs();}
 function openSiteSettings(){
  openSh(`
-  <div class="more-menu-heading s1-settings-heading"><div class="s1-settings-heading-copy"><span>ПЕРСОНАЛЬНЫЙ ВИД</span><h3>Настройки сайта</h3><p>Выбери, как будет выглядеть сайт и двигаться его элементы</p></div><div class="s1-settings-heading-art" aria-hidden="true"><svg viewBox="0 0 72 72"><path d="M36 7 42 12 50 11 54 19 62 23 60 32 65 39 59 47 59 56 49 58 43 65 34 61 25 65 19 58 10 55 12 46 7 38 13 30 12 21 22 18 27 10Z"/><circle cx="36" cy="36" r="17"/><circle cx="36" cy="36" r="6"/></svg></div><button class="more-close" type="button" onclick="closeSh()" aria-label="Закрыть">×</button></div>
+  <div class="more-menu-heading s1-settings-heading">
+   <div class="s1-settings-heading-copy"><span class="s1-settings-eyebrow">S1SCH9 · ПЕРСОНАЛИЗАЦИЯ</span><h3>Настройки</h3><p>Настрой сайт под себя</p></div>
+   <div class="s1-settings-mark" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 18h40M12 32h40M12 46h40"/><circle cx="25" cy="18" r="5"/><circle cx="42" cy="32" r="5"/><circle cx="30" cy="46" r="5"/></svg></div>
+   <button class="more-close" type="button" onclick="closeSh()" aria-label="Закрыть">×</button>
+  </div>
   <div class="s1-settings-content">
-   <section class="s1-setting-group"><div class="s1-setting-title"><b>Тема оформления</b><small>Светлая или тёмная — выбери удобный вариант</small></div><div class="s1-setting-options">
-    <button type="button" class="s1-choice" data-s1-theme-choice="light" onclick="s1SetTheme('light')"><span class="s1-choice-icon">☀</span><span>Светлая</span><i></i></button>
-    <button type="button" class="s1-choice" data-s1-theme-choice="dark" onclick="s1SetTheme('dark')"><span class="s1-choice-icon">☾</span><span>Тёмная</span><i></i></button>
-   </div></section>
-   <section class="s1-setting-group"><div class="s1-setting-title"><b>Анимация интерфейса</b><small>Включает и выключает плавные движения и эффекты</small></div><div class="s1-setting-options">
-    <button type="button" class="s1-choice" data-s1-motion-choice="on" onclick="s1SetMotion(true)"><span class="s1-choice-icon">✦</span><span>Включена</span><i></i></button>
-    <button type="button" class="s1-choice" data-s1-motion-choice="off" onclick="s1SetMotion(false)"><span class="s1-choice-icon">Ⅱ</span><span>Выключена</span><i></i></button>
-   </div></section>
-   <section class="s1-setting-group"><div class="s1-setting-title"><b>Анимированный фон</b><small>Отдельно управляй движением фоновых элементов</small></div><div class="s1-setting-options">
-    <button type="button" class="s1-choice" data-s1-bg-choice="on" onclick="s1SetBackground(true)"><span class="s1-choice-icon">〰</span><span>Включён</span><i></i></button>
-    <button type="button" class="s1-choice" data-s1-bg-choice="off" onclick="s1SetBackground(false)"><span class="s1-choice-icon">—</span><span>Статичный</span><i></i></button>
-   </div></section>
-   <p class="s1-settings-note">Изменения сохраняются автоматически в этом браузере. При следующем посещении выбранный вид останется таким же.</p>
+   <div class="s1-setting-group"><div class="s1-setting-title"><b>Внешний вид</b><small>Выбери комфортную тему оформления</small></div>
+    <div class="s1-theme-options" role="group" aria-label="Тема оформления">
+     <button type="button" class="s1-theme-choice" data-s1-theme-choice="light" onclick="s1SetTheme('light')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-light"><i></i><i></i><i></i></span><b>Светлая</b><small>Чистая и яркая</small></button>
+     <button type="button" class="s1-theme-choice" data-s1-theme-choice="dark" onclick="s1SetTheme('dark')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-dark"><i></i><i></i><i></i></span><b>Тёмная</b><small>Мягче для глаз</small></button>
+    </div>
+   </div>
+   <div class="s1-setting-group s1-setting-group-motion"><div class="s1-setting-title"><b>Анимация интерфейса</b><small>Плавные переходы и движения элементов</small></div>
+    <div class="s1-switch-row"><span class="s1-switch-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19V5m7 14V9m7 10V3"/></svg></span><span class="s1-switch-copy"><b>Эффекты и переходы</b><small data-s1-motion-status>Включены</small></span><button class="s1-switch" type="button" role="switch" aria-checked="true" aria-label="Анимация интерфейса" data-s1-motion-toggle onclick="s1SetMotion(!S1_PREFS.motion)"><span></span></button></div>
+   </div>
+   <div class="s1-settings-footer"><div class="s1-settings-save"><span class="s1-save-dot"></span><span>Настройки сохраняются автоматически на этом устройстве</span></div><button type="button" class="s1-reset-button" onclick="s1ResetPrefs()">Сбросить настройки</button></div>
   </div>`);
  $("#pn").classList.add("more-panel","s1-settings-panel");s1RenderSettings();
 }
 function s1RenderSettings(){
  const p=$("#pn");if(!p||!p.classList.contains("s1-settings-panel"))return;
  p.querySelectorAll("[data-s1-theme-choice]").forEach(b=>{const v=b.dataset.s1ThemeChoice===S1_PREFS.theme;b.classList.toggle("is-selected",v);b.setAttribute("aria-pressed",String(v));});
- p.querySelectorAll("[data-s1-motion-choice]").forEach(b=>{const v=b.dataset.s1MotionChoice===(S1_PREFS.motion?"on":"off");b.classList.toggle("is-selected",v);b.setAttribute("aria-pressed",String(v));});
- p.querySelectorAll("[data-s1-bg-choice]").forEach(b=>{const v=b.dataset.s1BgChoice===(S1_PREFS.background?"on":"off");b.classList.toggle("is-selected",v);b.setAttribute("aria-pressed",String(v));});
+ const toggle=p.querySelector("[data-s1-motion-toggle]");
+ if(toggle){toggle.classList.toggle("is-on",!!S1_PREFS.motion);toggle.setAttribute("aria-checked",String(!!S1_PREFS.motion));}
+ const status=p.querySelector("[data-s1-motion-status]");if(status)status.textContent=S1_PREFS.motion?"Включены":"Выключены";
 }
 function s1SetTheme(v){S1_PREFS.theme=v==="dark"?"dark":"light";s1SavePrefs();s1RenderSettings();}
 function s1SetMotion(v){S1_PREFS.motion=!!v;s1SavePrefs();s1RenderSettings();}
-function s1SetBackground(v){S1_PREFS.background=!!v;s1SavePrefs();s1RenderSettings();}
+function s1ResetPrefs(){S1_PREFS={...S1_DEFAULT_PREFS};s1SavePrefs();s1RenderSettings();}
 
 function openMoreMenu(){
   openSh(`
@@ -1836,7 +1837,7 @@ function openMoreMenu(){
       <a class="more-menu-item" href="#appeal" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-7a7.5 7.5 0 1 1 17.5-2.5Z"/><path d="M8 10h8M8 14h5"/></svg></i><span>Обращение</span></a>
       <a class="more-menu-item" href="#games" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.8 6.4l-.8 2.8a2 2 0 0 1-3.2 1l-2.1-1.7H8.8l-2.1 1.7a2 2 0 0 1-3.2-1l-.8-2.8A5 5 0 0 1 7.5 8Z"/><path d="M8 11v4M6 13h4M16 12h.01M18 14h.01"/></svg></i><span>Мини-игры</span></a>
       <a class="more-menu-item" href="#links" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13.5 14 9.5M8.2 15.8l-1.4 1.4a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0M15.8 8.2l1.4-1.4a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0"/></svg></i><span>Наши ресурсы</span></a>
-      <button class="more-menu-item" type="button" onclick="openSiteSettings()"><i aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.4 13.5 1.1.9-1.5 2.6-1.4-.5a7.8 7.8 0 0 1-1.5.9l-.2 1.5h-3l-.3-1.5a7.8 7.8 0 0 1-1.5-.9l-1.4.5-1.5-2.6 1.1-.9a7.3 7.3 0 0 1 0-1.8l-1.1-.9 1.5-2.6 1.4.5a7.8 7.8 0 0 1 1.5-.9l.3-1.5h3l.2 1.5a7.8 7.8 0 0 1 1.5.9l1.4-.5 1.5 2.6-1.1.9a7.3 7.3 0 0 1 0 1.8Z"/></svg></i><span>Настройки</span></button>
+      <button class="more-menu-item" type="button" onclick="openSiteSettings()"><i aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="11" cy="18" r="2"/></svg></i><span>Настройки</span></button>
     </div>
   `);
   $("#pn").classList.add("more-panel");
@@ -3517,15 +3518,41 @@ body::before{
 
 
 <style id="s1-user-display-settings-2026">
-.s1-settings-panel .s1-settings-heading{align-items:center;gap:12px;padding:10px 0 20px}.s1-settings-heading-copy{min-width:0;flex:1}.s1-settings-heading-art{width:66px;height:66px;flex:none;display:grid;place-items:center;border-radius:21px;background:linear-gradient(145deg,#f8e8ec,#f2d7df);color:#a1001f}.s1-settings-heading-art svg{width:48px;height:48px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.s1-settings-content{padding:20px 0 8px}.s1-settings-panel .s1-setting-group{display:block!important;margin:0 0 22px}.s1-setting-title{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}.s1-setting-title b{font-size:15px;color:var(--ink)}.s1-setting-title small{font-size:11.5px;color:var(--mut)}
-.s1-setting-options{display:grid;grid-template-columns:1fr 1fr;gap:9px}.s1-choice{display:flex;align-items:center;gap:9px;min-height:58px;padding:9px 11px;border:1px solid #eadfe1;border-radius:15px;background:#fff;color:#35272c;text-align:left;font:700 12px Onest,system-ui,sans-serif;cursor:pointer}
-.s1-choice-icon{display:grid;place-items:center;width:29px;height:29px;flex:none;border-radius:10px;background:#f8edf0;color:#9b1835;font-size:17px}.s1-choice>span:nth-child(2){flex:1}.s1-choice>i{width:15px;height:15px;flex:none;border:1.5px solid #cbb9bf;border-radius:50%}
-.s1-choice.is-selected{border-color:#b96b7d;background:#fff7f8;box-shadow:0 0 0 2px rgba(161,0,31,.055)}.s1-choice.is-selected>i{border-color:#a1001f;background:#a1001f;box-shadow:inset 0 0 0 3px #fff}
-.s1-settings-note{margin:4px 0 0;padding:12px 13px;border-radius:13px;background:#f8f3f4;color:#77686d;font-size:11px;line-height:1.5}
-body.s1-motion-off *,body.s1-motion-off *::before,body.s1-motion-off *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
-body.s1-bg-static::before,body.s1-bg-static::after{animation:none!important;transform:none!important}
-body.s1-bg-static #s1-floating-ribbons .s1-ribbon{animation:none!important;transform:none!important;will-change:auto!important}
-@media(max-width:600px){.s1-settings-heading-art{width:56px;height:56px;border-radius:18px}.s1-settings-heading-art svg{width:41px;height:41px}.s1-choice{min-height:54px;padding:8px 9px;gap:7px;font-size:11.5px}}
+.s1-settings-panel{padding-left:22px!important;padding-right:22px!important}
+.s1-settings-panel .s1-settings-heading{position:relative;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:14px!important;padding:9px 48px 22px 0!important;border-bottom:1px solid var(--line)}
+.s1-settings-heading-copy{flex:1;min-width:0;text-align:left!important}
+.s1-settings-eyebrow{display:block;color:#a1001f;font-size:10px;font-weight:900;letter-spacing:1.35px;margin-bottom:8px}
+.s1-settings-heading-copy h3{font-size:30px!important;line-height:1.05;letter-spacing:-1.1px;text-align:left!important;margin:0 0 7px}
+.s1-settings-heading-copy p{font-size:13px!important;line-height:1.4;text-align:left!important;margin:0;color:var(--mut)}
+.s1-settings-mark{width:62px;height:62px;flex:none;display:grid;place-items:center;border-radius:20px;background:linear-gradient(145deg,#fff1f3,#f3dce2);color:#a1001f}
+.s1-settings-mark svg{width:40px;height:40px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.s1-settings-panel .s1-settings-heading .more-close{position:absolute;right:0;top:6px}
+.s1-settings-content{padding:22px 0 12px;text-align:left}
+.s1-setting-group{display:block!important;margin:0 0 23px!important;text-align:left}
+.s1-setting-title{display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin:0 0 12px;text-align:left}
+.s1-setting-title b{font-size:16px;color:var(--ink);font-weight:800}.s1-setting-title small{font-size:12px;color:var(--mut);line-height:1.45}
+.s1-theme-options{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.s1-theme-choice{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;padding:11px;border:1.5px solid var(--line);border-radius:18px;background:var(--card);color:var(--ink);text-align:left;font:inherit;cursor:pointer;transition:border-color .2s,background .2s,transform .2s}
+.s1-theme-choice.is-selected{border-color:#a1001f;background:#fff7f8;box-shadow:0 0 0 2px rgba(161,0,31,.07)}
+.s1-theme-choice b{font-size:13px;font-weight:800}.s1-theme-choice small{font-size:10.5px;color:var(--mut)}
+.s1-theme-preview{display:flex;align-items:center;gap:4px;width:100%;height:55px;padding:8px;border-radius:12px;margin-bottom:4px;overflow:hidden}
+.s1-theme-preview-light{background:#f7eeee}.s1-theme-preview-dark{background:#211820}
+.s1-theme-preview i{display:block;height:32px;border-radius:7px;background:#fff;flex:1;box-shadow:0 2px 5px rgba(0,0,0,.08)}
+.s1-theme-preview i:first-child{flex:1.3;background:linear-gradient(145deg,#b3002a,#3d000d)}
+.s1-theme-preview-dark i{background:#3a2c35}.s1-theme-preview-dark i:first-child{background:linear-gradient(145deg,#a1001f,#3d000d)}
+.s1-switch-row{display:flex;align-items:center;gap:12px;padding:14px 13px;border:1px solid var(--line);border-radius:18px;background:var(--card);min-height:76px}
+.s1-switch-symbol{width:39px;height:39px;flex:none;display:grid;place-items:center;border-radius:13px;background:#f8e9ed;color:#a1001f}
+.s1-switch-symbol svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.s1-switch-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px;text-align:left}
+.s1-switch-copy b{font-size:13px;color:var(--ink);font-weight:800}.s1-switch-copy small{font-size:11px;color:var(--mut)}
+.s1-switch{position:relative;display:block;width:54px;height:32px;flex:none;padding:0;border:0;border-radius:99px;background:#c9c0c4;cursor:pointer;transition:background .22s ease,box-shadow .22s ease}
+.s1-switch span{position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.2);transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+.s1-switch.is-on{background:#a1001f;box-shadow:inset 0 0 0 1px rgba(61,0,13,.08)}.s1-switch.is-on span{transform:translateX(22px)}
+.s1-switch:focus-visible,.s1-theme-choice:focus-visible,.s1-reset-button:focus-visible{outline:3px solid rgba(161,0,31,.28);outline-offset:3px}
+.s1-settings-footer{padding-top:3px;text-align:left}
+.s1-settings-save{display:flex;align-items:center;gap:8px;padding:12px 13px;border-radius:13px;background:#f7f2f3;color:#766970;font-size:11px;line-height:1.4;text-align:left}
+.s1-save-dot{width:7px;height:7px;flex:none;border-radius:50%;background:#38966b;box-shadow:0 0 0 4px rgba(56,150,107,.12)}
+.s1-reset-button{display:block;margin:14px 0 0;padding:8px 0;border:0;background:transparent;color:#a1001f;font:700 12px Onest,system-ui,sans-serif;text-align:left;cursor:pointer}
 html[data-s1-theme="dark"],html[data-s1-theme="dark"] body{background:#171216!important;color:#f4edf0!important}
 html[data-s1-theme="dark"] body{--ink:#f4edf0;--mut:#b9aab0;--bg:#171216;--card:#241c22;--line:#40323a}
 html[data-s1-theme="dark"] .bar{background:rgba(31,23,29,.96)!important;color:#f4edf0!important;border-color:#40323a!important}
@@ -3544,6 +3571,10 @@ html[data-s1-theme="dark"] .s1-settings-note{background:#2a2027!important;color:
 html[data-s1-theme="dark"] input,html[data-s1-theme="dark"] textarea,html[data-s1-theme="dark"] select{background:#2a2027!important;color:#f4edf0!important;border-color:#51414a!important}
 html[data-s1-theme="dark"] .game-bottom{background:#241c22!important;color:#f4edf0!important}
 html[data-s1-theme="dark"] .game-hint,html[data-s1-theme="dark"] .site-credit{color:#b9aab0!important}
+
+@media(max-width:420px){.s1-settings-panel{padding-left:19px!important;padding-right:19px!important}.s1-settings-mark{width:54px;height:54px;border-radius:17px}.s1-settings-mark svg{width:35px;height:35px}.s1-settings-heading-copy h3{font-size:27px!important}.s1-theme-choice{padding:9px;border-radius:15px}.s1-switch-row{gap:9px;padding:12px 10px}.s1-switch-symbol{width:35px;height:35px}.s1-switch{width:50px;height:30px}.s1-switch span{width:24px;height:24px}.s1-switch.is-on span{transform:translateX(20px)}}
+@media(prefers-reduced-motion:reduce){.s1-switch,.s1-switch span,.s1-theme-choice{transition:none!important}}
+body.s1-motion-off *,body.s1-motion-off *::before,body.s1-motion-off *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 </style>
 
 </body>
