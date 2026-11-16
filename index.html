@@ -3449,5 +3449,27 @@ section.on .game{
  #s1-floating-ribbons .s1-ribbon{animation:none!important;will-change:auto}
 }
 </style>
+
+ 
+<style id="s1-background-soft-focus-2026">
+/* Мягкий фокус фона: размываем только декоративные слои, не контент и не карточки. */
+body::before{
+ filter:blur(9px);
+ animation-duration:34s!important;
+}
+#s1-floating-ribbons{
+ filter:blur(1.1px);
+ opacity:.78;
+}
+@media(max-width:600px){
+ body::before{filter:blur(7px);animation-duration:42s!important}
+ #s1-floating-ribbons{filter:blur(.8px);opacity:.62}
+}
+@media(prefers-reduced-motion:reduce){
+ body::before{animation:none!important;transform:none!important}
+ #s1-floating-ribbons .s1-ribbon{animation:none!important}
+}
+</style>
+
 </body>
 </html>
