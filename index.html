@@ -3645,3 +3645,67 @@ html[data-s1-theme="dark"] #news .news-feed-card .news-social-actions .news-like
   background:#d12b50!important;border-color:#d12b50!important;color:#fff!important;
 }
 </style>
+
+<style id="s1-settings-left-alignment-and-home-arrows">
+/* Настройки — продолжение панели «Ещё», единое левое выравнивание */
+.sh .pn.s1-settings-panel{
+  display:block!important;
+  width:100%!important;
+  max-width:640px!important;
+  margin:0 auto!important;
+  text-align:left!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  width:100%!important;
+  text-align:left!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading-copy,
+.sh .pn.s1-settings-panel .s1-settings-heading-copy h3,
+.sh .pn.s1-settings-panel .s1-settings-content,
+.sh .pn.s1-settings-panel .s1-setting-group,
+.sh .pn.s1-settings-panel .s1-setting-title{
+  width:100%;
+  text-align:left!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading-copy{
+  display:block!important;
+  flex:1 1 auto!important;
+}
+.sh .pn.s1-settings-panel .s1-setting-title{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+}
+.sh .pn.s1-settings-panel .s1-theme-options{
+  width:100%!important;
+  justify-content:stretch!important;
+}
+.sh .pn.s1-settings-panel .s1-switch-row{
+  width:100%!important;
+  justify-content:flex-start!important;
+}
+#latest .home-latest-link>span{
+  display:inline-grid!important;
+  place-items:center!important;
+  flex:0 0 21px!important;
+  width:21px!important;
+  height:21px!important;
+  margin:0!important;
+  border-radius:50%!important;
+  background:#f2e2e6!important;
+  color:#a1001f!important;
+  font-size:14px!important;
+  line-height:1!important;
+  transition:transform .2s ease!important;
+}
+#latest .home-latest-link:active>span{transform:translateX(3px)}
+html[data-s1-theme="dark"] #latest .home-latest-link>span{
+  background:#3a2630!important;
+  color:#ffdce4!important;
+}
+</style>
