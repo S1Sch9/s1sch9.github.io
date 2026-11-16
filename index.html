@@ -2838,5 +2838,53 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  #latest .home-latest:before,#homeUpcoming.home-upcoming:before{animation:none!important}
 }
 </style>
+
+<style id="restore-clean-section-headings-2026">
+/* В разделах возвращаем прежние лёгкие заголовки; бордовая обложка остаётся только на главной */
+.section-heading{
+ position:relative!important;isolation:isolate!important;display:block!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ overflow:visible!important;overflow-wrap:normal!important;
+ margin:10px 0 20px!important;padding:4px 2px 15px!important;
+ border:0!important;border-bottom:1px solid rgba(161,0,31,.10)!important;
+ border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+.section-heading:after{
+ content:""!important;position:absolute!important;z-index:-1!important;
+ width:132px!important;height:132px!important;right:-34px!important;top:-42px!important;
+ border:0!important;border-radius:50%!important;
+ background:radial-gradient(circle,rgba(161,0,31,.075),rgba(161,0,31,.018) 58%,transparent 72%)!important;
+ pointer-events:none!important
+}
+.section-heading>small{
+ display:inline-flex!important;align-items:center!important;gap:8px!important;
+ margin:0 0 9px!important;color:#9b5265!important;
+ font-size:11px!important;line-height:1.35!important;font-weight:850!important;
+ letter-spacing:.11em!important;overflow-wrap:normal!important
+}
+.section-heading>small:before{
+ content:""!important;display:block!important;flex:0 0 19px!important;
+ width:19px!important;height:2px!important;border-radius:2px!important;
+ background:linear-gradient(90deg,#a1001f,#f0c869)!important
+}
+.section-heading h1{
+ display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;
+ margin:0 0 8px!important;color:#32131d!important;
+ font-size:clamp(29px,7vw,35px)!important;line-height:1.12!important;
+ letter-spacing:-.045em!important;font-weight:850!important;
+ white-space:normal!important;overflow-wrap:normal!important;word-break:normal!important;
+ hyphens:manual!important
+}
+.section-heading p{
+ display:block!important;width:100%!important;max-width:43ch!important;min-width:0!important;
+ margin:0!important;color:#75666c!important;font-size:15px!important;
+ line-height:1.58!important;overflow-wrap:normal!important;word-break:normal!important
+}
+@media(max-width:390px){
+ .section-heading{margin-bottom:17px!important}
+ .section-heading h1{font-size:29px!important;letter-spacing:-.04em!important}
+ .section-heading p{font-size:14px!important}
+}
+</style>
 </body>
 </html>
