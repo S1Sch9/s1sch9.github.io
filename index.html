@@ -2671,14 +2671,44 @@ function renderPublicCalendar(){
  const totalDays=new Date(year,month+1,0).getDate(),totalCells=Math.ceil((offset+totalDays)/7)*7;
  for(let n=0;n<totalCells;n++){
   const d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+n),key=localDateKey(d),inMonth=d.getMonth()===month,has=eventDays.has(key);
-  days.push('<button type="button" class="calendar-day'+(inMonth?'':' muted-day')+(key===today?' today':'')+(key===selectedEventDay?' selected':'')+(has?' has-event':'')+'" data-event-day="'+key+'" aria-pressed="'+(key===selectedEventDay)+'" aria-label="'+d.toLocaleDateString('ru-RU')+(has?', есть мероприятие':'')+'">'+d.getDate()+'</button>');
+  days.push('<button type="button" class="calendar-day'+(inMonth?'':' muted-day')+(key===today?' today':'')+(key===selectedEventDay?' selected':'')+(has?' has-event':'')+'" data-event-day="'+key+'" aria-pressed="'+(key===selectedEventDay)+'" aria-label="'+d.toLocaleDateString('ru-RU')+(has?', есть мероприятие':'')+(getDateObservances(d).length?', '+getDateObservances(d).map(x=>x[1]).join(', '):'')+'">'+d.getDate()+'</button>');
  }
  grid.innerHTML=days.join('');
+}
+function getDateObservances(date){
+ const key=localDateKey(date).slice(5),items={
+  "01-01":[["Праздник","Новый год"]],
+  "01-07":[["Праздник","Рождество Христово"]],
+  "01-25":[["Тематический день","День российского студенчества"]],
+  "02-23":[["Праздник","День защитника Отечества"]],
+  "03-08":[["Праздник","Международный женский день"]],
+  "04-12":[["Памятная дата","День космонавтики"]],
+  "05-01":[["Праздник","Праздник Весны и Труда"]],
+  "05-09":[["Праздник","День Победы"]],
+  "06-01":[["Тематический день","День защиты детей"]],
+  "06-05":[["Тематический день","Всемирный день окружающей среды"]],
+  "06-12":[["Праздник","День России"]],
+  "06-22":[["Памятная дата","День памяти и скорби"]],
+  "07-08":[["Тематический день","День семьи, любви и верности"]],
+  "08-22":[["Памятная дата","День Государственного флага России"]],
+  "09-01":[["Тематический день","День знаний"]],
+  "10-05":[["Тематический день","День учителя"]],
+  "11-04":[["Праздник","День народного единства"]],
+  "12-12":[["Памятная дата","День Конституции России"]]
+ };
+ const found=(items[key]||[]).slice();
+ if(date.getMonth()===10){
+  const lastSunday=new Date(date.getFullYear(),10,30);
+  lastSunday.setDate(30-lastSunday.getDay());
+  if(date.getDate()===lastSunday.getDate())found.push(["Тематический день","День матери"]);
+ }
+ return found;
 }
 function renderPublicEvents(){
  const root=$('#publicEventsList'),dateLabel=$('#dayDate');if(!root||!dateLabel)return;
  const d=eventDateFromKey(selectedEventDay),today=localDateKey(new Date()),isToday=selectedEventDay===today;
- dateLabel.innerHTML='<strong>'+ (isToday?'Сегодня':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})) +'</strong><span>'+d.toLocaleDateString('ru-RU',{weekday:'long',year:'numeric'})+'</span>';
+ const weekday=d.toLocaleDateString('ru-RU',{weekday:'long'}),year=d.getFullYear(),observances=getDateObservances(d);
+ dateLabel.innerHTML='<strong>'+ (isToday?'Сегодня':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})) +'</strong><span>'+weekday+' · '+year+'</span>'+(observances.length?'<div class="day-observances" aria-label="Праздники и памятные даты">'+observances.map(([kind,name])=>'<span class="day-observance '+(kind==='Праздник'?'is-holiday':kind==='Памятная дата'?'is-memorial':'is-theme')+'"><b>'+kind+'</b><small>'+name+'</small></span>').join('')+'</div>':'');
  const categoryFilter=$('#eventCategoryFilter');
  if(categoryFilter){
   const categories=[...new Set(PUBLIC_EVENTS.map(e=>String(e.category||"Мероприятие").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ru"));
@@ -4032,6 +4062,27 @@ html[data-s1-theme="dark"] #events .calendar-heading-mark{background:#3b252e!imp
 #pn:has(.team-profile) .team-profile-photo .photo-placeholder::before{display:none!important;content:none!important}
 html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-photo{background:#30252d!important;box-shadow:0 5px 16px rgba(0,0,0,.28)!important}
 </style>
+<style id="s1-day-observances-2026">
+#events .day-date{display:flex;flex-direction:column;align-items:center;gap:4px}
+#events .day-date>span{font-weight:750;letter-spacing:.015em}
+#events .day-observances{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin:8px auto 2px;max-width:100%}
+#events .day-observance{display:flex;flex-direction:column;align-items:flex-start;gap:2px;max-width:100%;padding:7px 10px;border:1px solid #eadde1;border-radius:11px;background:#fff9fa;text-align:left}
+#events .day-observance b{font-size:9px;line-height:1.2;font-weight:900;letter-spacing:.045em;text-transform:uppercase;color:#8e1832}
+#events .day-observance small{font-size:10px;line-height:1.25;font-weight:700;color:#59444b}
+#events .day-observance.is-memorial{background:#f5f3f0;border-color:#e7e0d9}
+#events .day-observance.is-memorial b{color:#76604b}
+#events .day-observance.is-theme{background:#f2f5f8;border-color:#e0e7ed}
+#events .day-observance.is-theme b{color:#496477}
+@media(max-width:380px){#events .day-observances{gap:5px}#events .day-observance{padding:6px 8px}#events .day-observance small{font-size:9px}}
+html[data-s1-theme="dark"] #events .day-observance{background:#292127;border-color:#49343c}
+html[data-s1-theme="dark"] #events .day-observance b{color:#f0a5b7}
+html[data-s1-theme="dark"] #events .day-observance small{color:#eadde1}
+html[data-s1-theme="dark"] #events .day-observance.is-memorial{background:#292722;border-color:#494238}
+html[data-s1-theme="dark"] #events .day-observance.is-memorial b{color:#dfc19a}
+html[data-s1-theme="dark"] #events .day-observance.is-theme{background:#202a30;border-color:#364650}
+html[data-s1-theme="dark"] #events .day-observance.is-theme b{color:#a9cde0}
+</style>
+
 </body>
 </html>
 
