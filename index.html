@@ -2896,3 +2896,29 @@ nav .nav-label{font-size:9px!important;letter-spacing:0!important}
  display:none!important;
 }
 </style>
+
+
+<style id="final-home-stripe-and-like-feedback-2026">
+/* Убираем декоративную бордово-золотую полоску под заголовками */
+#home .home-section-title::after,#home .home-section-title:after,
+.section-heading::after,.section-heading:after,
+.section-heading>small::before,.section-heading>small:before{
+ content:none!important;display:none!important;width:0!important;height:0!important;
+ background:none!important;box-shadow:none!important;
+}
+/* Заметное подтверждение установленного лайка */
+.news-like.is-liked{
+ color:#fff!important;background:#b00032!important;border-color:#8f0028!important;
+ box-shadow:0 4px 12px rgba(161,0,31,.24),inset 0 1px 0 rgba(255,255,255,.18)!important;
+ transform:scale(1.045);
+}
+.news-like.is-liked .news-dock-icon,.news-like.is-liked .news-dock-icon svg{color:#fff!important;fill:#fff!important}
+.news-like.is-liked .news-dock-icon svg path{fill:#fff!important;stroke:#fff!important}
+.news-social .news-like.is-liked{color:#fff!important;background:#b00032!important;border-color:#8f0028!important}
+.news-like.is-liked [data-like-count],.news-like.is-liked .news-dock-count{color:#fff!important}
+.news-like.is-liked:active{transform:scale(.98)}
+.news-like:not(.is-liked),.news-like.is-liked{transition:background .2s,border-color .2s,color .2s,transform .2s,box-shadow .2s}
+.news-like.is-liked .news-dock-icon{animation:news-like-pop .32s cubic-bezier(.2,1.5,.4,1)}
+@keyframes news-like-pop{0%{transform:scale(.65)}65%{transform:scale(1.28)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.news-like.is-liked .news-dock-icon{animation:none}}
+</style>
