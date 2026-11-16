@@ -137,6 +137,7 @@ html[data-s1-game-theme="dark"] .exit-confirm-card h2{color:#fff}
 html[data-s1-game-theme="dark"] .exit-confirm-card p{color:#c6b6bd}
 html[data-s1-game-theme="dark"] .exit-confirm{background:rgba(8,5,8,.78)}
 html[data-s1-game-theme="dark"] .top-bar .field-caption{color:#d2b9c1}
+html[data-s1-game-theme="dark"] .canvas-wrapper{background:linear-gradient(155deg,#64243B 0%,#42182C 42%,#281321 72%,#160D14 100%);border-color:rgba(240,200,105,.2);box-shadow:0 14px 34px rgba(0,0,0,.32),inset 0 1px rgba(255,255,255,.08)}
 </style>
 <meta name="referrer" content="no-referrer">
 </head>
@@ -342,7 +343,7 @@ html[data-s1-game-theme="dark"] .top-bar .field-caption{color:#d2b9c1}
         updateCameraBounds();
     }
     window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('s1gamethemechange', resizeCanvas);
+    window.addEventListener('s1gamethemechange', () => { resizeCanvas(); if(typeof draw==='function')draw(); });
 
     function updateCameraBounds(){visibleLeft=canvasWidth/2-(canvasWidth/2)/cameraScale;visibleRight=canvasWidth/2+(canvasWidth/2)/cameraScale;boardHalf=canvasWidth*.26;}
     function projectPoint(x,z,level){return{x:canvasWidth/2+(x-z)*ISO_X,y:canvasHeight-10-level*blockHeight+(x+z)*ISO_Y};}
