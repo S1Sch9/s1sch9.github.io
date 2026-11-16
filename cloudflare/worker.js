@@ -1,4 +1,5 @@
 import { adminPage } from "./admin-page.js";
+import { runDailyHolidayCron } from "./daily-holidays.js";
 import { buildPushPayload } from "@block65/webcrypto-web-push";
 
 // Combined appeals and news administration.
@@ -1193,5 +1194,12 @@ self.addEventListener("notificationclick", event => {
       } catch { return json({ error: "Не удалось изменить обращение." }, 500, headers); }
     }
     return new Response("Not found", { status: 404, headers });
+  },
+  async scheduled(controller, env) {
+    try {
+      await runDailyHolidayCron(controller, env);
+    } catch (error) {
+      console.error("Scheduled daily Telegram task failed:", error && error.message ? error.message : "unknown error");
+    }
   }
 };
