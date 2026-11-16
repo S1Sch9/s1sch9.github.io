@@ -431,11 +431,13 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         for(let i=0;i<22;i++){const a=Math.PI*2*i/22+(Math.random()-.5)*.22,v=Math.random()*3.8+1.2;fallingPieces.push({type:'crumb',x,y,size:Math.random()*2.8+1.2,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1.5,color:i%3===0?'#FFFFFF':'#F7DDE4',alpha:1,life:1});}
     }
     function gameLoop(timestamp) {
+        if (isPaused || isGameOver) { animationId = 0; return; }
         const frameScale = lastFrameTime ? Math.min((timestamp - lastFrameTime) / 16.667, 2) : 1;
         lastFrameTime = timestamp;
         update(frameScale);
         draw();
-        if (!isGameOver) animationId = requestAnimationFrame(gameLoop);
+        if (!isGameOver && !isPaused) animationId = requestAnimationFrame(gameLoop);
+        else animationId = 0;
     }
 
     function update(frameScale=1){if(isPaused||isGameOver)return;if(currentBlock){if(currentBlock.axis==='x'){currentBlock.x+=(gameSpeed/Math.max(.28,cameraScale))*frameScale;const target=blocks[blocks.length-1];if(currentBlock.x>target.x+target.width){currentBlock=null;endGame();return;}}else{currentBlock.z+=(gameSpeed/Math.max(.28,cameraScale))*frameScale;const target=blocks[blocks.length-1];if(currentBlock.z>target.z+target.depth){currentBlock=null;endGame();return;}}}
@@ -614,7 +616,22 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         }
     }
 
-    function draw(){ctx.clearRect(0,0,canvasWidth,canvasHeight);drawAtmosphere();ctx.save();ctx.translate(canvasWidth/2,canvasHeight);ctx.scale(cameraScale,cameraScale);ctx.translate(-canvasWidth/2,-canvasHeight+cameraY);drawTopTarget();blocks.forEach(b=>drawIsoBlock(b,1));fallingPieces.forEach(p=>{if(p.type==='block'){ctx.save();const cx=p.x+p.width/2,cy=p.y+p.height/2;ctx.translate(cx,cy);ctx.rotate(p.rotation);ctx.translate(-cx,-cy);draw3DBox(p.x,p.y,p.width,p.height,p.style,p.alpha);ctx.restore();}else{ctx.fillStyle=p.color;ctx.globalAlpha=p.alpha;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}});if(currentBlock&&!isGameOver){drawIsoBlock(currentBlock,1);}ctx.restore();}
+    function isBlockOnScreen(block){
+        const x=block.x,z=block.z,w=block.width,d=block.depth,h=blockHeight;
+        const points=[
+            projectPoint(x,z,block.level),projectPoint(x+w,z,block.level),
+            projectPoint(x+w,z+d,block.level),projectPoint(x,z+d,block.level)
+        ];
+        let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+        for(const p of points){
+            const sx=canvasWidth/2+(p.x-canvasWidth/2)*cameraScale;
+            const sy=canvasHeight+(p.y-canvasHeight+cameraY)*cameraScale;
+            minX=Math.min(minX,sx);maxX=Math.max(maxX,sx);
+            minY=Math.min(minY,sy);maxY=Math.max(maxY,sy+h*cameraScale);
+        }
+        return maxX>=-48&&minX<=canvasWidth+48&&maxY>=-48&&minY<=canvasHeight+48;
+    }
+    function draw(){ctx.clearRect(0,0,canvasWidth,canvasHeight);drawAtmosphere();ctx.save();ctx.translate(canvasWidth/2,canvasHeight);ctx.scale(cameraScale,cameraScale);ctx.translate(-canvasWidth/2,-canvasHeight+cameraY);drawTopTarget();blocks.forEach(b=>{if(isBlockOnScreen(b))drawIsoBlock(b,1);});fallingPieces.forEach(p=>{if(p.type==='block'){ctx.save();const cx=p.x+p.width/2,cy=p.y+p.height/2;ctx.translate(cx,cy);ctx.rotate(p.rotation);ctx.translate(-cx,-cy);draw3DBox(p.x,p.y,p.width,p.height,p.style,p.alpha);ctx.restore();}else{ctx.fillStyle=p.color;ctx.globalAlpha=p.alpha;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}});if(currentBlock&&!isGameOver){drawIsoBlock(currentBlock,1);}ctx.restore();}
 
     canvas.addEventListener('mousedown', (e) => { e.preventDefault(); dropBlock(); });
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); dropBlock(); }, {passive: false});
@@ -622,12 +639,17 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     function pauseGame() {
         if (isGameOver) return;
         isPaused = true;
+        if (animationId) cancelAnimationFrame(animationId);
+        animationId = 0;
         pauseScreen.style.display = 'flex';
     }
 
     function resumeGame() {
+        if (isGameOver) return;
         isPaused = false;
         pauseScreen.style.display = 'none';
+        lastFrameTime = 0;
+        if (!animationId) animationId = requestAnimationFrame(gameLoop);
     }
 
     function exitToMenu(fromPause = false) {
