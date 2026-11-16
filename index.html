@@ -1392,7 +1392,7 @@ section.on{animation:s1-light-section-enter .22s ease both!important}
 </style>
 </head>
 <body>
-<svg id="s1-floating-ribbons" aria-hidden="true" focusable="false" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
+<svg id="s1-floating-ribbons" aria-hidden="true" focusable="false" style="visibility:hidden" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
   <defs>
     <linearGradient id="s1-ribbon-burgundy" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#a1001f" stop-opacity="0"/>
@@ -1794,18 +1794,23 @@ function s1SavePrefs(){try{localStorage.setItem(S1_PREFS_KEY,JSON.stringify(S1_P
 function openSiteSettings(){
  openSh(`
   <div class="more-menu-heading s1-settings-heading">
-   <div class="s1-settings-heading-copy"><span class="s1-settings-eyebrow">S1SCH9 · ПЕРСОНАЛИЗАЦИЯ</span><h3>Настройки</h3><p>Настрой сайт под себя</p></div>
-   <div class="s1-settings-mark" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 18h40M12 32h40M12 46h40"/><circle cx="25" cy="18" r="5"/><circle cx="42" cy="32" r="5"/><circle cx="30" cy="46" r="5"/></svg></div>
+   <div class="s1-settings-heading-copy">
+    <span>СОВЕТ ПЕРВЫХ · ШКОЛА №9</span>
+    <h3>Настройки</h3>
+    <p>Внешний вид и поведение сайта</p>
+   </div>
    <button class="more-close" type="button" onclick="closeSh()" aria-label="Закрыть">×</button>
   </div>
   <div class="s1-settings-content">
-   <div class="s1-setting-group"><div class="s1-setting-title"><b>Внешний вид</b><small>Выбери комфортную тему оформления</small></div>
+   <div class="s1-setting-group">
+    <div class="s1-setting-title"><b>Внешний вид</b><small>Выбери тему оформления</small></div>
     <div class="s1-theme-options" role="group" aria-label="Тема оформления">
-     <button type="button" class="s1-theme-choice" data-s1-theme-choice="light" onclick="s1SetTheme('light')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-light"><i></i><i></i><i></i></span><b>Светлая</b><small>Чистая и яркая</small></button>
-     <button type="button" class="s1-theme-choice" data-s1-theme-choice="dark" onclick="s1SetTheme('dark')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-dark"><i></i><i></i><i></i></span><b>Тёмная</b><small>Мягче для глаз</small></button>
+     <button type="button" class="s1-theme-choice" data-s1-theme-choice="light" onclick="s1SetTheme('light')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-light"><i></i><i></i><i></i></span><b>Светлая</b></button>
+     <button type="button" class="s1-theme-choice" data-s1-theme-choice="dark" onclick="s1SetTheme('dark')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-dark"><i></i><i></i><i></i></span><b>Тёмная</b></button>
     </div>
    </div>
-   <div class="s1-setting-group s1-setting-group-motion"><div class="s1-setting-title"><b>Анимация интерфейса</b><small>Плавные переходы и движения элементов</small></div>
+   <div class="s1-setting-group s1-setting-group-motion">
+    <div class="s1-setting-title"><b>Анимация интерфейса</b><small>Плавность переходов и движения элементов</small></div>
     <div class="s1-switch-row"><span class="s1-switch-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19V5m7 14V9m7 10V3"/></svg></span><span class="s1-switch-copy"><b>Эффекты и переходы</b><small data-s1-motion-status>Включены</small></span><button class="s1-switch" type="button" role="switch" aria-checked="true" aria-label="Анимация интерфейса" data-s1-motion-toggle onclick="s1SetMotion(!S1_PREFS.motion)"><span></span></button></div>
    </div>
    <div class="s1-settings-footer"><div class="s1-settings-save"><span class="s1-save-dot"></span><span>Настройки сохраняются автоматически на этом устройстве</span></div><button type="button" class="s1-reset-button" onclick="s1ResetPrefs()">Сбросить настройки</button></div>
@@ -1929,7 +1934,7 @@ function drawNews(){
   };
   $("#newsList").innerHTML=list.length?list.map(n=>{
     const id=newsSocialId(n),index=NEWS.indexOf(n),excerpt=teaser(n),mediaCount=(n.media||[]).length;
-    return '<article class="news-feed-card rv" data-k="'+index+'"><button type="button" class="news-open'+(cover(n)?' has-cover':' no-cover')+'" aria-label="Открыть новость: '+esc(n.t)+'">'+(cover(n)?'<span class="news-card-thumb">'+cover(n)+'</span>':'')+'<span class="news-card-copy"><small class="news-date">'+esc(n.d||"НОВОСТЬ")+'</small><b>'+esc(n.t)+'</b>'+(excerpt?'<span class="news-desc">'+esc(excerpt)+'</span>':'')+'<span class="news-open-label">Читать новость </span>'+(mediaCount>1?'<span class="news-media-count">'+mediaCount+' материала</span>':'')+'</span></button><div class="news-social news-social-feed" data-news-social="'+esc(id)+'"><div class="news-social-actions"><button type="button" class="news-like" data-news-like aria-label="Нравится">♡ <span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/></svg>Комментарии <span data-comment-count></span></button><button type="button" class="news-bookmark" data-bookmark-news>☆ Сохранить</button></div></div></article>';
+    return '<article class="news-feed-card rv" data-k="'+index+'"><button type="button" class="news-open'+(cover(n)?' has-cover':' no-cover')+'" aria-label="Открыть новость: '+esc(n.t)+'">'+(cover(n)?'<span class="news-card-thumb">'+cover(n)+'</span>':'')+'<span class="news-card-copy"><small class="news-date">'+esc(n.d||"НОВОСТЬ")+'</small><b>'+esc(n.t)+'</b>'+(excerpt?'<span class="news-desc">'+esc(excerpt)+'</span>':'')+'<span class="news-open-label">Читать новость </span>'+(mediaCount>1?'<span class="news-media-count">'+mediaCount+' материала</span>':'')+'</span></button><div class="news-social news-social-feed" data-news-social="'+esc(id)+'"><div class="news-social-actions"><button type="button" class="news-like" data-news-like aria-label="Нравится" aria-pressed="false"><svg class="news-like-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10A4.8 4.8 0 0 1 12 6.2a4.8 4.8 0 0 1 8.8 2.6Z"/></svg><span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/></svg>Комментарии <span data-comment-count></span></button><button type="button" class="news-bookmark" data-bookmark-news>☆ Сохранить</button></div></div></article>';
   }).join(""):'<div class="news-empty"><span>⌕</span><b>'+(showSavedNews?"Сохранённых новостей пока нет":"Ничего не найдено")+'</b><small>'+(showSavedNews?"Сохраняй интересные публикации, чтобы вернуться к ним позже.":"Попробуй изменить запрос или очистить поиск.")+'</small>'+(query?'<button type="button" data-reset-news-search>Очистить поиск</button>':'')+'</div>';
   const allTab=$("#newsAllTab"),savedTab=$("#newsSavedTab");
   if(allTab){allTab.classList.toggle("is-active",!showSavedNews);allTab.setAttribute("aria-selected",String(!showSavedNews));}
@@ -1943,7 +1948,7 @@ function drawNews(){
     button.classList.toggle("is-saved",saved);button.textContent=saved?"★":"☆";button.setAttribute("aria-label",saved?"Убрать из сохранённых":"Сохранить новость");button.setAttribute("aria-pressed",String(saved));button.addEventListener("click",()=>toggleNewsFavorite(key));
   });
   const latest=NEWS[0],latestRoot=$("#latest");
-  if(latestRoot)latestRoot.innerHTML=latest?'<div class="home-feature-heading"><div><b>Последняя новость</b></div><a href="#news">Все новости</a></div><article role="button" tabindex="0" aria-label="Открыть последнюю новость" class="home-latest" data-k="0"><div class="home-feature-copy"><span class="home-feature-date home-latest-date">'+esc(latest.d||"НОВОСТЬ")+'</span><b>'+esc(latest.t)+'</b>'+(teaser(latest)?'<span>'+esc(teaser(latest))+'</span>':'')+'<a class="home-latest-link" href="#news">Смотреть в ленте</a></div></article>':'';
+  if(latestRoot)latestRoot.innerHTML=latest?'<div class="home-feature-heading"><div><b>Последняя новость</b></div><a href="#news">Все новости</a></div><article role="button" tabindex="0" aria-label="Открыть последнюю новость" class="home-latest" data-k="0"><div class="home-feature-copy"><span class="home-feature-date home-latest-date">'+esc(latest.d||"НОВОСТЬ")+'</span><b>'+esc(latest.t)+'</b>'+(teaser(latest)?'<span>'+esc(teaser(latest))+'</span>':'')+'<a class="home-latest-link" href="#news">Смотреть в ленте <span aria-hidden="true">→</span></a></div></article>':'';
   const openNewsCard=b=>{
     const n=NEWS[Number(b.dataset.k)];if(!n)return;
     openSh('<div class="news-detail-content"><span class="chip">'+esc(n.d)+'</span><h3 class="news-detail-title">'+esc(n.t)+'</h3>'+(n.x?'<p class="news-detail-text">'+esc(n.x)+'</p>':'')+mediaMarkup(n)+'</div><div class="news-detail-dock" data-news-social="'+esc(newsSocialId(n))+'"><button type="button" class="news-like" data-news-like aria-label="Поставить лайк"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10A4.8 4.8 0 0 1 12 6.2a4.8 4.8 0 0 1 8.8 2.6Z"/></svg></span><span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump aria-label="Открыть комментарии"><span class="news-dock-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/><path d="M8 11h8M8 14h5"/></svg></span><span class="news-comments-label">Комментарии</span><span class="news-dock-count" data-comment-count></span></button></div>');
@@ -1965,7 +1970,7 @@ function renderNewsComment(c,all=[],depth=0){
   const author=String(c.author||"Аноним").trim()||"Аноним";
   const initial=esc(Array.from(author)[0]||"А");
   const tools=c.is_mine?'<div class="news-comment-tools"><button type="button" data-comment-edit>Изменить</button><button type="button" data-comment-delete>Удалить</button></div>':"";
-  const actions=c.status==="moderation"?'':'<div class="news-comment-actions"><button type="button" class="news-comment-like'+(c.liked?' is-liked':'')+'" data-comment-like>♥ '+Number(c.likes||0)+'</button><button type="button" data-comment-reply>Ответить</button></div>';
+  const actions=c.status==="moderation"?'':'<div class="news-comment-actions"><button type="button" class="news-comment-like'+(c.liked?' is-liked':'')+'" data-comment-like aria-pressed="'+String(!!c.liked)+'">'+(c.liked?'♥ ':'♡ ')+Number(c.likes||0)+'</button><button type="button" data-comment-reply>Ответить</button></div>';
   const children=depth<4?all.filter(x=>x.parent_id===c.id).map(x=>renderNewsComment(x,all,depth+1)).join(""):"";
   return '<article class="news-comment'+(depth?' is-reply':'')+'" data-comment-id="'+esc(c.id)+'"><div class="news-comment-avatar" aria-hidden="true">'+initial+'</div><div class="news-comment-main"><div class="news-comment-bubble"><div class="news-comment-meta"><b>'+esc(author)+'</b><time>'+date+'</time></div><p>'+esc(c.message)+'</p></div>'+actions+tools+(children?'<div class="news-comment-children">'+children+'</div>':'')+'</div></article>';
  }
@@ -2115,9 +2120,9 @@ document.addEventListener("click",async e=>{
  const like=e.target.closest("[data-comment-like]");if(!like||like.disabled)return;
  const article=like.closest("[data-comment-id]");if(!article)return;
  const wasLiked=like.classList.contains("is-liked"),nextLiked=!wasLiked,match=like.textContent.match(/\d+/),oldCount=match?Number(match[0]):0,optimisticCount=Math.max(0,oldCount+(nextLiked?1:-1));
- like.classList.toggle("is-liked",nextLiked);like.setAttribute("aria-pressed",String(nextLiked));like.textContent="♥ "+optimisticCount;like.disabled=true;
- try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comment-like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({comment_id:article.dataset.commentId,visitor_id:newsVisitorId()})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось изменить реакцию");like.classList.toggle("is-liked",!!d.liked);like.setAttribute("aria-pressed",String(!!d.liked));like.textContent="♥ "+Number(d.likes||0)}
- catch(err){like.classList.toggle("is-liked",wasLiked);like.setAttribute("aria-pressed",String(wasLiked));like.textContent="♥ "+oldCount;showSiteToast(err.message||"Не удалось изменить реакцию")}finally{like.disabled=false}
+ like.classList.toggle("is-liked",nextLiked);like.setAttribute("aria-pressed",String(nextLiked));like.textContent=(nextLiked?"♥ ":"♡ ")+optimisticCount;like.disabled=true;
+ try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comment-like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({comment_id:article.dataset.commentId,visitor_id:newsVisitorId()})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось изменить реакцию");like.classList.toggle("is-liked",!!d.liked);like.setAttribute("aria-pressed",String(!!d.liked));like.textContent=(!!d.liked?"♥ ":"♡ ")+Number(d.likes||0)}
+ catch(err){like.classList.toggle("is-liked",wasLiked);like.setAttribute("aria-pressed",String(wasLiked));like.textContent=(wasLiked?"♥ ":"♡ ")+oldCount;showSiteToast(err.message||"Не удалось изменить реакцию")}finally{like.disabled=false}
 });
 document.addEventListener("click",async e=>{const like=e.target.closest("[data-news-like]");if(!like)return;const root=like.closest("[data-news-social]");if(!root||like.disabled)return;const newsId=root.dataset.newsSocial,wasLiked=like.classList.contains("is-liked"),nextLiked=!wasLiked;const update=(liked,count)=>document.querySelectorAll("[data-news-social]").forEach(node=>{if(node.dataset.newsSocial!==newsId)return;const btn=node.querySelector("[data-news-like]");if(!btn)return;btn.classList.toggle("is-liked",liked);btn.setAttribute("aria-pressed",String(liked));const label=btn.querySelector("[data-like-count]");if(label&&count!==undefined)label.textContent=String(count);else if(!label)btn.innerHTML=(liked?"♥ Нравится ":"♡ Нравится ")+"<span data-like-count>"+(count??"…")+"</span>"});const countEl=like.querySelector("[data-like-count]"),oldCount=Number(countEl?.textContent),optimisticCount=Number.isFinite(oldCount)?Math.max(0,oldCount+(nextLiked?1:-1)):undefined;update(nextLiked,optimisticCount);like.disabled=true;try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({news_id:newsId,visitor_id:newsVisitorId()})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось изменить реакцию");update(!!d.liked,Number(d.likes));}catch(err){update(wasLiked,Number.isFinite(oldCount)?oldCount:undefined);showSiteToast(err.message||"Не удалось изменить реакцию");}finally{like.disabled=false}});
 document.addEventListener("click",async e=>{
@@ -3573,5 +3578,211 @@ html[data-s1-theme="dark"] .game-hint,html[data-s1-theme="dark"] .site-credit{co
 body.s1-motion-off *,body.s1-motion-off *::before,body.s1-motion-off *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 </style>
 
+<style id="s1-settings-final-polish">
+.s1-settings-panel{padding:0 22px 24px!important}
+.s1-settings-panel .s1-settings-heading{position:relative!important;display:block!important;min-height:0!important;margin:0!important;padding:5px 48px 17px 0!important;text-align:left!important;border-bottom:1px solid var(--line)!important}
+.s1-settings-panel .s1-settings-heading-copy{display:block!important;width:100%!important;min-width:0;text-align:left!important}
+.s1-settings-panel .s1-settings-heading-copy h3{display:block!important;margin:0!important;padding:0!important;color:var(--ink)!important;font-size:26px!important;line-height:1.18!important;font-weight:850!important;letter-spacing:-.7px!important;text-align:left!important}
+.s1-settings-panel .s1-settings-heading .more-close{position:absolute!important;right:0!important;top:0!important}
+.s1-settings-content{padding:19px 0 8px!important;text-align:left!important}
+.s1-setting-group{margin:0 0 21px!important;text-align:left!important}
+.s1-setting-title{margin:0 0 11px!important;align-items:flex-start!important;text-align:left!important}
+.s1-setting-title b{font-size:15px!important;line-height:1.3!important}
+.s1-setting-title small{font-size:11px!important;line-height:1.45!important}
+.s1-theme-options{gap:10px!important}
+.s1-theme-choice{min-height:112px!important;padding:10px!important;gap:8px!important;border:1px solid var(--line)!important;border-radius:16px!important;background:var(--card)!important;color:var(--ink)!important;box-shadow:0 3px 12px rgba(61,0,13,.045)!important}
+.s1-theme-choice.is-selected{border:1.5px solid #a1001f!important;background:#fff7f8!important;box-shadow:0 0 0 2px rgba(161,0,31,.09)!important}
+.s1-theme-preview{height:58px!important;margin:0!important;border-radius:11px!important;padding:7px!important;gap:5px!important}
+.s1-theme-preview i{height:39px!important;border-radius:6px!important}
+.s1-theme-choice b{font-size:13px!important;font-weight:800!important;line-height:1.2!important}
+.s1-theme-choice small{display:none!important}
+.s1-switch-row{min-height:70px!important;border-radius:16px!important}
+.s1-settings-save{background:#f7f2f3!important;color:#766970!important}
+html[data-s1-theme="dark"] .s1-settings-panel .s1-settings-heading{border-color:#40323a!important}
+html[data-s1-theme="dark"] .s1-settings-panel .s1-settings-heading-copy h3,html[data-s1-theme="dark"] .s1-setting-title b,html[data-s1-theme="dark"] .s1-switch-copy b{color:#f4edf0!important}
+html[data-s1-theme="dark"] .s1-setting-title small,html[data-s1-theme="dark"] .s1-switch-copy small{color:#c6b7be!important}
+html[data-s1-theme="dark"] .s1-theme-choice{background:#292027!important;color:#f4edf0!important;border-color:#51414a!important;box-shadow:0 3px 12px rgba(0,0,0,.16)!important}
+html[data-s1-theme="dark"] .s1-theme-choice.is-selected{background:#38232c!important;border:1.5px solid #d36a84!important;box-shadow:0 0 0 2px rgba(211,106,132,.13)!important}
+html[data-s1-theme="dark"] .s1-theme-preview-light{background:#eee5e7!important}
+html[data-s1-theme="dark"] .s1-theme-preview-dark{background:#171216!important}
+html[data-s1-theme="dark"] .s1-switch-row{background:#292027!important;border-color:#51414a!important}
+html[data-s1-theme="dark"] .s1-switch-symbol{background:#482631!important;color:#ffc0cd!important}
+html[data-s1-theme="dark"] .s1-switch{background:#665963!important}
+html[data-s1-theme="dark"] .s1-switch.is-on{background:#b52b4d!important}
+html[data-s1-theme="dark"] .s1-settings-save{background:#292027!important;color:#d4c6cc!important;border:1px solid #40323a!important}
+html[data-s1-theme="dark"] .s1-reset-button{color:#ff9db2!important}
+html[data-s1-theme="dark"] .s1-settings-panel .more-close{background:#33252d!important;color:#f4edf0!important;border-color:#51414a!important}
+@media(max-width:420px){.s1-settings-panel{padding-left:19px!important;padding-right:19px!important}.s1-settings-panel .s1-settings-heading-copy h3{font-size:25px!important}.s1-theme-choice{min-height:105px!important;padding:9px!important}.s1-theme-preview{height:53px!important}}
+</style>
+<style id="s1-like-fill-polish">.news-like-icon{display:block;width:18px;height:18px;flex:0 0 18px}.news-like-icon path{fill:transparent;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;transition:fill .18s ease}.news-like.is-liked .news-like-icon path{fill:currentColor;stroke:currentColor}.news-social-actions .news-like.is-liked,.news-detail-dock .news-like.is-liked{background:#ffe3e9!important;border-color:#e6aab9!important;color:#a1002a!important}.news-comment-actions .news-comment-like{color:#a18a91!important;background:#faf6f7!important}.news-comment-actions .news-comment-like.is-liked{color:#b0002b!important;background:#ffe3e9!important;border-color:#e6aab9!important}html[data-s1-theme="dark"] .news-like{background:#2d2026!important;border-color:#51404a!important;color:#e8a0b2!important}html[data-s1-theme="dark"] .news-like.is-liked{background:#542333!important;border-color:#a64b66!important;color:#ff9eb6!important}html[data-s1-theme="dark"] .news-comment-actions .news-comment-like{background:#2d2026!important;color:#c7aab4!important;border-color:#51404a!important}html[data-s1-theme="dark"] .news-comment-actions .news-comment-like.is-liked{background:#542333!important;color:#ff9eb6!important;border-color:#a64b66!important}</style>
+<style id="s1-like-strong-active">
+.news-social-actions .news-like,.news-detail-dock .news-like,.news-comment-actions .news-comment-like{transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease}
+.news-social-actions .news-like.is-liked,.news-detail-dock .news-like.is-liked,.news-comment-actions .news-comment-like.is-liked{background:#a1001f!important;background-image:none!important;border:1px solid #a1001f!important;color:#fff!important;box-shadow:0 3px 12px rgba(161,0,31,.28)!important}
+.news-social-actions .news-like.is-liked{padding-left:14px!important;padding-right:14px!important}
+.news-like.is-liked .news-like-icon path,.news-detail-dock .news-like.is-liked svg path,.news-detail-dock .news-like.is-liked .news-dock-icon svg path{fill:#fff!important;stroke:#fff!important}
+.news-like.is-liked .news-like-icon,.news-detail-dock .news-like.is-liked .news-dock-icon{color:#fff!important}
+.news-social-actions .news-like.is-liked [data-like-count],.news-detail-dock .news-like.is-liked [data-like-count],.news-comment-actions .news-comment-like.is-liked{color:#fff!important;font-weight:800!important}
+.news-comment-actions .news-comment-like.is-liked{padding-left:12px!important;padding-right:12px!important;min-width:48px!important}
+.news-social-actions .news-like.is-liked:active,.news-detail-dock .news-like.is-liked:active,.news-comment-actions .news-comment-like.is-liked:active{transform:scale(.96)}
+html[data-s1-theme="dark"] .news-social-actions .news-like.is-liked,html[data-s1-theme="dark"] .news-detail-dock .news-like.is-liked,html[data-s1-theme="dark"] .news-comment-actions .news-comment-like.is-liked{background:#d12b50!important;border-color:#f06b88!important;color:#fff!important;box-shadow:0 3px 14px rgba(209,43,80,.34)!important}
+</style>
 </body>
 </html>
+
+
+<style id="s1-news-feed-like-visibility">
+/* Make likes clearly visible on the all-news cards, not only in the opened story. */
+#news .news-feed-card .news-social-actions .news-like{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:7px!important;min-width:58px!important;min-height:38px!important;padding:7px 12px!important;
+  border:1px solid #d9aab5!important;border-radius:12px!important;
+  background:#fff7f8!important;color:#941632!important;font-size:12px!important;font-weight:850!important;
+}
+#news .news-feed-card .news-social-actions .news-like .news-like-icon{width:20px!important;height:20px!important;flex:0 0 20px!important}
+#news .news-feed-card .news-social-actions .news-like.is-liked{
+  background:#a1001f!important;border-color:#a1001f!important;color:#fff!important;
+  box-shadow:0 3px 10px rgba(161,0,31,.2)!important;
+}
+#news .news-feed-card .news-social-actions .news-like.is-liked .news-like-icon path{fill:#fff!important;stroke:#fff!important}
+html[data-s1-theme="dark"] #news .news-feed-card .news-social-actions .news-like{
+  background:#351c24!important;border-color:#81505d!important;color:#ffdce4!important;
+}
+html[data-s1-theme="dark"] #news .news-feed-card .news-social-actions .news-like.is-liked{
+  background:#d12b50!important;border-color:#d12b50!important;color:#fff!important;
+}
+</style>
+
+<style id="s1-settings-left-alignment-and-home-arrows">
+/* Настройки — продолжение панели «Ещё», единое левое выравнивание */
+.sh .pn.s1-settings-panel{
+  display:block!important;
+  width:100%!important;
+  max-width:640px!important;
+  margin:0 auto!important;
+  text-align:left!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  width:100%!important;
+  text-align:left!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading-copy,
+.sh .pn.s1-settings-panel .s1-settings-heading-copy h3,
+.sh .pn.s1-settings-panel .s1-settings-content,
+.sh .pn.s1-settings-panel .s1-setting-group,
+.sh .pn.s1-settings-panel .s1-setting-title{
+  width:100%;
+  text-align:left!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading-copy{
+  display:block!important;
+  flex:1 1 auto!important;
+}
+.sh .pn.s1-settings-panel .s1-setting-title{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+}
+.sh .pn.s1-settings-panel .s1-theme-options{
+  width:100%!important;
+  justify-content:stretch!important;
+}
+.sh .pn.s1-settings-panel .s1-switch-row{
+  width:100%!important;
+  justify-content:flex-start!important;
+}
+#latest .home-latest-link>span{
+  display:inline-grid!important;
+  place-items:center!important;
+  flex:0 0 21px!important;
+  width:21px!important;
+  height:21px!important;
+  margin:0!important;
+  border-radius:50%!important;
+  background:#f2e2e6!important;
+  color:#a1001f!important;
+  font-size:14px!important;
+  line-height:1!important;
+  transition:transform .2s ease!important;
+}
+#latest .home-latest-link:active>span{transform:translateX(3px)}
+html[data-s1-theme="dark"] #latest .home-latest-link>span{
+  background:#3a2630!important;
+  color:#ffdce4!important;
+}
+</style>
+
+<style id="s1-settings-consistent-section-layout">
+/* Кнопка «Настройки» ведёт себя как остальные пункты меню, без центрирования браузером */
+.sh .pn.more-panel .more-menu-list>.more-menu-item[type="button"]{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ width:100%!important;text-align:left!important;font:inherit!important;
+ color:var(--ink)!important;cursor:pointer!important;
+}
+.sh .pn.more-panel .more-menu-list>.more-menu-item[type="button"]>span{
+ display:block!important;flex:1 1 auto!important;text-align:left!important;
+}
+.sh .pn.more-panel .more-menu-list>.more-menu-item[type="button"]:after{display:none!important}
+/* Экран настроек повторяет структуру заголовков остальных разделов */
+.sh .pn.s1-settings-panel{
+ padding:17px 22px calc(24px + env(safe-area-inset-bottom))!important;
+ text-align:left!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading{
+ display:flex!important;align-items:flex-start!important;justify-content:space-between!important;
+ gap:14px!important;width:100%!important;margin:0!important;
+ padding:3px 0 16px!important;border-bottom:1px solid var(--line)!important;
+ text-align:left!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading-copy{
+ display:block!important;flex:1 1 auto!important;min-width:0!important;text-align:left!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading-copy>span{
+ display:block!important;margin:0 0 5px!important;color:var(--red)!important;
+ font-size:10px!important;font-weight:900!important;letter-spacing:1.15px!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading-copy h3{
+ display:block!important;margin:0!important;padding:0!important;
+ color:var(--ink)!important;font-size:27px!important;line-height:1.08!important;
+ font-weight:850!important;letter-spacing:-.7px!important;text-align:left!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading-copy p{
+ margin:6px 0 0!important;color:var(--mut)!important;font-size:13px!important;
+ line-height:1.4!important;text-align:left!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-heading .more-close{
+ position:static!important;flex:none!important;margin:0!important;
+}
+.sh .pn.s1-settings-panel .s1-settings-content{
+ padding:19px 0 8px!important;width:100%!important;text-align:left!important;
+}
+.sh .pn.s1-settings-panel .s1-setting-group,
+.sh .pn.s1-settings-panel .s1-setting-title{
+ width:100%!important;text-align:left!important;align-items:flex-start!important;
+}
+.sh .pn.s1-settings-panel .s1-theme-options{width:100%!important}
+.sh .pn.s1-settings-panel .s1-switch-row{width:100%!important}
+#s1-floating-ribbons[style*="visibility: hidden"]{visibility:hidden!important}
+body.s1-ready #s1-floating-ribbons{visibility:visible!important}
+html[data-s1-theme="dark"] .sh .pn.s1-settings-panel .s1-settings-heading{border-color:#40323a!important}
+@media(max-width:420px){
+ .sh .pn.s1-settings-panel{padding-left:19px!important;padding-right:19px!important}
+ .sh .pn.s1-settings-panel .s1-settings-heading-copy h3{font-size:26px!important}
+}
+</style>
+<script>
+(function(){
+ function revealBrandBackground(){
+  document.body.classList.add("s1-ready");
+ }
+ if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",revealBrandBackground,{once:true});
+ }else{
+  requestAnimationFrame(revealBrandBackground);
+ }
+})();
+</script>
