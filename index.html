@@ -2417,5 +2417,31 @@ nav .scrub-target .nav-label{color:#fff!important}
 @media(prefers-reduced-motion:reduce){#team .team-member{transition:none!important}}
 </style>
 
+
+<style id="team-card-cleanup-2026">
+/* Состав: убираем декоративные полосы и блеск */
+#team .team-member:before,
+#pn:has(.team-profile) .team-profile:before{content:none!important;display:none!important}
+#team .team-member{box-shadow:0 4px 14px rgba(61,0,13,.055)!important;transition:transform .16s ease,border-color .16s ease!important}
+#team .team-member:active{transform:scale(.985)!important;box-shadow:0 2px 8px rgba(61,0,13,.06)!important}
+/* Заглушка фотографии — простой фирменный бордовый цвет */
+#team .team-member-photo .photo-placeholder,
+#pn:has(.team-profile) .team-profile-photo .photo-placeholder{
+ background:#a1001f!important;background-image:none!important;border:0!important;color:#fff!important
+}
+#team .team-member-photo .photo-placeholder:before,
+#pn:has(.team-profile) .team-profile-photo .photo-placeholder:before{content:none!important;display:none!important}
+#team .photo-placeholder-mark,
+#pn:has(.team-profile) .photo-placeholder-mark{display:none!important}
+#team .team-member-photo .photo-placeholder small,
+#pn:has(.team-profile) .team-profile-photo .photo-placeholder small{
+ color:#fff!important;font-size:9px!important;font-weight:800!important;letter-spacing:.055em!important;text-align:center
+}
+/* Открытие профиля без пружинящего перескока и визуального рывка */
+#pn:has(.team-profile){animation:teamProfileEnter .28s ease-out both!important}
+@keyframes teamProfileEnter{from{transform:translateY(24px);opacity:.96}to{transform:translateY(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){#pn:has(.team-profile){animation:none!important}}
+</style>
+
 </body>
 </html>
