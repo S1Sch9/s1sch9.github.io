@@ -1687,17 +1687,19 @@ function closeSh(){
 function openMoreMenu(){
   openSh(`
     <div class="more-menu-heading">
-      <div><span>СОВЕТ ПЕРВЫХ · ШКОЛА №9</span><h3>Ещё</h3><p>Всё самое важное — рядом</p></div>
+      <div class="more-menu-brand"><span class="more-menu-kicker">СОВЕТ ПЕРВЫХ · ШКОЛА №9</span><h3>Открывай<br>наш сайт</h3><p>Все разделы и возможности — в одном месте</p><div class="more-menu-count"><span></span> 7 разделов для тебя</div></div>
       <button class="more-close" type="button" onclick="closeSh()" aria-label="Закрыть">×</button>
+      <div class="more-menu-orbit" aria-hidden="true">✳</div>
     </div>
+    <div class="more-menu-caption">КУДА ОТПРАВИМСЯ?</div>
     <div class="more-menu-list">
-      <a class="more-menu-item" href="#home" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10 8.5-7 8.5 7v10a1 1 0 0 1-1 1h-5.2v-6.5H9.7V21H4.5a1 1 0 0 1-1-1z"/></svg></i><span>Главная</span></a>
-      <a class="more-menu-item" href="#team" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20v-1.5a6 6 0 0 1 12 0V20M16 5.2a3.2 3.2 0 0 1 0 6.2M18 14.5a5 5 0 0 1 3 4.5V20"/></svg></i><span>Состав</span></a>
-      <a class="more-menu-item" href="#news" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5Z"/><path d="M7.5 8h9M7.5 12h9M7.5 16h5"/></svg></i><span>Новости</span></a>
-      <a class="more-menu-item" href="#events" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M3.5 9.5h17M8 13h2M14 13h2"/></svg></i><span>Мероприятия</span></a>
-      <a class="more-menu-item" href="#appeal" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-7a7.5 7.5 0 1 1 17.5-2.5Z"/><path d="M8 10h8M8 14h5"/></svg></i><span>Обращение</span></a>
-      <a class="more-menu-item" href="#games" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.8 6.4l-.8 2.8a2 2 0 0 1-3.2 1l-2.1-1.7H8.8l-2.1 1.7a2 2 0 0 1-3.2-1l-.8-2.8A5 5 0 0 1 7.5 8Z"/><path d="M8 11v4M6 13h4M16 12h.01M18 14h.01"/></svg></i><span>Мини-игры</span></a>
-      <a class="more-menu-item" href="#links" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13.5 14 9.5M8.2 15.8l-1.4 1.4a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0M15.8 8.2l1.4-1.4a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0"/></svg></i><span>Наши ресурсы</span></a>
+      <a class="more-menu-item" href="#home" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10 8.5-7 8.5 7v10a1 1 0 0 1-1 1h-5.2v-6.5H9.7V21H4.5a1 1 0 0 1-1-1z"/></svg></i><span><b>Главная</b><small>На стартовую страницу</small></span></a>
+      <a class="more-menu-item" href="#team" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20v-1.5a6 6 0 0 1 12 0V20M16 5.2a3.2 3.2 0 0 1 0 6.2M18 14.5a5 5 0 0 1 3 4.5V20"/></svg></i><span><b>Наша команда</b><small>Познакомиться с Советом</small></span></a>
+      <a class="more-menu-item" href="#news" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5Z"/><path d="M7.5 8h9M7.5 12h9M7.5 16h5"/></svg></i><span><b>Новости</b><small>Что происходит в школе</small></span></a>
+      <a class="more-menu-item" href="#events" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M3.5 9.5h17M8 13h2M14 13h2"/></svg></i><span><b>Мероприятия</b><small>Планы и календарь событий</small></span></a>
+      <a class="more-menu-item" href="#appeal" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-7a7.5 7.5 0 1 1 17.5-2.5Z"/><path d="M8 10h8M8 14h5"/></svg></i><span><b>Обращение</b><small>Идеи, вопросы и предложения</small></span></a>
+      <a class="more-menu-item" href="#games" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.8 6.4l-.8 2.8a2 2 0 0 1-3.2 1l-2.1-1.7H8.8l-2.1 1.7a2 2 0 0 1-3.2-1l-.8-2.8A5 5 0 0 1 7.5 8Z"/><path d="M8 11v4M6 13h4M16 12h.01M18 14h.01"/></svg></i><span><b>Мини-игры</b><small>Немного отдыха и веселья</small></span></a>
+      <a class="more-menu-item" href="#links" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13.5 14 9.5M8.2 15.8l-1.4 1.4a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0M15.8 8.2l1.4-1.4a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0"/></svg></i><span><b>Наши ресурсы</b><small>Полезные каналы и ссылки</small></span></a>
     </div>
   `);
   $("#pn").classList.add("more-panel");
@@ -3299,6 +3301,37 @@ section.on .game{
   animation:none!important;transform:none!important
  }
 }
+
+/* 2026-11: выразительное меню «Ещё» и родные белые карточки разделов */
+.more-panel{padding:12px 17px calc(25px + env(safe-area-inset-bottom))!important;background:#fff!important}
+.more-panel .grip{width:42px;height:5px;border-radius:99px;background:#e7d9dd;margin:0 auto 13px}
+.more-menu-heading{position:relative;isolation:isolate;display:flex;min-height:166px;overflow:hidden;align-items:flex-start;padding:23px 20px 18px;border-radius:23px;background:linear-gradient(135deg,#4a0719 0%,#870f2d 58%,#a51c3c 100%);color:#fff;box-shadow:0 12px 28px rgba(87,8,30,.18)}
+.more-menu-brand{position:relative;z-index:2;max-width:80%}
+.more-menu-kicker{display:inline-flex;align-items:center;min-height:23px;padding:4px 9px;border:1px solid rgba(255,255,255,.23);border-radius:99px;background:rgba(255,255,255,.09);color:#f4d9df;font-size:8px;font-weight:850;letter-spacing:.13em}
+.more-menu-heading h3{margin:12px 0 5px;color:#fff;font-size:30px;line-height:.98;letter-spacing:-1.1px;font-weight:850}
+.more-menu-heading p{margin:8px 0 0;color:rgba(255,255,255,.78);font-size:11px;line-height:1.4}
+.more-menu-count{display:inline-flex;align-items:center;gap:7px;margin-top:13px;color:#f5d9a0;font-size:9px;font-weight:800;letter-spacing:.04em}
+.more-menu-count span{width:6px;height:6px;border-radius:50%;background:#f0c869;box-shadow:0 0 0 4px rgba(240,200,105,.14)}
+.more-menu-orbit{position:absolute;z-index:1;right:-21px;bottom:-62px;width:190px;height:190px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.15);border-radius:50%;color:rgba(255,255,255,.15);font-size:130px;line-height:1;transform:rotate(-12deg)}
+.more-menu-orbit:before,.more-menu-orbit:after{content:"";position:absolute;border:1px solid rgba(255,255,255,.13);border-radius:50%}
+.more-menu-orbit:before{inset:17px}.more-menu-orbit:after{inset:37px}
+.more-close{position:absolute;z-index:4;top:13px;right:13px;width:34px;height:34px;border:1px solid rgba(255,255,255,.22);border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:23px;box-shadow:none}
+.more-close:active{background:rgba(255,255,255,.25)}
+.more-menu-caption{margin:19px 3px 9px;color:#a27d87;font-size:8px;font-weight:900;letter-spacing:.15em}
+.more-menu-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0}
+.more-menu-item{position:relative;display:flex;align-items:flex-start;gap:10px;min-width:0;min-height:76px;padding:12px 10px;border:1px solid #eee4e7;border-radius:16px;background:linear-gradient(150deg,#fff 0%,#fffafb 100%);color:#321a22;text-decoration:none;box-shadow:0 3px 11px rgba(61,0,13,.035);font-size:12px;transition:transform .2s,border-color .2s,box-shadow .2s,background .2s}
+.more-menu-item:active{transform:scale(.975);padding-left:10px;border-color:#dcb8c1;background:#fff6f8;box-shadow:0 5px 14px rgba(61,0,13,.07)}
+.more-menu-item i{display:grid;place-items:center;flex:none;width:34px;height:34px;border:1px solid #f0dfe4;border-radius:12px;background:#f9eef1;color:#8a1832}
+.more-menu-item i svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.more-menu-item span{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px;padding-top:2px;line-height:1.2}
+.more-menu-item b{font-size:11px;line-height:1.2;font-weight:850}
+.more-menu-item small{color:#8c7c82;font-size:9px;line-height:1.3;font-weight:550}
+.more-menu-item:after{content:none!important;display:none!important}
+@media(max-width:360px){.more-panel{padding-left:13px!important;padding-right:13px!important}.more-menu-list{gap:7px}.more-menu-item{gap:7px;padding:10px 8px}.more-menu-item i{width:30px;height:30px}.more-menu-item b{font-size:10px}.more-menu-item small{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.more-menu-item{transition:none!important}}
+#home .home-shortcut{border:1px solid #eadde1!important;background:#fff!important;box-shadow:0 3px 12px rgba(61,0,13,.045)!important}
+#home .home-shortcut:active{border-color:#d6aab5!important;box-shadow:0 6px 16px rgba(61,0,13,.08)!important}
+
 </style>
 </body>
 </html>
