@@ -106,6 +106,38 @@ canvas:focus-visible{outline:3px solid rgba(255,224,157,.95);outline-offset:-5px
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 @media(max-height:650px){.app-container{padding:8px}.top-bar{margin-bottom:7px}.canvas-wrapper{width:min(100%,340px,calc((100dvh - 136px)*.75))}.play-hint{margin-top:7px;padding:7px 9px}.logo-container{margin-bottom:12px;padding:7px}.logo-chip{height:54px}.logo-chip img{max-height:25px}.brand-text{font-size:clamp(36px,9.5vw,46px)}.record-display{margin-bottom:12px}.btn{min-height:45px;padding:10px 16px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+<style id="s1-game-site-theme-2026">
+html[data-s1-game-theme="dark"]{
+ --ink:#f4edf0;--muted:#c0afb7;--bg:#171216;--card:#241c22;--line:#493943;--pink:#402631;
+ color-scheme:dark;
+}
+html[data-s1-game-theme="dark"] body,
+html[data-s1-game-theme="dark"] .app-container{background:var(--bg);color:var(--ink)}
+html[data-s1-game-theme="dark"] .brand-text{color:#f7edf1}
+html[data-s1-game-theme="dark"] .brand-subtext,
+html[data-s1-game-theme="dark"] .record-display{color:#f08aa3}
+html[data-s1-game-theme="dark"] .menu-credit{color:#a9959e}
+html[data-s1-game-theme="dark"] .rules-card{background:#241c22;border-color:#493943;box-shadow:0 8px 24px rgba(0,0,0,.22)}
+html[data-s1-game-theme="dark"] .rules-title,
+html[data-s1-game-theme="dark"] .rule-text b{color:#f5eaf0}
+html[data-s1-game-theme="dark"] .rule-text{color:#c6b6bd}
+html[data-s1-game-theme="dark"] .rule-icon{background:#402631;border-color:#5a3a47}
+html[data-s1-game-theme="dark"] .btn.secondary{background:#30252d;color:#f4edf0;border-color:#51404a;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+html[data-s1-game-theme="dark"] .stats{background:linear-gradient(145deg,#30252d,#241c22);border-color:#51404a;color:#f4edf0;box-shadow:0 5px 16px rgba(0,0,0,.25)}
+html[data-s1-game-theme="dark"] .score-block small,
+html[data-s1-game-theme="dark"] .combo-block small{color:#c8b6bf}
+html[data-s1-game-theme="dark"] #score{color:#ff9db2}
+html[data-s1-game-theme="dark"] .stats-divider{background:#58434e}
+html[data-s1-game-theme="dark"] .combo{background:#432631;border-color:#69404e;color:#ffdce4}
+html[data-s1-game-theme="dark"] .field-caption{color:#c7aab4}
+html[data-s1-game-theme="dark"] .play-hint{background:#30252d;border-color:#5b414b;color:#ffe1e8}
+html[data-s1-game-theme="dark"] .play-hint-dot{background:#ed6d8b;box-shadow:0 0 0 4px rgba(237,109,139,.16)}
+html[data-s1-game-theme="dark"] .exit-confirm-card{background:#241c22;border-color:#51404a;box-shadow:0 18px 50px rgba(0,0,0,.48)}
+html[data-s1-game-theme="dark"] .exit-confirm-card h2{color:#fff}
+html[data-s1-game-theme="dark"] .exit-confirm-card p{color:#c6b6bd}
+html[data-s1-game-theme="dark"] .exit-confirm{background:rgba(8,5,8,.78)}
+html[data-s1-game-theme="dark"] .top-bar .field-caption{color:#d2b9c1}
+</style>
 </style>
 <meta name="referrer" content="no-referrer">
 </head>
@@ -199,6 +231,25 @@ canvas:focus-visible{outline:3px solid rgba(255,224,157,.95);outline-offset:-5px
 </div>
 
 <script>
+<script>
+(function(){
+ const key="s1sch9_display_preferences_v1";
+ function syncSiteTheme(){
+  let theme="light";
+  try{const prefs=JSON.parse(localStorage.getItem(key)||"{}");if(prefs.theme==="dark")theme="dark";}catch(_){}
+  document.documentElement.dataset.s1GameTheme=theme;
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta)meta.content=theme==="dark"?"#171216":"#99002b";
+ }
+ syncSiteTheme();
+ window.addEventListener("storage",e=>{if(e.key===key||e.key===null)syncSiteTheme();});
+ window.addEventListener("pageshow",syncSiteTheme);
+ window.addEventListener("focus",syncSiteTheme);
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncSiteTheme();});
+ document.addEventListener("contextmenu",e=>e.preventDefault(),true);
+})();
+</script>
+
     const menuScreen = document.getElementById('menu-screen');
     const rulesScreen = document.getElementById('rules-screen');
     const gameScreen = document.getElementById('game-screen');
@@ -719,5 +770,9 @@ canvas:focus-visible{outline:3px solid rgba(255,224,157,.95);outline-offset:-5px
     }
 </script>
 <!-- Tower of Firsts: isometric XYZ build -->
+<style id="s1-game-disable-longpress">
+html,body,body *{-webkit-touch-callout:none!important}
+a,a *,button,button *,[role="button"],img{-webkit-user-select:none!important;user-select:none!important}
+</style>
 </body>
 </html>
