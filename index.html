@@ -2814,6 +2814,7 @@ function getPublicEventKind(event){
  if(saved)return saved;
  const title=String(event?.title||"").toLocaleLowerCase("ru-RU");
  if(/парад/.test(title))return "Парад";
+ if(/день матери/.test(title))return "Праздник";
  if(/митинг|возложени|минута молчания|начал[оа].*(войн|блокад)|начало великой отечественной/.test(title))return "Памятная дата";
  if(/день метро|профессиональн|день работник/.test(title))return "Тематический день";
  if(/акци|субботник|сбор макулатур/.test(title))return "Акция";
@@ -2821,14 +2822,14 @@ function getPublicEventKind(event){
  if(/экскурси|поездк/.test(title))return "Экскурсия";
  if(/встреча|собрание|заседание/.test(title))return "Встреча";
  if(/праздник|день знаний|новый год|рождеств/.test(title))return "Праздник";
- if(/\\bдень\\b/.test(title))return "Памятная дата";
+ if(/(^|[^а-яё])день([^а-яё]|$)/i.test(title))return "Памятная дата";
  return "Мероприятие";
 }
 function renderPublicEvents(){
  const root=$('#publicEventsList'),dateLabel=$('#dayDate');if(!root||!dateLabel)return;
  const d=eventDateFromKey(selectedEventDay),today=localDateKey(new Date()),isToday=selectedEventDay===today;
- const weekday=d.toLocaleDateString('ru-RU',{weekday:'long'}),year=d.getFullYear(),observances=getDateObservances(d);
- dateLabel.innerHTML='<strong>'+ (isToday?'Сегодня':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})) +'</strong><span>'+weekday+' · '+year+'</span>'+(observances.length?'<div class="day-observances" aria-label="Памятная дата">'+observances.map(([,name])=>'<span class="day-observance">'+name+'</span>').join(' · ')+'</div>':'');
+ const weekday=d.toLocaleDateString('ru-RU',{weekday:'long'}),year=d.getFullYear();
+ dateLabel.innerHTML='<strong>'+ (isToday?'Сегодня':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})) +'</strong><span>'+weekday+' · '+year+'</span>';
  const categoryFilter=$('#eventCategoryFilter');
  if(categoryFilter){
   const categories=[...new Set(PUBLIC_EVENTS.map(e=>String(e.category||"Мероприятие").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ru"));
