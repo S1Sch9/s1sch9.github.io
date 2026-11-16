@@ -1798,6 +1798,10 @@ function openMoreMenu(){
   `);
   $("#pn").classList.add("more-panel");
 }
+// Эти настройки нужны до первого запуска формы: ошибка здесь блокировала весь скрипт сайта.
+const APPEAL_RULES_KEY = "s1sch9_appeal_rules_accepted_v1";
+const APPEAL_RULES_VERSION = "2026-11-16";
+
 function setAppealRulesAccepted(){
   const accepted = localStorage.getItem(APPEAL_RULES_KEY) === "yes";
   const gate = $("#rulesGate"), button = $("#openAppealRules"), send = $("#send");
