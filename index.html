@@ -2903,6 +2903,38 @@ nav .nav-label{font-size:9px!important;letter-spacing:0!important}
 #home .home-hero-front .home-appeal{transform:translateY(-8px)!important}
 #home .home-hero-front .home-appeal:active{transform:translateY(-8px) scale(.98)!important}
 </style>
+
+<style id="s1-animated-background-2026">
+/* Тихий фирменный фон: движение света, а не отвлекающие эффекты. */
+html{background:#faf6f6!important}
+body{background:transparent!important;position:relative}
+body::before{
+ content:"";position:fixed;z-index:-1;pointer-events:none;
+ left:-15vw;top:-15vh;width:130vw;height:130vh;
+ background:
+  radial-gradient(ellipse at 18% 22%,rgba(161,0,31,.075) 0%,rgba(161,0,31,0) 42%),
+  radial-gradient(ellipse at 84% 28%,rgba(240,200,105,.12) 0%,rgba(240,200,105,0) 38%),
+  radial-gradient(ellipse at 70% 86%,rgba(161,0,31,.055) 0%,rgba(161,0,31,0) 43%),
+  radial-gradient(ellipse at 10% 78%,rgba(240,200,105,.075) 0%,rgba(240,200,105,0) 40%);
+ background-repeat:no-repeat;
+ transform:translate3d(0,0,0);
+ transform-origin:50% 50%;
+ animation:s1-bg-drift  thirty 1s ease-in-out infinite alternate;
+ will-change:transform;
+}
+@keyframes s1-bg-drift{
+ 0%{transform:translate3d(-1.2%, -.8%, 0) scale(1)}
+ 50%{transform:translate3d(1%, .7%, 0) scale(1.025)}
+ 100%{transform:translate3d(-.4%, 1.2%, 0) scale(1.04)}
+}
+@media(max-width:600px){
+ body::before{left:-22vw;top:-10vh;width:144vw;height:120vh;opacity:.82;animation-duration:38s}
+}
+@media(prefers-reduced-motion:reduce){
+ body::before{animation:none!important;transform:none!important;will-change:auto}
+}
+</style>
+
 </body>
 </html>
 
