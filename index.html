@@ -1850,8 +1850,8 @@ function openMoreMenu(){
   $("#pn").classList.add("more-panel");
 }
 // Эти настройки нужны до первого запуска формы: ошибка здесь блокировала весь скрипт сайта.
-const APPEAL_RULES_KEY = "s1sch9_appeal_rules_accepted_v1";
-const APPEAL_RULES_VERSION = "2026-11-16";
+const APPEAL_RULES_KEY = "s1sch9_project_rules_accepted_v2";
+const APPEAL_RULES_VERSION = "2026-11-16-v2";
 
 function setAppealRulesAccepted(){
   const accepted = localStorage.getItem(APPEAL_RULES_KEY) === "yes";
@@ -1860,27 +1860,34 @@ function setAppealRulesAccepted(){
   send.disabled = !accepted;
   send.textContent = accepted ? "Отправить обращение" : "Сначала ознакомьтесь с правилами";
   gate.classList.toggle("is-accepted", accepted);
-  gate.querySelector(".rules-gate-copy b").textContent = accepted ? "✓ Правила приняты" : "Перед отправкой";
-  button.textContent = accepted ? "Изменить" : "Прочитать правила";
-  button.setAttribute("aria-label", accepted ? "Повторно открыть правила пользования" : "Прочитать правила пользования");
+  gate.querySelector(".rules-gate-copy b").textContent = accepted ? "✓ Положение принято" : "Перед отправкой";
+  button.textContent = accepted ? "Открыть положение" : "О проекте и правилах";
+  button.setAttribute("aria-label", accepted ? "Повторно открыть положение о Совете и правила пользования" : "Прочитать положение о Совете и правила пользования");
   $("#rulesGateStatus").textContent = accepted ? "Согласие сохранено на этом устройстве." : "После подтверждения форма станет доступна.";
 }
 $("#openAppealRules").addEventListener("click", () => {
   const rulesHTML = `
     <div class="appeal-rules-modal">
-      <div class="more-menu-heading">
-        <div><small>СОВЕТ ПЕРВЫХ · ШКОЛА №9</small><h3>Правила обращений</h3><p>Пожалуйста, ознакомься перед отправкой</p></div>
+      <div class="appeal-rules-heading">
+        <span>СОВЕТ ПЕРВЫХ · ШКОЛА №9</span>
+        <h3>Здесь важен каждый</h3>
+        <p>О Совете Первых и правила пользования сайтом и ботом</p>
       </div>
       <div class="appeal-rules-body">
-        <p><b>1. Уважительное общение.</b> Пиши корректно, без оскорблений, угроз и дискриминации.</p>
-        <p><b>2. По существу.</b> Обращение должно относиться к работе Совета, школьным инициативам, мероприятиям или работе сайта.</p>
-        <p><b>3. Достоверность.</b> Указывай правдивую информацию. Не отправляй заведомо ложные сведения и спам.</p>
-        <p><b>4. Личные данные.</b> Не указывай чужие пароли, адреса, телефоны и другие личные сведения без необходимости и разрешения.</p>
-        <p><b>5. Конфиденциальность.</b> Обращения рассматриваются командой Совета и не публикуются в открытой ленте.</p>
-        <p><b>6. Рассмотрение.</b> Отправка обращения не гарантирует его реализацию. При необходимости команда может уточнить детали.</p>
+        <p><b>Зачем нужен Совет</b><br>Совет Первых школы № 9 — это пространство для школьных инициатив, идей и совместных дел. Его смысл — помогать делать школьную жизнь интереснее, добрее и насыщеннее, поддерживать предложения учеников и давать возможность каждому быть услышанным. Для этого не обязательно состоять в Совете: предложить идею, задать вопрос или поделиться мнением может любой ученик.</p>
+        <p><b>Что есть на сайте и в боте</b><br>На сайте собраны новости, события, проекты, полезные ссылки и материалы о деятельности Совета. Здесь же можно отправить обращение. Telegram-бот помогает сделать это прямо в мессенджере. Новости и важные обновления публикуются в официальных информационных каналах Совета. На сайте также есть интерактивная игра — отдельная часть проекта, не требующая регистрации.</p>
+        <p><b>О чём можно написать</b><br>Предложить мероприятие или школьный проект, поделиться идеей по улучшению школьной жизни, задать вопрос, оставить конструктивное замечание, рассказать о полезной инициативе или интересном школьном событии. Пожалуйста, формулируйте обращение понятно и по существу.</p>
+        <p><b>Уважение и недопустимые сообщения</b><br>Общайтесь уважительно. Нельзя отправлять оскорбления, угрозы, травлю, нецензурные сообщения, спам, рекламу, заведомо ложные сведения и материалы, не относящиеся к работе Совета и школьной жизни. Не используйте обращения для давления на других людей или распространения конфликтов.</p>
+        <p><b>Как рассматриваются обращения</b><br>Поступившие сообщения читаются и рассматриваются Советом. Идеи могут обсуждаться, уточняться и оцениваться с учётом реальных возможностей, безопасности и необходимых согласований. Если предложение окажется подходящим, Совет постарается помочь ему воплотиться. На рассмотрение может потребоваться время; отправка обращения не означает, что его обязательно получится реализовать.</p>
+        <p><b>Конфиденциальность и личные данные</b><br>На сайте не требуется указывать имя, номер телефона или другие контактные данные. Для защиты от спама сайт использует технический обезличенный идентификатор подключения; он не является именем или номером телефона. В Telegram-боте для обработки обращений и защиты от злоупотреблений используется технический Telegram ID аккаунта. Эти технические идентификаторы не публикуются на сайте. Не указывайте в сообщении свои личные данные и данные других людей, если в этом нет необходимости.</p>
+        <p><b>Публикация предложений</b><br>Обращения не появляются на сайте автоматически. Если идея окажется полезной для школьного сообщества, Совет может отдельно рассказать о ней или использовать её как основу для инициативы. При подготовке публичного материала личные сведения и данные, позволяющие определить автора, не раскрываются.</p>
+        <p><b>Ограничения и блокировка</b><br>При нарушении правил Совет может ограничить возможность отправлять обращения. В Telegram ограничение применяется к аккаунту, а на сайте — к техническому идентификатору подключения. Поэтому блокировка на сайте иногда может затронуть и других пользователей той же сети. Если вы считаете, что ограничение применено ошибочно, свяжитесь с Советом через доступные официальные каналы.</p>
+        <p><b>Регистрация и игра</b><br>Для просмотра сайта регистрация не нужна. Результаты игры сохраняются в браузере на том устройстве, где вы играете, и не привязываются к имени или профилю. При очистке данных браузера или переходе на другое устройство сохранённый результат может потеряться.</p>
+        <p class="appeal-rules-final"><b>Совет начинается с инициативы. Не бойся предложить, спросить или поделиться тем, что действительно важно. Даже небольшая идея может стать началом хорошего общего дела. Мы хотим, чтобы каждый ученик знал: его голос имеет значение. Важен каждый! 💙</b></p>
       </div>
-      <button class="btn full" id="acceptAppealRules" type="button">Принимаю правила</button>
+      <button class="btn full" id="acceptAppealRules" type="button">Я ознакомился(ась) и согласен(на)</button>
     </div>`;
+
   openSh(rulesHTML);
   const acceptButton = $("#acceptAppealRules");
   if (!acceptButton) return;
@@ -3813,4 +3820,232 @@ html[data-s1-theme="dark"] .sh .pn.s1-settings-panel .s1-settings-heading{border
 .appeal-rules-body b{color:var(--red)}
 html[data-s1-theme="dark"] .appeal-rules-body p{background:#24202a;color:#f4eff2;border-color:#49414d}
 html[data-s1-theme="dark"] .appeal-rules-body b{color:#e18aa2}
+</style>
+
+<style id="s1-dark-theme-complete-2026">
+/* Полная тёмная палитра: единая система поверх всех разделов, без отдельных случайных оттенков. */
+html[data-s1-theme="dark"]{
+ color-scheme:dark;
+ --s1-night:#141316;
+ --s1-surface:#201d21;
+ --s1-surface-raised:#282329;
+ --s1-stroke:#40363e;
+ --s1-text:#f5eff2;
+ --s1-muted:#c0b4ba;
+ --s1-accent:#f07891;
+ --s1-accent-soft:#3b252e;
+ --s1-gold:#eac76b;
+}
+html[data-s1-theme="dark"],html[data-s1-theme="dark"] body{
+ background:var(--s1-night)!important;
+ color:var(--s1-text)!important;
+}
+html[data-s1-theme="dark"] body{
+ --ink:var(--s1-text)!important;
+ --mut:var(--s1-muted)!important;
+ --bg:var(--s1-night)!important;
+ --card:var(--s1-surface)!important;
+ --line:var(--s1-stroke)!important;
+ --red:var(--s1-accent)!important;
+}
+html[data-s1-theme="dark"] body::before{opacity:.16!important}
+html[data-s1-theme="dark"] #s1-floating-ribbons{opacity:.2!important}
+html[data-s1-theme="dark"] .bar{
+ background:rgba(27,24,28,.94)!important;color:var(--s1-text)!important;
+ border-bottom:1px solid rgba(255,255,255,.07)!important;
+ box-shadow:0 5px 20px rgba(0,0,0,.18)!important;
+}
+html[data-s1-theme="dark"] .bar .brand-name small{color:var(--s1-muted)!important}
+html[data-s1-theme="dark"] nav{
+ background:rgba(31,28,33,.97)!important;color:var(--s1-text)!important;
+ border:1px solid var(--s1-stroke)!important;box-shadow:0 -5px 24px rgba(0,0,0,.2)!important;
+}
+html[data-s1-theme="dark"] nav a,html[data-s1-theme="dark"] nav button{color:#d6cbd1!important}
+html[data-s1-theme="dark"] nav a.on,html[data-s1-theme="dark"] nav button.on{color:#fff!important}
+html[data-s1-theme="dark"] .section-heading h1,
+html[data-s1-theme="dark"] .section-heading p,
+html[data-s1-theme="dark"] .section-heading small,
+html[data-s1-theme="dark"] .resource-caption,
+html[data-s1-theme="dark"] .note,
+html[data-s1-theme="dark"] .home-section-title,
+html[data-s1-theme="dark"] .events-list-heading,
+html[data-s1-theme="dark"] .events-archive-status{color:var(--s1-muted)!important}
+html[data-s1-theme="dark"] .section-heading h1,
+html[data-s1-theme="dark"] .home-section-title{color:var(--s1-text)!important}
+html[data-s1-theme="dark"] .card,
+html[data-s1-theme="dark"] .tile:not(.red),
+html[data-s1-theme="dark"] .row.link,
+html[data-s1-theme="dark"] .home-shortcut,
+html[data-s1-theme="dark"] .home-latest,
+html[data-s1-theme="dark"] .home-upcoming,
+html[data-s1-theme="dark"] .day-showcase,
+html[data-s1-theme="dark"] .event-card,
+html[data-s1-theme="dark"] .day-event-card,
+html[data-s1-theme="dark"] .news-feed-card,
+html[data-s1-theme="dark"] .news-card,
+html[data-s1-theme="dark"] .team-member,
+html[data-s1-theme="dark"] .team-card,
+html[data-s1-theme="dark"] .team-profile,
+html[data-s1-theme="dark"] .game,
+html[data-s1-theme="dark"] .rules-gate,
+html[data-s1-theme="dark"] .appeal-alt,
+html[data-s1-theme="dark"] .appeal-form-card,
+html[data-s1-theme="dark"] .details.rules,
+html[data-s1-theme="dark"] details.rules,
+html[data-s1-theme="dark"] .site-search-panel,
+html[data-s1-theme="dark"] .site-search-result,
+html[data-s1-theme="dark"] .news-comments-panel,
+html[data-s1-theme="dark"] .news-comments-modal,
+html[data-s1-theme="dark"] .news-social-modal{
+ background:var(--s1-surface)!important;color:var(--s1-text)!important;
+ border-color:var(--s1-stroke)!important;
+ box-shadow:0 7px 22px rgba(0,0,0,.16)!important;
+}
+html[data-s1-theme="dark"] .card small,
+html[data-s1-theme="dark"] .row em,
+html[data-s1-theme="dark"] .home-latest-date,
+html[data-s1-theme="dark"] .home-upcoming-meta,
+html[data-s1-theme="dark"] .game-hint,
+html[data-s1-theme="dark"] .site-credit,
+html[data-s1-theme="dark"] .team-member-class,
+html[data-s1-theme="dark"] .team-profile-class,
+html[data-s1-theme="dark"] .news-date,
+html[data-s1-theme="dark"] .news-desc,
+html[data-s1-theme="dark"] .news-comment-meta,
+html[data-s1-theme="dark"] .news-comment-compose-hint,
+html[data-s1-theme="dark"] .appeal-privacy{color:var(--s1-muted)!important}
+html[data-s1-theme="dark"] .card b,
+html[data-s1-theme="dark"] .row,
+html[data-s1-theme="dark"] .home-latest-heading,
+html[data-s1-theme="dark"] .home-upcoming-kicker,
+html[data-s1-theme="dark"] .home-shortcut,
+html[data-s1-theme="dark"] .event-list-copy,
+html[data-s1-theme="dark"] .event-overview-copy,
+html[data-s1-theme="dark"] .day-event-top,
+html[data-s1-theme="dark"] .news-detail-title,
+html[data-s1-theme="dark"] .news-comment-name,
+html[data-s1-theme="dark"] .team-member-copy,
+html[data-s1-theme="dark"] .team-group-title{color:var(--s1-text)!important}
+html[data-s1-theme="dark"] .chip,
+html[data-s1-theme="dark"] .event-category-overview,
+html[data-s1-theme="dark"] .day-event-category,
+html[data-s1-theme="dark"] .news-tab,
+html[data-s1-theme="dark"] .news-controls button,
+html[data-s1-theme="dark"] .event-filter-row button,
+html[data-s1-theme="dark"] .calendar-legend span{
+ background:var(--s1-accent-soft)!important;color:#ffdce4!important;border-color:#65404c!important;
+}
+html[data-s1-theme="dark"] .calendar-grid,
+html[data-s1-theme="dark"] .mini-calendar-grid,
+html[data-s1-theme="dark"] .calendar-heading,
+html[data-s1-theme="dark"] .mini-calendar-wrap,
+html[data-s1-theme="dark"] .calendar-legend,
+html[data-s1-theme="dark"] .event-filter-row,
+html[data-s1-theme="dark"] .events-list-section,
+html[data-s1-theme="dark"] .events-archive{
+ background:transparent!important;color:var(--s1-text)!important;border-color:var(--s1-stroke)!important;
+}
+html[data-s1-theme="dark"] .calendar-day,
+html[data-s1-theme="dark"] .mini-calendar-grid button,
+html[data-s1-theme="dark"] .day-switch,
+html[data-s1-theme="dark"] .day-arrow,
+html[data-s1-theme="dark"] .mini-month-nav button{
+ background:var(--s1-surface-raised)!important;color:var(--s1-text)!important;border-color:var(--s1-stroke)!important;
+}
+html[data-s1-theme="dark"] .calendar-day.muted-day{color:#746b73!important;background:#1a181c!important}
+html[data-s1-theme="dark"] .calendar-day.is-current,
+html[data-s1-theme="dark"] .calendar-day.is-selected,
+html[data-s1-theme="dark"] .calendar-day.legend-selected{background:#713044!important;color:#fff!important;border-color:#d36c87!important}
+html[data-s1-theme="dark"] .calendar-day.has-event:after{background:var(--s1-accent)!important}
+html[data-s1-theme="dark"] .more-panel,
+html[data-s1-theme="dark"] .sh .pn,
+html[data-s1-theme="dark"] .sh .pn.more-panel,
+html[data-s1-theme="dark"] .site-search-panel,
+html[data-s1-theme="dark"] .news-detail-panel,
+html[data-s1-theme="dark"] .news-comments-panel{
+ background:#1c191e!important;color:var(--s1-text)!important;border-color:var(--s1-stroke)!important;
+}
+html[data-s1-theme="dark"] .sh .bg{background:rgba(5,4,7,.72)!important}
+html[data-s1-theme="dark"] .more-menu-heading,
+html[data-s1-theme="dark"] .more-menu-item,
+html[data-s1-theme="dark"] .more-menu-intro,
+html[data-s1-theme="dark"] .news-comments-head,
+html[data-s1-theme="dark"] .news-comments-title{border-color:var(--s1-stroke)!important}
+html[data-s1-theme="dark"] .more-menu-heading h3,
+html[data-s1-theme="dark"] .more-menu-item,
+html[data-s1-theme="dark"] .s1-setting-title b,
+html[data-s1-theme="dark"] .s1-settings-heading-copy h3{color:var(--s1-text)!important}
+html[data-s1-theme="dark"] .more-menu-heading p,
+html[data-s1-theme="dark"] .more-menu-intro,
+html[data-s1-theme="dark"] .s1-setting-title small,
+html[data-s1-theme="dark"] .s1-switch-copy small{color:var(--s1-muted)!important}
+html[data-s1-theme="dark"] input,
+html[data-s1-theme="dark"] textarea,
+html[data-s1-theme="dark"] select,
+html[data-s1-theme="dark"] .news-search,
+html[data-s1-theme="dark"] .news-comment-editor,
+html[data-s1-theme="dark"] .news-comment-name-edit{
+ background:#17151a!important;color:var(--s1-text)!important;border-color:#51434d!important;
+ caret-color:var(--s1-accent)!important;
+}
+html[data-s1-theme="dark"] input::placeholder,
+html[data-s1-theme="dark"] textarea::placeholder{color:#958891!important;opacity:1!important}
+html[data-s1-theme="dark"] .btn.ghost,
+html[data-s1-theme="dark"] .news-comment-actions button,
+html[data-s1-theme="dark"] .news-comments-jump,
+html[data-s1-theme="dark"] .news-open{
+ background:#34252d!important;color:#f6dce3!important;border:1px solid #5b3d49!important;
+}
+html[data-s1-theme="dark"] .btn:disabled,
+html[data-s1-theme="dark"] #send.btn.full:disabled{background:#373239!important;color:#aaa1a8!important;border-color:#494149!important}
+html[data-s1-theme="dark"] .rules-gate{background:#292229!important;border-color:#57404a!important}
+html[data-s1-theme="dark"] .rules-gate-icon{background:#432833!important;color:#ffdce4!important}
+html[data-s1-theme="dark"] .rules-gate-copy b{color:var(--s1-text)!important}
+html[data-s1-theme="dark"] .rules-gate-copy span,
+html[data-s1-theme="dark"] .rules-gate .note{color:var(--s1-muted)!important}
+html[data-s1-theme="dark"] .rules-gate.is-accepted{background:#292229!important;border-color:#57404a!important}
+html[data-s1-theme="dark"] .rules-gate.is-accepted .rules-gate-copy b{color:#f5e9ed!important}
+html[data-s1-theme="dark"] .cf-turnstile{background:#242127!important;border-color:#49414b!important}
+html[data-s1-theme="dark"] .game-bottom{background:var(--s1-surface)!important;color:var(--s1-text)!important}
+html[data-s1-theme="dark"] .appeal-privacy{background:#211d22!important;border-color:var(--s1-stroke)!important}
+html[data-s1-theme="dark"] .news-comment-bubble,
+html[data-s1-theme="dark"] .news-comment-editor,
+html[data-s1-theme="dark"] .news-comment-compose-row,
+html[data-s1-theme="dark"] .news-comments-compose,
+html[data-s1-theme="dark"] .news-comments-empty,
+html[data-s1-theme="dark"] .news-empty,
+html[data-s1-theme="dark"] .ok .privacy-confirm{
+ background:#29242b!important;color:var(--s1-muted)!important;border-color:var(--s1-stroke)!important;
+}
+html[data-s1-theme="dark"] .news-comment-avatar{background:#49303b!important;color:#ffe3e9!important}
+html[data-s1-theme="dark"] .news-social-actions .news-like,
+html[data-s1-theme="dark"] .news-detail-dock .news-like,
+html[data-s1-theme="dark"] .news-comment-actions .news-comment-like{
+ background:#33242c!important;color:#ffdce4!important;border-color:#684653!important;
+}
+html[data-s1-theme="dark"] .news-social-actions .news-like.is-liked,
+html[data-s1-theme="dark"] .news-detail-dock .news-like.is-liked,
+html[data-s1-theme="dark"] .news-comment-actions .news-comment-like.is-liked{
+ background:#d83d60!important;color:#fff!important;border-color:#f07891!important;
+}
+html[data-s1-theme="dark"] .s1-theme-choice{background:#29242b!important;color:var(--s1-text)!important;border-color:#4a4048!important}
+html[data-s1-theme="dark"] .s1-theme-choice.is-selected{background:#392630!important;border-color:#f07891!important}
+html[data-s1-theme="dark"] .s1-switch-row{background:#29242b!important;border-color:#4a4048!important}
+html[data-s1-theme="dark"] .s1-switch-symbol{background:#49303b!important;color:#ffdce4!important}
+html[data-s1-theme="dark"] .s1-switch{background:#625761!important}
+html[data-s1-theme="dark"] .s1-switch.is-on{background:#c53b5b!important}
+html[data-s1-theme="dark"] .s1-settings-save{background:#29242b!important;color:var(--s1-muted)!important;border-color:#4a4048!important}
+html[data-s1-theme="dark"] .s1-settings-panel .more-close{background:#392b34!important;color:#fff!important;border-color:#57434e!important}
+html[data-s1-theme="dark"] .s1-reset-button{color:#ff9eb4!important}
+html[data-s1-theme="dark"] .appeal-rules-modal .appeal-rules-heading{border-color:var(--s1-stroke)!important}
+html[data-s1-theme="dark"] .appeal-rules-modal .appeal-rules-heading h3{color:var(--s1-text)!important}
+html[data-s1-theme="dark"] .appeal-rules-modal .appeal-rules-heading p{color:var(--s1-muted)!important}
+html[data-s1-theme="dark"] .appeal-rules-body p{color:var(--s1-text)!important;border-color:var(--s1-stroke)!important}
+html[data-s1-theme="dark"] .appeal-rules-body b{color:#ff9eb4!important}
+html[data-s1-theme="dark"] .appeal-rules-final{background:#2d222a!important;border-color:#6a4654!important}
+html[data-s1-theme="dark"] .site-toast{background:#29242b!important;color:var(--s1-text)!important;border-color:var(--s1-stroke)!important}
+html[data-s1-theme="dark"] a{ text-decoration-color:rgba(240,120,145,.55) }
+@media(max-width:420px){
+ html[data-s1-theme="dark"] .sh .pn{background:#1c191e!important}
+}
 </style>
