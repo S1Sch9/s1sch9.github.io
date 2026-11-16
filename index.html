@@ -1489,7 +1489,12 @@ let TEAM = [
   ["Лидер направления «Культура и искусства»","Хамзин Камиль Ильдарович","9В","","art.jpg"],
   ["Лидер направления «Образование и знания»","Пудова Елизавета Юрьевна","6А","",""]
 ];
-let NEWS = [];
+let NEWS = [{
+  d: "14.11.2026",
+  t: "НОВЫЙ ЛОГОТИП СОВЕТА ПЕРВЫХ ШКОЛЫ 9!!!",
+  x: "Новый символ нашего Совета — авторское видение логотипа Движения Первых, созданное специально для нашей школы.\n\nВ его очертаниях можно увидеть человека, который стремится вперёд и вверх — к новым целям, мечтам и достижениям. Именно такими мы видим учеников нашей школы: активными, смелыми и готовыми постоянно развиваться и двигаться вперед.\n\nНо у этого символа нет одного единственного значения: каждый может увидеть в нём что-то своё — движение, человека или стремление к новым вершинам. И в этом его главная красота!\n\nНовый логотип — наше отражение, наше движение и наша история, которую мы создаём вместе. ❤️",
+  media: []
+}];
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const safeUrl = value => { try { const u = new URL(String(value || ""), location.origin); return u.protocol === "https:" || u.origin === location.origin ? u.href : ""; } catch { return ""; } };
@@ -2013,9 +2018,7 @@ Promise.all([
   fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news?v=" + Date.now()).then(r => r.ok ? r.json() : []).catch(() => [])
 ])
   .then(([staticItems, liveItems]) => {
-    const items = [...(Array.isArray(liveItems) ? liveItems : []), ...(Array.isArray(staticItems) ? staticItems : [])];
-    if (!items.length) return;
-    const added = items.map(n => {
+    const normalize = n => {
       const raw = String(n.text || "").trim();
       const lines = raw.split(/\r?\n/);
       const first = lines.shift() || "";
@@ -2025,9 +2028,14 @@ Promise.all([
         x: n.description || lines.join("\n").trim(),
         media: Array.isArray(n.media) ? n.media : []
       };
-    }).filter(n => n.t.trim());
+    };
+    const live = (Array.isArray(liveItems) ? liveItems : []).map(normalize).filter(n => n.t.trim());
+    const archived = (Array.isArray(staticItems) ? staticItems : []).map(normalize).filter(n => n.t.trim());
     const existing = new Set(NEWS.map(n => n.t.trim()));
-    NEWS.unshift(...added.filter(n => !existing.has(n.t)));
+    const freshLive = live.filter(n => !existing.has(n.t) && (existing.add(n.t), true));
+    NEWS.unshift(...freshLive);
+    const withLive = new Set(NEWS.map(n => n.t.trim()));
+    NEWS.push(...archived.filter(n => !withLive.has(n.t) && (withLive.add(n.t), true)));
     drawNews();
   })
   .catch(err => console.log("Ошибка загрузки новостей:", err));
