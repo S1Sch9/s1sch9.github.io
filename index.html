@@ -2071,12 +2071,12 @@ function closeSh(){
 }
 
 const S1_PREFS_KEY="s1sch9_display_preferences_v1";
-const S1_DEFAULT_PREFS={theme:"light",motion:true,textSize:"normal",contrast:false};
-function s1ReadPrefs(){try{const saved=JSON.parse(localStorage.getItem(S1_PREFS_KEY)||"{}");return {...S1_DEFAULT_PREFS,...saved,theme:saved.theme==="dark"?"dark":"light",motion:saved.motion!==false,textSize:["normal","large","xlarge"].includes(saved.textSize)?saved.textSize:"normal",contrast:saved.contrast===true};}catch(_){return {...S1_DEFAULT_PREFS};}}
+const S1_DEFAULT_PREFS={theme:"light",motion:true,textSize:"normal"};
+function s1ReadPrefs(){try{const saved=JSON.parse(localStorage.getItem(S1_PREFS_KEY)||"{}");return {...S1_DEFAULT_PREFS,...saved,theme:saved.theme==="dark"?"dark":"light",motion:saved.motion!==false,textSize:saved.textSize==="xlarge"||saved.textSize==="large"?"large":"normal"};}catch(_){return {...S1_DEFAULT_PREFS};}}
 let S1_PREFS=s1ReadPrefs();
 function s1ApplyTextScale(root){
  root=root||document.querySelector("main");if(!root)return;
- const factor=S1_PREFS.textSize==="large"?1.12:S1_PREFS.textSize==="xlarge"?1.25:1;
+ const factor=S1_PREFS.textSize==="large"?1.12:1;
  const nodes=[root,...root.querySelectorAll("*")];
  const eligible=[];
  for(const el of nodes){
@@ -2111,7 +2111,7 @@ function s1WatchTextScale(){
  s1TextScaleObserver.observe(main,{childList:true,subtree:true});
 }
 function s1ApplyPrefs(){
- const root=document.documentElement;root.dataset.s1Theme=S1_PREFS.theme==="dark"?"dark":"light";root.dataset.s1TextSize=S1_PREFS.textSize;root.dataset.s1Contrast=S1_PREFS.contrast?"high":"normal";
+ const root=document.documentElement;root.dataset.s1Theme=S1_PREFS.theme==="dark"?"dark":"light";root.dataset.s1TextSize=S1_PREFS.textSize;
  document.body.classList.toggle("s1-motion-off",!S1_PREFS.motion);
  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=S1_PREFS.theme==="dark"?"#171216":"#3d000d";
  s1ApplyTextScale();s1WatchTextScale();
@@ -2140,12 +2140,7 @@ function openSiteSettings(){
     <div class="s1-text-size-options" role="group" aria-label="Размер текста">
      <button type="button" data-s1-text-choice="normal" onclick="s1SetTextSize('normal')" aria-pressed="false">Обычный</button>
      <button type="button" data-s1-text-choice="large" onclick="s1SetTextSize('large')" aria-pressed="false">Крупнее</button>
-     <button type="button" data-s1-text-choice="xlarge" onclick="s1SetTextSize('xlarge')" aria-pressed="false">Крупный</button>
     </div>
-   </div>
-   <div class="s1-setting-group">
-    <div class="s1-setting-title"><b>Комфорт и доступность</b><small>Дополнительные настройки для удобного просмотра</small></div>
-    <div class="s1-switch-row"><span class="s1-switch-symbol" aria-hidden="true">◐</span><span class="s1-switch-copy"><b>Повышенная контрастность</b><small data-s1-contrast-status>Выключена</small></span><button class="s1-switch" type="button" role="switch" aria-checked="false" aria-label="Повышенная контрастность" data-s1-contrast-toggle onclick="s1SetContrast(!S1_PREFS.contrast)"><span></span></button></div>
    </div>
    <div class="s1-setting-group s1-setting-group-motion">
     <div class="s1-setting-title"><b>Анимация интерфейса</b><small>Плавность переходов и движения элементов</small></div>
@@ -2159,16 +2154,13 @@ function s1RenderSettings(){
  const p=$("#pn");if(!p||!p.classList.contains("s1-settings-panel"))return;
  p.querySelectorAll("[data-s1-theme-choice]").forEach(b=>{const v=b.dataset.s1ThemeChoice===S1_PREFS.theme;b.classList.toggle("is-selected",v);b.setAttribute("aria-pressed",String(v));});
  p.querySelectorAll("[data-s1-text-choice]").forEach(b=>{const v=b.dataset.s1TextChoice===S1_PREFS.textSize;b.classList.toggle("is-selected",v);b.setAttribute("aria-pressed",String(v));});
- const contrastToggle=p.querySelector("[data-s1-contrast-toggle]");if(contrastToggle){contrastToggle.classList.toggle("is-on",!!S1_PREFS.contrast);contrastToggle.setAttribute("aria-checked",String(!!S1_PREFS.contrast));}
- const contrastStatus=p.querySelector("[data-s1-contrast-status]");if(contrastStatus)contrastStatus.textContent=S1_PREFS.contrast?"Включена":"Выключена";
  const toggle=p.querySelector("[data-s1-motion-toggle]");
  if(toggle){toggle.classList.toggle("is-on",!!S1_PREFS.motion);toggle.setAttribute("aria-checked",String(!!S1_PREFS.motion));}
  const status=p.querySelector("[data-s1-motion-status]");if(status)status.textContent=S1_PREFS.motion?"Включены":"Выключены";
 }
 function s1SetTheme(v){S1_PREFS.theme=v==="dark"?"dark":"light";s1SavePrefs();s1RenderSettings();}
 function s1SetMotion(v){S1_PREFS.motion=!!v;s1SavePrefs();s1RenderSettings();}
-function s1SetTextSize(v){S1_PREFS.textSize=["normal","large","xlarge"].includes(v)?v:"normal";s1SavePrefs();s1RenderSettings();}
-function s1SetContrast(v){S1_PREFS.contrast=!!v;s1SavePrefs();s1RenderSettings();}
+function s1SetTextSize(v){S1_PREFS.textSize=v==="large"?"large":"normal";s1SavePrefs();s1RenderSettings();}
 function s1ResetPrefs(){S1_PREFS={...S1_DEFAULT_PREFS};s1SavePrefs();s1RenderSettings();}
 
 function openMoreMenu(){
@@ -4463,15 +4455,6 @@ html[data-s1-theme="dark"] .site-settings-trigger{background:#30252d;color:#ffe2
 .s1-settings-panel .s1-switch-row+.s1-switch-row{margin-top:8px}
 html[data-s1-theme="dark"] .s1-text-size-options button{background:#292027;color:#f4edf0;border-color:#51414a}
 html[data-s1-theme="dark"] .s1-text-size-options button.is-selected{background:#432631;color:#ffe2e9;border-color:#c46b82}
-html[data-s1-contrast="high"]{--line:#8e7d82;--mut:#51464a}
-html[data-s1-contrast="high"] body{color:#171115}
-html[data-s1-contrast="high"] a{text-decoration-thickness:1.5px;text-underline-offset:3px}
-html[data-s1-contrast="high"] button,html[data-s1-contrast="high"] input,html[data-s1-contrast="high"] textarea,html[data-s1-contrast="high"] select{border-width:1.5px}
-html[data-s1-contrast="high"] :focus-visible{outline:3px solid #7b0019!important;outline-offset:3px!important}
-html[data-s1-theme="dark"][data-s1-contrast="high"]{--s1-text:#fff;--s1-muted:#f0e6eb;--s1-stroke:#9b7c89}
-html[data-s1-theme="dark"][data-s1-contrast="high"] body{color:#fff}
-html[data-s1-theme="dark"][data-s1-contrast="high"] :focus-visible{outline-color:#ffd5df!important}
-html[data-s1-contrast="high"] .s1-settings-panel .s1-setting-title small,html[data-s1-contrast="high"] .s1-switch-copy small{color:var(--mut)!important}
 </style>
 <style id="s1-accepted-rules-button-compact-final">
 #rulesGate.is-accepted #openAppealRules.btn{width:auto!important;min-height:27px!important;height:27px!important;padding:4px 7px!important;font-size:10px!important;line-height:1!important;border-radius:8px!important;box-shadow:none!important}
