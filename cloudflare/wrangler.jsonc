@@ -10,5 +10,14 @@
       "database_name": "s1sch9-appeals",
       "database_id": "72d0a4f5-b90b-4592-acce-c84e1fa8d427"
     }
-  ]
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "triggers": {
+    "crons": [
+      "* * * * *",
+      "0 5 * * *"
+    ]
+  }
 }
