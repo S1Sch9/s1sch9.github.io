@@ -1698,13 +1698,14 @@ function drawNews(){
   };
   const cover=n=>{
     const first=(n.media||[])[0];
-    if(first&&first.type!=="video")return '<img src="'+esc(safeUrl(first.url||""))+'" alt="" loading="lazy">';
-    if(first)return '<span class="news-thumb-video"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 10 6-10 6z"/></svg></span>';
-    return '<span class="news-thumb-empty"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5Z"/><path d="M7.5 8h9M7.5 12h9M7.5 16h5"/></svg></span>';
+    if(!first)return "";
+    if(first.type==="video")return '<span class="news-thumb-video"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 10 6-10 6z"/></svg></span>';
+    const url=safeUrl(first.url||"");
+    return url?'<img src="'+esc(url)+'" alt="" loading="lazy">':"";
   };
   $("#newsList").innerHTML=list.length?list.map(n=>{
     const id=newsSocialId(n),index=NEWS.indexOf(n),excerpt=teaser(n),mediaCount=(n.media||[]).length;
-    return '<article class="news-feed-card rv" data-k="'+index+'"><button type="button" class="news-open" aria-label="Открыть новость: '+esc(n.t)+'"><span class="news-card-thumb">'+cover(n)+'</span><span class="news-card-copy"><small class="news-date">'+esc(n.d||"НОВОСТЬ")+'</small><b>'+esc(n.t)+'</b>'+(excerpt?'<span class="news-desc">'+esc(excerpt)+'</span>':'')+'<span class="news-open-label">Читать новость <span aria-hidden="true">↗</span></span>'+(mediaCount>1?'<span class="news-media-count">'+mediaCount+' материала</span>':'')+'</span></button><div class="news-social news-social-feed" data-news-social="'+esc(id)+'"><div class="news-social-actions"><button type="button" class="news-like" data-news-like aria-label="Нравится">♡ <span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/></svg>Комментарии <span data-comment-count></span></button><button type="button" class="news-bookmark" data-bookmark-news>☆ Сохранить</button></div></div></article>';
+    return '<article class="news-feed-card rv" data-k="'+index+'"><button type="button" class="news-open'+(cover(n)?' has-cover':' no-cover')+'" aria-label="Открыть новость: '+esc(n.t)+'">'+(cover(n)?'<span class="news-card-thumb">'+cover(n)+'</span>':'')+'<span class="news-card-copy"><small class="news-date">'+esc(n.d||"НОВОСТЬ")+'</small><b>'+esc(n.t)+'</b>'+(excerpt?'<span class="news-desc">'+esc(excerpt)+'</span>':'')+'<span class="news-open-label">Читать новость <span aria-hidden="true">↗</span></span>'+(mediaCount>1?'<span class="news-media-count">'+mediaCount+' материала</span>':'')+'</span></button><div class="news-social news-social-feed" data-news-social="'+esc(id)+'"><div class="news-social-actions"><button type="button" class="news-like" data-news-like aria-label="Нравится">♡ <span data-like-count>…</span></button><button type="button" class="news-comments-jump" data-comments-jump><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/></svg>Комментарии <span data-comment-count></span></button><button type="button" class="news-bookmark" data-bookmark-news>☆ Сохранить</button></div></div></article>';
   }).join(""):'<div class="news-empty"><span>⌕</span><b>'+(showSavedNews?"Сохранённых новостей пока нет":"Ничего не найдено")+'</b><small>'+(showSavedNews?"Сохраняй интересные публикации, чтобы вернуться к ним позже.":"Попробуй изменить запрос или очистить поиск.")+'</small>'+(query?'<button type="button" data-reset-news-search>Очистить поиск</button>':'')+'</div>';
   const allTab=$("#newsAllTab"),savedTab=$("#newsSavedTab");
   if(allTab){allTab.classList.toggle("is-active",!showSavedNews);allTab.setAttribute("aria-selected",String(!showSavedNews));}
@@ -2441,6 +2442,15 @@ nav .scrub-target .nav-label{color:#fff!important}
 #pn:has(.team-profile){animation:teamProfileEnter .28s ease-out both!important}
 @keyframes teamProfileEnter{from{transform:translateY(24px);opacity:.96}to{transform:translateY(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){#pn:has(.team-profile){animation:none!important}}
+</style>
+
+
+<style id="news-card-optional-photo-2026">
+/* Фото в карточке новости показываем только если оно действительно добавлено в админке */
+#newsList .news-open.no-cover{gap:0!important;min-height:0!important;padding:15px 16px!important}
+#newsList .news-open.no-cover .news-card-copy{width:100%;padding:1px 0!important}
+#newsList .news-open.has-cover .news-card-thumb{background:#f5ecef!important}
+#newsList .news-card-thumb>img{object-fit:cover}
 </style>
 
 </body>
