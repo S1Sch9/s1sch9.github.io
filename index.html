@@ -1705,7 +1705,7 @@ html[data-s1-theme="dark"] .more-close{
     <path class="s1-ribbon-glint" d="M520 1010 C650 790 790 690 930 755 S1130 910 1360 635" />
   </g>
 </svg>
-<div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button><button class="site-settings-trigger" id="siteSettingsTrigger" type="button" aria-label="Открыть настройки" title="Настройки" onclick="openSiteSettings()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.4 13.5 1.1.9-1.2 2.1-1.4-.5a7.8 7.8 0 0 1-1.7 1l-.2 1.5h-2.4l-.3-1.5a7.8 7.8 0 0 1-1.8-1l-1.4.5-1.2-2.1 1.1-.9a7.5 7.5 0 0 1 0-2l-1.1-.9 1.2-2.1 1.4.5a7.8 7.8 0 0 1 1.8-1l.3-1.5h2.4l.2 1.5a7.8 7.8 0 0 1 1.7 1l1.4-.5 1.2 2.1-1.1.9a7.5 7.5 0 0 1 0 2Z"/></svg></button></div>
+<div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button><button class="site-settings-trigger" id="siteSettingsTrigger" type="button" aria-label="Открыть настройки" title="Настройки" onclick="openSiteSettings()"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.8 3.12-.08-.03a1.7 1.7 0 0 0-1.88.34l-.06.06h-3.6l-.02-.08a1.7 1.7 0 0 0-1.28-1.28l-.08-.02-1.8-3.12.06-.06A1.7 1.7 0 0 0 9.6 15l-.08-.03v-3.6l.08-.02a1.7 1.7 0 0 0 1.28-1.28l.02-.08 3.12-1.8.06.06a1.7 1.7 0 0 0 1.88.34l.06-.06 3.12 1.8-.03.08a1.7 1.7 0 0 0 .34 1.88l.06.06v3.6Z"/></svg></button></div>
 <div class="site-search-panel" id="siteSearchPanel" hidden><div class="site-search-head"><label for="siteSearchInput">Поиск по всему сайту</label><button type="button" id="siteSearchClose" aria-label="Закрыть поиск">×</button></div><input id="siteSearchInput" type="search" placeholder="Новости, мероприятия, люди, ссылки…" autocomplete="off"><div id="siteSearchResults" class="site-search-results"><p class="note">Начни вводить запрос — найдём нужное.</p></div><button type="button" id="siteInstallHelp" class="site-install-help">Как добавить сайт на экран телефона</button></div>
 <div id="siteToast" class="site-toast" role="status" aria-live="polite"></div>
 <div id="connectionStatus" class="connection-status" role="status" aria-live="polite" hidden></div>
@@ -2071,13 +2071,43 @@ function closeSh(){
 }
 
 const S1_PREFS_KEY="s1sch9_display_preferences_v1";
-const S1_DEFAULT_PREFS={theme:"light",motion:true,textSize:"normal",contrast:false,reading:false};
-function s1ReadPrefs(){try{const saved=JSON.parse(localStorage.getItem(S1_PREFS_KEY)||"{}");return {...S1_DEFAULT_PREFS,...saved,theme:saved.theme==="dark"?"dark":"light",motion:saved.motion!==false,textSize:["normal","large","xlarge"].includes(saved.textSize)?saved.textSize:"normal",contrast:saved.contrast===true,reading:saved.reading===true};}catch(_){return {...S1_DEFAULT_PREFS};}}
+const S1_DEFAULT_PREFS={theme:"light",motion:true,textSize:"normal",contrast:false};
+function s1ReadPrefs(){try{const saved=JSON.parse(localStorage.getItem(S1_PREFS_KEY)||"{}");return {...S1_DEFAULT_PREFS,...saved,theme:saved.theme==="dark"?"dark":"light",motion:saved.motion!==false,textSize:["normal","large","xlarge"].includes(saved.textSize)?saved.textSize:"normal",contrast:saved.contrast===true};}catch(_){return {...S1_DEFAULT_PREFS};}}
 let S1_PREFS=s1ReadPrefs();
+function s1ApplyTextScale(root){
+ root=root||document.querySelector("main");if(!root)return;
+ const factor=S1_PREFS.textSize==="large"?1.12:S1_PREFS.textSize==="xlarge"?1.25:1;
+ const nodes=[root,...root.querySelectorAll("*")];
+ for(const el of nodes){
+  if(!(el instanceof HTMLElement)||el.closest("svg,script,style,noscript")||el.matches("svg,script,style,noscript"))continue;
+  const ownText=Array.from(el.childNodes).some(n=>n.nodeType===Node.TEXT_NODE&&n.textContent.trim());
+  if(!ownText&&!el.matches("input,textarea,select,button"))continue;
+  if(!el.hasAttribute("data-s1-base-font-size")){
+   el.dataset.s1BaseFontSize=getComputedStyle(el).fontSize;
+   el.dataset.s1BaseInlineFontSize=el.style.getPropertyValue("font-size");
+   el.dataset.s1BaseInlineFontPriority=el.style.getPropertyPriority("font-size");
+  }
+  if(factor===1){
+   const v=el.dataset.s1BaseInlineFontSize,p=el.dataset.s1BaseInlineFontPriority;
+   if(v)el.style.setProperty("font-size",v,p);else el.style.removeProperty("font-size");
+   delete el.dataset.s1BaseFontSize;delete el.dataset.s1BaseInlineFontSize;delete el.dataset.s1BaseInlineFontPriority;
+  }else{
+   const px=parseFloat(el.dataset.s1BaseFontSize);
+   if(Number.isFinite(px))el.style.setProperty("font-size",(px*factor).toFixed(2)+"px","important");
+  }
+ }
+}
+let s1TextScaleObserver=null;
+function s1WatchTextScale(){
+ const main=document.querySelector("main");if(!main||s1TextScaleObserver)return;
+ s1TextScaleObserver=new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)if(node.nodeType===Node.ELEMENT_NODE)s1ApplyTextScale(node);});
+ s1TextScaleObserver.observe(main,{childList:true,subtree:true});
+}
 function s1ApplyPrefs(){
- const root=document.documentElement;root.dataset.s1Theme=S1_PREFS.theme==="dark"?"dark":"light";root.dataset.s1TextSize=S1_PREFS.textSize;root.dataset.s1Contrast=S1_PREFS.contrast?"high":"normal";root.dataset.s1Reading=S1_PREFS.reading?"comfortable":"normal";
+ const root=document.documentElement;root.dataset.s1Theme=S1_PREFS.theme==="dark"?"dark":"light";root.dataset.s1TextSize=S1_PREFS.textSize;root.dataset.s1Contrast=S1_PREFS.contrast?"high":"normal";
  document.body.classList.toggle("s1-motion-off",!S1_PREFS.motion);
  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=S1_PREFS.theme==="dark"?"#171216":"#3d000d";
+ s1ApplyTextScale();s1WatchTextScale();
 }
 function s1SavePrefs(){try{localStorage.setItem(S1_PREFS_KEY,JSON.stringify(S1_PREFS));}catch(_){}s1ApplyPrefs();}
 function openSiteSettings(){
@@ -2109,7 +2139,6 @@ function openSiteSettings(){
    <div class="s1-setting-group">
     <div class="s1-setting-title"><b>Комфорт и доступность</b><small>Дополнительные настройки для удобного просмотра</small></div>
     <div class="s1-switch-row"><span class="s1-switch-symbol" aria-hidden="true">◐</span><span class="s1-switch-copy"><b>Повышенная контрастность</b><small data-s1-contrast-status>Выключена</small></span><button class="s1-switch" type="button" role="switch" aria-checked="false" aria-label="Повышенная контрастность" data-s1-contrast-toggle onclick="s1SetContrast(!S1_PREFS.contrast)"><span></span></button></div>
-    <div class="s1-switch-row"><span class="s1-switch-symbol" aria-hidden="true">≡</span><span class="s1-switch-copy"><b>Комфортное чтение</b><small data-s1-reading-status>Обычные интервалы</small></span><button class="s1-switch" type="button" role="switch" aria-checked="false" aria-label="Комфортное чтение" data-s1-reading-toggle onclick="s1SetReading(!S1_PREFS.reading)"><span></span></button></div>
    </div>
    <div class="s1-setting-group s1-setting-group-motion">
     <div class="s1-setting-title"><b>Анимация интерфейса</b><small>Плавность переходов и движения элементов</small></div>
@@ -2125,8 +2154,6 @@ function s1RenderSettings(){
  p.querySelectorAll("[data-s1-text-choice]").forEach(b=>{const v=b.dataset.s1TextChoice===S1_PREFS.textSize;b.classList.toggle("is-selected",v);b.setAttribute("aria-pressed",String(v));});
  const contrastToggle=p.querySelector("[data-s1-contrast-toggle]");if(contrastToggle){contrastToggle.classList.toggle("is-on",!!S1_PREFS.contrast);contrastToggle.setAttribute("aria-checked",String(!!S1_PREFS.contrast));}
  const contrastStatus=p.querySelector("[data-s1-contrast-status]");if(contrastStatus)contrastStatus.textContent=S1_PREFS.contrast?"Включена":"Выключена";
- const readingToggle=p.querySelector("[data-s1-reading-toggle]");if(readingToggle){readingToggle.classList.toggle("is-on",!!S1_PREFS.reading);readingToggle.setAttribute("aria-checked",String(!!S1_PREFS.reading));}
- const readingStatus=p.querySelector("[data-s1-reading-status]");if(readingStatus)readingStatus.textContent=S1_PREFS.reading?"Увеличенные интервалы":"Обычные интервалы";
  const toggle=p.querySelector("[data-s1-motion-toggle]");
  if(toggle){toggle.classList.toggle("is-on",!!S1_PREFS.motion);toggle.setAttribute("aria-checked",String(!!S1_PREFS.motion));}
  const status=p.querySelector("[data-s1-motion-status]");if(status)status.textContent=S1_PREFS.motion?"Включены":"Выключены";
@@ -2135,7 +2162,6 @@ function s1SetTheme(v){S1_PREFS.theme=v==="dark"?"dark":"light";s1SavePrefs();s1
 function s1SetMotion(v){S1_PREFS.motion=!!v;s1SavePrefs();s1RenderSettings();}
 function s1SetTextSize(v){S1_PREFS.textSize=["normal","large","xlarge"].includes(v)?v:"normal";s1SavePrefs();s1RenderSettings();}
 function s1SetContrast(v){S1_PREFS.contrast=!!v;s1SavePrefs();s1RenderSettings();}
-function s1SetReading(v){S1_PREFS.reading=!!v;s1SavePrefs();s1RenderSettings();}
 function s1ResetPrefs(){S1_PREFS={...S1_DEFAULT_PREFS};s1SavePrefs();s1RenderSettings();}
 
 function openMoreMenu(){
@@ -4422,10 +4448,6 @@ html[data-s1-theme="dark"] .site-settings-trigger{background:#30252d;color:#ffe2
 .s1-settings-panel .s1-switch-row+.s1-switch-row{margin-top:8px}
 html[data-s1-theme="dark"] .s1-text-size-options button{background:#292027;color:#f4edf0;border-color:#51414a}
 html[data-s1-theme="dark"] .s1-text-size-options button.is-selected{background:#432631;color:#ffe2e9;border-color:#c46b82}
-html[data-s1-text-size="large"] main p,html[data-s1-text-size="large"] main li,html[data-s1-text-size="large"] main .note,html[data-s1-text-size="large"] main .event-list-item,html[data-s1-text-size="large"] main .news-feed-card,html[data-s1-text-size="large"] main .resource-caption{font-size:calc(1em + 1px)!important}
-html[data-s1-text-size="xlarge"] main p,html[data-s1-text-size="xlarge"] main li,html[data-s1-text-size="xlarge"] main .note,html[data-s1-text-size="xlarge"] main .event-list-item,html[data-s1-text-size="xlarge"] main .news-feed-card,html[data-s1-text-size="xlarge"] main .resource-caption{font-size:calc(1em + 2px)!important}
-html[data-s1-reading="comfortable"] main p,html[data-s1-reading="comfortable"] main li,html[data-s1-reading="comfortable"] main .note{line-height:1.75!important;letter-spacing:.01em}
-html[data-s1-reading="comfortable"] main p{margin-bottom:1.05em}
 html[data-s1-contrast="high"]{--line:#8e7d82;--mut:#51464a}
 html[data-s1-contrast="high"] body{color:#171115}
 html[data-s1-contrast="high"] a{text-decoration-thickness:1.5px;text-underline-offset:3px}
