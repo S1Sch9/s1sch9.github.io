@@ -1753,18 +1753,26 @@ function renderNewsComment(c,all=[],depth=0){
   const children=depth<4?all.filter(x=>x.parent_id===c.id).map(x=>renderNewsComment(x,all,depth+1)).join(""):"";
   return '<article class="news-comment'+(depth?' is-reply':'')+'" data-comment-id="'+esc(c.id)+'"><div class="news-comment-avatar" aria-hidden="true">'+initial+'</div><div class="news-comment-main"><div class="news-comment-bubble"><div class="news-comment-meta"><b>'+esc(author)+'</b><time>'+date+'</time></div><p>'+esc(c.message)+'</p></div>'+actions+tools+(children?'<div class="news-comment-children">'+children+'</div>':'')+'</div></article>';
  }
-const NEWS_SOCIAL_CACHE=new Map(),NEWS_SOCIAL_PENDING=new Map();
+const NEWS_SOCIAL_CACHE=new Map(),NEWS_SOCIAL_PENDING=new Map(),NEWS_SOCIAL_REQUESTS=new Map();
 async function loadNewsSocial(newsId,force=false){
-  const roots=Array.from(document.querySelectorAll("[data-news-social]")).filter(r=>r.dataset.newsSocial===String(newsId));
+  const key=String(newsId),roots=Array.from(document.querySelectorAll("[data-news-social]")).filter(r=>r.dataset.newsSocial===key);
   if(!roots.length)return;
+  if(!NEWS_SOCIAL_REQUESTS.has(key))NEWS_SOCIAL_REQUESTS.set(key,0);
+  const version=force?(NEWS_SOCIAL_REQUESTS.get(key)||0)+1:(NEWS_SOCIAL_REQUESTS.get(key)||0);
+  if(force){NEWS_SOCIAL_REQUESTS.set(key,version);NEWS_SOCIAL_CACHE.delete(key);}
   try{
-    let d;const cached=NEWS_SOCIAL_CACHE.get(String(newsId));
+    let d;const cached=NEWS_SOCIAL_CACHE.get(key);
     if(!force&&cached&&Date.now()-cached.at<20000)d=cached.data;
     else{
-      let pending=NEWS_SOCIAL_PENDING.get(String(newsId));
-      if(!pending){pending=(async()=>{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-social?news_id="+encodeURIComponent(newsId)+"&visitor_id="+encodeURIComponent(newsVisitorId()));const data=await r.json();if(!r.ok)throw Error(data.error||"Не удалось загрузить реакции");NEWS_SOCIAL_CACHE.set(String(newsId),{at:Date.now(),data});return data;})();NEWS_SOCIAL_PENDING.set(String(newsId),pending);}
-      try{d=await pending;}finally{if(NEWS_SOCIAL_PENDING.get(String(newsId))===pending)NEWS_SOCIAL_PENDING.delete(String(newsId));}
+      let pending=force?null:NEWS_SOCIAL_PENDING.get(key);
+      if(!pending){
+        const requestVersion=version;
+        pending=(async()=>{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-social?news_id="+encodeURIComponent(newsId)+"&visitor_id="+encodeURIComponent(newsVisitorId())+"&_="+Date.now());const data=await r.json();if(!r.ok)throw Error(data.error||"Не удалось загрузить реакции");if(NEWS_SOCIAL_REQUESTS.get(key)===requestVersion)NEWS_SOCIAL_CACHE.set(key,{at:Date.now(),data});return data;})();
+        NEWS_SOCIAL_PENDING.set(key,pending);
+      }
+      try{d=await pending;}finally{if(NEWS_SOCIAL_PENDING.get(key)===pending)NEWS_SOCIAL_PENDING.delete(key);}
     }
+    if(NEWS_SOCIAL_REQUESTS.get(key)!==version)return;
     roots.forEach(root=>{
       const like=root.querySelector("[data-news-like]");
       if(like){like.classList.toggle("is-liked",!!d.liked);const count=like.querySelector("[data-like-count]");if(count)count.textContent=d.likes;else like.innerHTML=(d.liked?"♥":"♡")+' <span data-like-count>'+d.likes+'</span>'}
@@ -1777,7 +1785,7 @@ async function loadNewsSocial(newsId,force=false){
       }
       const count=root.querySelector("[data-comment-count]");if(count)count.textContent=(d.comments||[]).length?'· '+d.comments.length:'';
     });
-  }catch{roots.forEach(root=>{const list=root.querySelector("[data-comments-list]");if(list)list.textContent="Не удалось загрузить обсуждение."})}
+  }catch{if(NEWS_SOCIAL_REQUESTS.get(key)!==version)return;roots.forEach(root=>{const list=root.querySelector("[data-comments-list]");if(list)list.textContent="Не удалось загрузить обсуждение."})}
 }
 function newsCommentName(){return (localStorage.getItem("s1sch9_comment_name")||"Аноним").trim().slice(0,32)||"Аноним"}
 let newsDetailReturnHtml=null;
@@ -1793,7 +1801,7 @@ function openNewsComments(newsId){
   const name=newsCommentName();
   openSh('<div class="news-comments-modal" data-news-social="'+esc(newsId)+'"><div class="news-comments-head"><div><small>ОБСУЖДЕНИЕ НОВОСТИ</small><h3>Комментарии</h3></div><button type="button" class="news-comments-back" onclick="closeNewsComments()" aria-label="Закрыть комментарии и вернуться к новости" title="Вернуться к новости">×</button></div><div class="news-comments-name-tools"><div class="news-comments-name-caption"><span>Ваше имя в комментариях</span><b data-name-current>'+esc(name)+'</b></div><button type="button" class="news-comment-name" data-name-toggle aria-expanded="false">Изменить имя</button></div><div class="news-comments-name-row"><input class="news-comment-name-edit" data-name-edit maxlength="32" value="'+esc(name)+'" placeholder="Введите имя" aria-label="Новое имя для комментариев"><span class="news-comments-name-help">Это имя будут видеть другие участники обсуждения</span></div><div class="news-comments-list" data-comments-list><p class="note">Загружаем комментарии…</p></div><div class="news-comments-compose"><form data-comment-form><div class="news-comment-compose-row"><textarea name="message" maxlength="600" minlength="2" required placeholder="Написать комментарий…" aria-label="Текст комментария"></textarea><button class="btn" type="submit" aria-label="Отправить комментарий">↑</button></div><p class="news-comment-compose-hint">Общайтесь уважительно — комментарии видны всем</p><p class="note" data-comment-status role="status"></p></form></div></div>');
   $("#pn").classList.add("news-comments-panel");
-  loadNewsSocial(newsId);
+  loadNewsSocial(newsId,true);
 }
 document.addEventListener("focusin",e=>{if(!e.target.matches("#pn input,#pn textarea"))return;requestAnimationFrame(()=>{requestAnimationFrame(()=>{if(e.target.isConnected)e.target.scrollIntoView({block:"nearest",inline:"nearest",behavior:"smooth"})})})});
 
@@ -1920,7 +1928,7 @@ document.addEventListener("submit",async e=>{
     await loadNewsSocial(root.dataset.newsSocial);
   }catch(err){alert(err.message);button.disabled=false;button.textContent="Сохранить"}
 });
-document.addEventListener("submit",async e=>{const form=e.target.closest("[data-comment-form],[data-comment-reply-form]");if(!form)return;e.preventDefault();const root=form.closest("[data-news-social]"),status=form.querySelector("[data-comment-status]"),button=form.querySelector("button[type=submit]");const edit=document.querySelector("[data-name-edit]"),author=(edit&&edit.value.trim())||newsCommentName(),message=form.elements.message.value.trim(),article=form.closest("[data-comment-id]"),parent_id=article?article.dataset.commentId:null;button.disabled=true;if(status)status.textContent="Отправляем…";try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({news_id:root.dataset.newsSocial,visitor_id:newsVisitorId(),author,message,parent_id})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось отправить комментарий");if(status)status.textContent=d.message;form.reset();const nameEdit=document.querySelector("[data-name-edit]");if(nameEdit)nameEdit.value=newsCommentName();if(d.status==="published")await loadNewsSocial(root.dataset.newsSocial)}catch(err){if(status)status.textContent=err.message}finally{button.disabled=false}});
+document.addEventListener("submit",async e=>{const form=e.target.closest("[data-comment-form],[data-comment-reply-form]");if(!form)return;e.preventDefault();const root=form.closest("[data-news-social]"),status=form.querySelector("[data-comment-status]"),button=form.querySelector("button[type=submit]");const edit=document.querySelector("[data-name-edit]"),author=(edit&&edit.value.trim())||newsCommentName(),message=form.elements.message.value.trim(),article=form.closest("[data-comment-id]"),parent_id=article?article.dataset.commentId:null;button.disabled=true;if(status)status.textContent="Отправляем…";try{const r=await fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news-comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({news_id:root.dataset.newsSocial,visitor_id:newsVisitorId(),author,message,parent_id})});const d=await r.json();if(!r.ok)throw Error(d.error||"Не удалось отправить комментарий");if(status)status.textContent=d.message;form.reset();const nameEdit=document.querySelector("[data-name-edit]");if(nameEdit)nameEdit.value=newsCommentName();NEWS_SOCIAL_CACHE.delete(root.dataset.newsSocial);await loadNewsSocial(root.dataset.newsSocial,true)}catch(err){if(status)status.textContent=err.message}finally{button.disabled=false}});
 
 $("#q").addEventListener("input", drawNews);
 $("#clearNewsSearch")?.addEventListener("click",()=>{$("#q").value="";drawNews();$("#q").focus();});
