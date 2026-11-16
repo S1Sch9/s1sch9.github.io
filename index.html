@@ -1794,15 +1794,14 @@ function s1SavePrefs(){try{localStorage.setItem(S1_PREFS_KEY,JSON.stringify(S1_P
 function openSiteSettings(){
  openSh(`
   <div class="more-menu-heading s1-settings-heading">
-   <div class="s1-settings-heading-copy"><span class="s1-settings-eyebrow">S1SCH9 · ПЕРСОНАЛИЗАЦИЯ</span><h3>Настройки</h3><p>Настрой сайт под себя</p></div>
-   <div class="s1-settings-mark" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 18h40M12 32h40M12 46h40"/><circle cx="25" cy="18" r="5"/><circle cx="42" cy="32" r="5"/><circle cx="30" cy="46" r="5"/></svg></div>
+   <div class="s1-settings-heading-copy"><h3>Настройки</h3></div>
    <button class="more-close" type="button" onclick="closeSh()" aria-label="Закрыть">×</button>
   </div>
   <div class="s1-settings-content">
    <div class="s1-setting-group"><div class="s1-setting-title"><b>Внешний вид</b><small>Выбери комфортную тему оформления</small></div>
     <div class="s1-theme-options" role="group" aria-label="Тема оформления">
-     <button type="button" class="s1-theme-choice" data-s1-theme-choice="light" onclick="s1SetTheme('light')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-light"><i></i><i></i><i></i></span><b>Светлая</b><small>Чистая и яркая</small></button>
-     <button type="button" class="s1-theme-choice" data-s1-theme-choice="dark" onclick="s1SetTheme('dark')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-dark"><i></i><i></i><i></i></span><b>Тёмная</b><small>Мягче для глаз</small></button>
+     <button type="button" class="s1-theme-choice" data-s1-theme-choice="light" onclick="s1SetTheme('light')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-light"><i></i><i></i><i></i></span><b>Светлая</b></button>
+     <button type="button" class="s1-theme-choice" data-s1-theme-choice="dark" onclick="s1SetTheme('dark')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-dark"><i></i><i></i><i></i></span><b>Тёмная</b></button>
     </div>
    </div>
    <div class="s1-setting-group s1-setting-group-motion"><div class="s1-setting-title"><b>Анимация интерфейса</b><small>Плавные переходы и движения элементов</small></div>
@@ -3573,5 +3572,41 @@ html[data-s1-theme="dark"] .game-hint,html[data-s1-theme="dark"] .site-credit{co
 body.s1-motion-off *,body.s1-motion-off *::before,body.s1-motion-off *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 </style>
 
+<style id="s1-settings-final-polish">
+.s1-settings-panel{padding:0 22px 24px!important}
+.s1-settings-panel .s1-settings-heading{position:relative!important;display:block!important;min-height:0!important;margin:0!important;padding:5px 48px 17px 0!important;text-align:left!important;border-bottom:1px solid var(--line)!important}
+.s1-settings-panel .s1-settings-heading-copy{display:block!important;width:100%!important;min-width:0;text-align:left!important}
+.s1-settings-panel .s1-settings-heading-copy h3{display:block!important;margin:0!important;padding:0!important;color:var(--ink)!important;font-size:26px!important;line-height:1.18!important;font-weight:850!important;letter-spacing:-.7px!important;text-align:left!important}
+.s1-settings-panel .s1-settings-heading .more-close{position:absolute!important;right:0!important;top:0!important}
+.s1-settings-content{padding:19px 0 8px!important;text-align:left!important}
+.s1-setting-group{margin:0 0 21px!important;text-align:left!important}
+.s1-setting-title{margin:0 0 11px!important;align-items:flex-start!important;text-align:left!important}
+.s1-setting-title b{font-size:15px!important;line-height:1.3!important}
+.s1-setting-title small{font-size:11px!important;line-height:1.45!important}
+.s1-theme-options{gap:10px!important}
+.s1-theme-choice{min-height:112px!important;padding:10px!important;gap:8px!important;border:1px solid var(--line)!important;border-radius:16px!important;background:var(--card)!important;color:var(--ink)!important;box-shadow:0 3px 12px rgba(61,0,13,.045)!important}
+.s1-theme-choice.is-selected{border:1.5px solid #a1001f!important;background:#fff7f8!important;box-shadow:0 0 0 2px rgba(161,0,31,.09)!important}
+.s1-theme-preview{height:58px!important;margin:0!important;border-radius:11px!important;padding:7px!important;gap:5px!important}
+.s1-theme-preview i{height:39px!important;border-radius:6px!important}
+.s1-theme-choice b{font-size:13px!important;font-weight:800!important;line-height:1.2!important}
+.s1-theme-choice small{display:none!important}
+.s1-switch-row{min-height:70px!important;border-radius:16px!important}
+.s1-settings-save{background:#f7f2f3!important;color:#766970!important}
+html[data-s1-theme="dark"] .s1-settings-panel .s1-settings-heading{border-color:#40323a!important}
+html[data-s1-theme="dark"] .s1-settings-panel .s1-settings-heading-copy h3,html[data-s1-theme="dark"] .s1-setting-title b,html[data-s1-theme="dark"] .s1-switch-copy b{color:#f4edf0!important}
+html[data-s1-theme="dark"] .s1-setting-title small,html[data-s1-theme="dark"] .s1-switch-copy small{color:#c6b7be!important}
+html[data-s1-theme="dark"] .s1-theme-choice{background:#292027!important;color:#f4edf0!important;border-color:#51414a!important;box-shadow:0 3px 12px rgba(0,0,0,.16)!important}
+html[data-s1-theme="dark"] .s1-theme-choice.is-selected{background:#38232c!important;border:1.5px solid #d36a84!important;box-shadow:0 0 0 2px rgba(211,106,132,.13)!important}
+html[data-s1-theme="dark"] .s1-theme-preview-light{background:#eee5e7!important}
+html[data-s1-theme="dark"] .s1-theme-preview-dark{background:#171216!important}
+html[data-s1-theme="dark"] .s1-switch-row{background:#292027!important;border-color:#51414a!important}
+html[data-s1-theme="dark"] .s1-switch-symbol{background:#482631!important;color:#ffc0cd!important}
+html[data-s1-theme="dark"] .s1-switch{background:#665963!important}
+html[data-s1-theme="dark"] .s1-switch.is-on{background:#b52b4d!important}
+html[data-s1-theme="dark"] .s1-settings-save{background:#292027!important;color:#d4c6cc!important;border:1px solid #40323a!important}
+html[data-s1-theme="dark"] .s1-reset-button{color:#ff9db2!important}
+html[data-s1-theme="dark"] .s1-settings-panel .more-close{background:#33252d!important;color:#f4edf0!important;border-color:#51414a!important}
+@media(max-width:420px){.s1-settings-panel{padding-left:19px!important;padding-right:19px!important}.s1-settings-panel .s1-settings-heading-copy h3{font-size:25px!important}.s1-theme-choice{min-height:105px!important;padding:9px!important}.s1-theme-preview{height:53px!important}}
+</style>
 </body>
 </html>
