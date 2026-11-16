@@ -1757,6 +1757,7 @@ const NEWS_SOCIAL_CACHE=new Map(),NEWS_SOCIAL_PENDING=new Map(),NEWS_SOCIAL_REQU
 async function loadNewsSocial(newsId,force=false){
   const key=String(newsId),roots=Array.from(document.querySelectorAll("[data-news-social]")).filter(r=>r.dataset.newsSocial===key);
   if(!roots.length)return;
+  if(!NEWS_SOCIAL_REQUESTS.has(key))NEWS_SOCIAL_REQUESTS.set(key,0);
   const version=force?(NEWS_SOCIAL_REQUESTS.get(key)||0)+1:(NEWS_SOCIAL_REQUESTS.get(key)||0);
   if(force){NEWS_SOCIAL_REQUESTS.set(key,version);NEWS_SOCIAL_CACHE.delete(key);}
   try{
