@@ -1278,8 +1278,8 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
   <button class="btn ghost full rv" id="share" style="margin-top:14px">Поделиться сайтом ↗</button>
 </section>
 <section id="team">
-  <div class="section-heading rv"><small>КОМАНДА СОВЕТА</small><h1>Состав</h1><p>Люди, которые придумывают инициативы, объединяют ребят и помогают воплощать идеи в жизнь.</p><div class="team-overview"><b id="teamCount">0</b><span>участников и направлений</span></div></div>
-  <div class="team-list" id="teamList" aria-label="Участники Совета Первых"></div>
+  <div class="section-heading rv"><small>КОМАНДА СОВЕТА</small><h1>Основной состав</h1><p>Председатель, заместители, наставник и лидеры направлений — команда, которая координирует работу Совета Первых.</p><div class="team-overview"><b id="teamCount">0</b><span>представителей основного состава</span></div></div>
+  <div class="team-list" id="teamList" aria-label="Основной состав Совета Первых"></div>
 </section>
 <section id="news">
   <div class="section-heading rv"><small>ЖИЗНЬ СОВЕТА</small><h1>Новости</h1><p>Новости, проекты и события школы — всё самое интересное в одной ленте.</p></div>
@@ -1288,24 +1288,30 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
   <div id="newsList" class="news-list" aria-live="polite"></div>
 </section>
 <section id="events">
-  <div class="section-heading rv"><small>КАЛЕНДАРЬ СОБЫТИЙ</small><h1>Мероприятия</h1><p>Всё важное — в одном месте. Выбирай дату, находи событие и сохраняй его.</p></div>
+  <div class="section-heading rv"><small>КАЛЕНДАРЬ СОБЫТИЙ</small><h1>Мероприятия</h1><p>Ближайшие события — сразу здесь. Остальное можно открыть, когда понадобится.</p></div>
   <div class="day-showcase rv" id="dayShowcase">
-    <div class="day-showcase-head"><span class="day-kicker">ПЛАН НА ДЕНЬ</span><button class="day-today" id="goToday" type="button">Вернуться к сегодня</button></div>
+    <div class="day-showcase-head"><span class="day-kicker">ВЫБРАННАЯ ДАТА</span><button class="day-today" id="goToday" type="button">Сегодня</button></div>
     <div class="day-switch"><button class="day-arrow" id="prevDay" type="button" aria-label="Предыдущий день">‹</button><div class="day-date" id="dayDate"><strong>Сегодня</strong><span>Загружаем дату…</span></div><button class="day-arrow" id="nextDay" type="button" aria-label="Следующий день">›</button></div>
     <div class="day-event-list" id="publicEventsList"><p class="note">Загружаем мероприятия…</p></div>
-    <div class="day-swipe-hint">Свайпай влево или вправо, чтобы менять день</div>
+    <div class="day-swipe-hint">Листай даты стрелками или свайпом</div>
   </div>
-  <div class="events-list-section rv">
-    <div class="events-list-heading"><div><span>НЕ ПРОПУСТИ</span><h2>Все мероприятия</h2><p id="eventFilterStatus" aria-live="polite">Собираем список событий…</p></div><span class="events-total" id="eventsTotal">0</span></div>
-    <div class="event-filter-row"><label for="eventCategoryFilter">Показать</label><select id="eventCategoryFilter" aria-label="Фильтр мероприятий по категории"><option value="all">Все категории</option></select><button type="button" id="clearEventCategory" hidden>Сбросить</button></div>
-    <div class="events-list" id="allEventsList" aria-live="polite"></div>
-  </div>
-  <div class="mini-calendar-wrap rv">
-    <div class="mini-calendar-title"><div><strong>Календарь</strong><span>Отмечены дни с мероприятиями</span></div><div class="mini-month-nav"><button class="btn ghost" id="prevMonth" type="button" aria-label="Предыдущий месяц">‹</button><b id="monthLabel">Месяц</b><button class="btn ghost" id="nextMonth" type="button" aria-label="Следующий месяц">›</button></div></div>
-    <div class="calendar-grid calendar-weekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
-    <div class="calendar-grid mini-calendar-grid" id="calendarGrid"></div>
-    <div class="calendar-legend"><span><i class="legend-event"></i>Есть событие</span><span><i class="legend-today"></i>Сегодня</span><span><i class="legend-selected"></i>Выбрано</span></div>
-  </div>
+  <details class="events-archive rv">
+    <summary><span><b>Все мероприятия</b><small>Полный список по датам и категориям</small></span><strong id="eventsTotal">0</strong><i aria-hidden="true">⌄</i></summary>
+    <div class="events-list-section">
+      <div class="event-filter-row"><label for="eventCategoryFilter">Категория</label><select id="eventCategoryFilter" aria-label="Фильтр мероприятий по категории"><option value="all">Все категории</option></select><button type="button" id="clearEventCategory" hidden>Сбросить</button></div>
+      <p class="events-archive-status" id="eventFilterStatus" aria-live="polite">Собираем список событий…</p>
+      <div class="events-list" id="allEventsList" aria-live="polite"></div>
+    </div>
+  </details>
+  <details class="calendar-details rv">
+    <summary><span><b>Календарь по месяцам</b><small>Даты, на которые запланированы события</small></span><i aria-hidden="true">⌄</i></summary>
+    <div class="mini-calendar-wrap">
+      <div class="mini-calendar-title"><div><strong>Календарь</strong><span>Отмечены дни с мероприятиями</span></div><div class="mini-month-nav"><button class="btn ghost" id="prevMonth" type="button" aria-label="Предыдущий месяц">‹</button><b id="monthLabel">Месяц</b><button class="btn ghost" id="nextMonth" type="button" aria-label="Следующий месяц">›</button></div></div>
+      <div class="calendar-grid calendar-weekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+      <div class="calendar-grid mini-calendar-grid" id="calendarGrid"></div>
+      <div class="calendar-legend"><span><i class="legend-event"></i>Есть событие</span><span><i class="legend-today"></i>Сегодня</span><span><i class="legend-selected"></i>Выбрано</span></div>
+    </div>
+  </details>
 </section>
 <section id="appeal">
   <div class="section-heading rv"><small>ОБРАТНАЯ СВЯЗЬ</small><h1>Написать Совету</h1><p>Предложи идею, задай вопрос или расскажи, что стоит изменить в школе.</p></div>
@@ -1331,7 +1337,7 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
     </form>
     <p class="appeal-privacy"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></span><span>Все обращения конфиденциальны. Личные данные не публикуются.</span></p>
   </div>
-  <a class="appeal-alt rv" href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener noreferrer"><span class="appeal-alt-copy"><b>Удобнее в Telegram? <span>Напишите нам ↗</span></b><small>Можно отправить обращение через нашего бота.</small></span></a>
+  <a class="appeal-alt rv" href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener noreferrer"><span class="appeal-alt-copy"><b>Удобнее в Telegram?</b><small>Можно отправить обращение через нашего бота.</small></span><span class="appeal-alt-action">Написать <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span></a>
 </section>
 <section id="games"><div class="section-heading rv"><small>ИНТЕРАКТИВ</small><h1>Мини-игры</h1><p>Проверь реакцию и точность в игре «Башня Первых».</p></div>
   <div class="game rv">
@@ -2174,5 +2180,80 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 </script>
 <footer class="site-credit" aria-label="Информация о создателе сайта">Создатель сайта — Михеев Д. А. · 9 «А» класс</footer>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<style id="focused-section-refinement-2026">
+/* Основной состав: ясно показываем, что это руководящая команда, а не весь актив школы */
+#team .team-overview span{max-width:190px;line-height:1.35}
+#team .section-heading p{max-width:34em}
+
+/* Обращения: компактная самостоятельная кнопка Telegram, без одинокой стрелки */
+#appeal .appeal-alt{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ flex-direction:row!important;gap:14px!important;width:fit-content!important;max-width:100%!important;
+ margin:13px 0 0 auto!important;padding:11px 13px!important;border:1px solid #e7dce0!important;
+ border-radius:15px!important;background:#fff!important
+}
+#appeal .appeal-alt-copy{flex:1 1 auto;min-width:0}
+#appeal .appeal-alt-copy b{font-size:12px!important;line-height:1.3!important}
+#appeal .appeal-alt-copy small{font-size:10px!important}
+#appeal .appeal-alt-action{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;
+ min-height:36px;padding:0 11px;border-radius:11px;background:#eaf6fb;color:#0878ad;
+ font-size:11px;font-weight:800;white-space:nowrap
+}
+#appeal .appeal-alt-action svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#appeal .appeal-alt:active{transform:scale(.985)}
+@media(max-width:380px){#appeal .appeal-alt{gap:8px!important;padding:10px!important}#appeal .appeal-alt-action{padding:0 9px}}
+
+/* Мероприятия: сначала выбранный день, полный архив и календарь раскрываются по запросу */
+#events .day-showcase{
+ margin:8px 0 13px!important;padding:14px 13px 11px!important;border:1px solid #eee5e7!important;
+ border-radius:19px!important;background:#fff!important;box-shadow:0 4px 15px rgba(49,10,22,.035)!important
+}
+#events .day-showcase-head{gap:8px}
+#events .day-kicker{font-size:9px;letter-spacing:.12em}
+#events .day-today{padding:6px 10px;font-size:11px}
+#events .day-switch{grid-template-columns:34px minmax(0,1fr) 34px;gap:7px;margin:9px 0 10px}
+#events .day-arrow{width:32px;height:32px;border-radius:11px;font-size:23px}
+#events .day-date strong{font-size:21px}
+#events .day-date span{font-size:10px}
+#events .day-event-list{display:grid;gap:8px}
+#events .day-event-card{margin:0!important;padding:13px!important;border:1px solid #f0e7e9!important;border-radius:15px!important;background:#fffafb!important;box-shadow:none!important}
+#events .day-event-card h3{margin:6px 0;font-size:15px;line-height:1.3}
+#events .day-event-card p{margin:6px 0;font-size:11px;line-height:1.5}
+#events .day-event-card .event-actions{gap:7px;margin-top:10px}
+#events .day-event-card .event-actions button{min-height:34px;padding:7px 10px;font-size:10px}
+#events .day-swipe-hint{margin-top:9px;font-size:9px;color:#a09297;text-align:center}
+#events .day-empty{padding:15px 10px!important;border:1px dashed #eadfe2!important;border-radius:14px!important;background:#fcfafb!important}
+#events .events-archive,#events .calendar-details{
+ margin:10px 0 0;border:1px solid #eee5e7;border-radius:16px;background:#fff;overflow:hidden
+}
+#events .events-archive>summary,#events .calendar-details>summary{
+ display:flex;align-items:center;gap:11px;min-height:62px;padding:11px 13px;list-style:none;cursor:pointer
+}
+#events .events-archive>summary::-webkit-details-marker,#events .calendar-details>summary::-webkit-details-marker{display:none}
+#events .events-archive>summary>span,#events .calendar-details>summary>span{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+#events .events-archive>summary b,#events .calendar-details>summary b{font-size:13px;color:#32131d}
+#events .events-archive>summary small,#events .calendar-details>summary small{font-size:10px;color:#91848a}
+#events .events-archive>summary>strong{
+ display:grid;place-items:center;min-width:29px;height:29px;padding:0 7px;border-radius:10px;background:#f7eef0;color:#8a1833;font-size:12px
+}
+#events .events-archive>summary>i,#events .calendar-details>summary>i{font-style:normal;color:#a18e94;font-size:19px;transition:transform .2s}
+#events .events-archive[open]>summary>i,#events .calendar-details[open]>summary>i{transform:rotate(180deg)}
+#events .events-list-section{margin:0!important;padding:0 12px 13px}
+#events .event-filter-row{margin:0 0 8px!important;padding:8px!important}
+#events .events-archive-status{margin:0 2px 9px;font-size:10px;color:#91848a;line-height:1.4}
+#events .events-list{gap:6px!important}
+#events .event-list-item{padding:9px 10px!important;border-radius:13px!important;gap:9px!important}
+#events .event-list-date{width:39px!important;height:42px!important;border-radius:11px!important}
+#events .event-list-date b{font-size:17px!important}
+#events .event-list-copy>b{font-size:12px!important}
+#events .event-list-copy>span{font-size:9px!important}
+#events .calendar-details .mini-calendar-wrap{margin:0!important;padding:12px!important;border:0!important;border-top:1px solid #f0e8ea!important;border-radius:0!important}
+#events .calendar-details .mini-calendar-title{margin-bottom:10px}
+#events .calendar-details .calendar-day{min-height:34px!important}
+#events .calendar-details .calendar-legend{margin-top:9px;padding-top:8px}
+@media(prefers-reduced-motion:reduce){#events .events-archive>summary>i,#events .calendar-details>summary>i{transition:none}}
+</style>
 </body>
 </html>
