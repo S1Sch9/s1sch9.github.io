@@ -3243,3 +3243,71 @@ section.on .game{
 @keyframes news-like-pop{0%{transform:scale(.65)}65%{transform:scale(1.28)}100%{transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.news-like.is-liked .news-dock-icon{animation:none}}
 </style>
+
+
+<style id="s1-no-particles-more-orbs-and-no-link-preview-2026">
+/* Убираем мелкую россыпь частиц на лицевой стороне обложки: оставляем только мягкий свет. */
+.home-hero-front::after{content:none!important;display:none!important;animation:none!important}
+
+/* Больше крупных размытых пульсирующих огней в заголовках разделов. Это именно световые круги, не полосы. */
+.section-heading{isolation:isolate!important}
+.section-heading::after{
+ content:""!important;display:block!important;position:absolute!important;z-index:-1!important;
+ left:28%!important;top:-25px!important;width:116px!important;height:116px!important;
+ border:0!important;border-radius:50%!important;pointer-events:none!important;
+ background:radial-gradient(circle,rgba(240,200,105,.19) 0%,rgba(161,0,31,.075) 38%,transparent 73%)!important;
+ filter:blur(9px)!important;box-shadow:none!important;
+ animation:s1-heading-orb-two 17s ease-in-out infinite alternate!important;
+}
+.section-heading>*{position:relative;z-index:1}
+@keyframes s1-heading-orb-two{
+ 0%{transform:translate3d(14px,0,0) scale(.78);opacity:.42}
+ 55%{transform:translate3d(-20px,15px,0) scale(1.16);opacity:.88}
+ 100%{transform:translate3d(8px,26px,0) scale(.92);opacity:.58}
+}
+
+/* На карточках — два больших мягких световых пятна вместо мелкого декора. */
+.news-feed-card::before,.day-event-card::before,.event-card::before,
+.home-shortcut::before,.card::before,.tile::before{
+ background:
+  radial-gradient(circle at 72% 32%,rgba(240,200,105,.22) 0%,rgba(240,200,105,.08) 34%,transparent 70%),
+  radial-gradient(circle at 28% 78%,rgba(161,0,31,.10) 0%,rgba(161,0,31,.035) 38%,transparent 72%)!important;
+ background-repeat:no-repeat!important;
+ opacity:.72!important;
+ animation:s1-card-orb-breathe 10s ease-in-out infinite alternate!important;
+}
+@keyframes s1-card-orb-breathe{
+ 0%{transform:translate3d(5px,-3px,0) scale(.82);opacity:.42}
+ 50%{transform:translate3d(-16px,12px,0) scale(1.12);opacity:.86}
+ 100%{transform:translate3d(-4px,19px,0) scale(.94);opacity:.58}
+}
+
+/* Дополнительный тихий круг на календарном блоке — движение остаётся внутри карточки. */
+#events .day-showcase::after{
+ content:"";position:absolute;z-index:-1;left:-78px;bottom:-112px;
+ width:180px;height:180px;border-radius:50%;pointer-events:none;
+ background:radial-gradient(circle,rgba(161,0,31,.10) 0%,rgba(240,200,105,.07) 42%,transparent 72%);
+ animation:s1-calendar-orb-two 19s ease-in-out infinite alternate;
+}
+@keyframes s1-calendar-orb-two{
+ from{transform:translate3d(0,0,0) scale(.82);opacity:.42}
+ to{transform:translate3d(42px,-28px,0) scale(1.18);opacity:.82}
+}
+
+/* Отключаем системную ссылочную карточку iOS при удержании. Обычные нажатия и переходы сохраняются. */
+body :not(input):not(textarea):not(select):not([contenteditable="true"]){
+ -webkit-touch-callout:none!important;
+}
+a[href],a[href] *{
+ -webkit-touch-callout:none!important;
+ -webkit-user-select:none!important;
+ user-select:none!important;
+ -webkit-user-drag:none!important;
+}
+a[href] img{-webkit-user-drag:none!important}
+@media(prefers-reduced-motion:reduce){
+ .section-heading::after,.news-feed-card::before,.day-event-card::before,
+ .event-card::before,.home-shortcut::before,.card::before,.tile::before,
+ #events .day-showcase::after{animation:none!important;transform:none!important}
+}
+</style>
