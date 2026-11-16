@@ -1859,6 +1859,17 @@ function drawTeam(){
     openSh('<div class="team-profile"><div class="team-profile-photo">'+photo(m[4],ini(name))+'</div><div class="team-profile-role">'+esc(m[0])+'</div><h3>'+esc(name)+'</h3>'+(m[2]?'<div class="team-profile-class">Класс <b>'+esc(m[2])+'</b></div>':'')+(m[3]?'<p>'+esc(m[3])+'</p>':'')+'</div>');
   });});
 }
+// Lazy-load social counters only when a news card approaches the viewport.
+const NEWS_SOCIAL_OBSERVER = typeof IntersectionObserver !== "undefined"
+  ? new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        NEWS_SOCIAL_OBSERVER.unobserve(entry.target);
+        loadNewsSocial(entry.target.dataset.newsSocial);
+      });
+    }, { rootMargin: "260px 0px" })
+  : null;
+
 function drawNews(){
   if (NEWS_SOCIAL_OBSERVER) NEWS_SOCIAL_OBSERVER.disconnect();
   const query=$("#q")?.value.trim().toLocaleLowerCase("ru")||"";
@@ -2111,7 +2122,12 @@ $("#q").addEventListener("input", drawNews);
 $("#clearNewsSearch")?.addEventListener("click",()=>{$("#q").value="";drawNews();$("#q").focus();});
 $("#newsAllTab")?.addEventListener("click",()=>{showSavedNews=false;drawNews();});
 $("#newsSavedTab")?.addEventListener("click",()=>{showSavedNews=true;drawNews();});
-drawTeam(); drawNews();
+drawTeam();
+try {
+  drawNews();
+} catch (error) {
+  console.error("Не удалось отрисовать ленту новостей:", error);
+}
 Promise.all([
   fetch("./news.json?v=" + Date.now()).then(r => r.ok ? r.json() : []).catch(() => []),
   fetch("https://still-frog-ce4c.school9ideasandsuggestions.workers.dev/api/news?v=" + Date.now()).then(r => r.ok ? r.json() : []).catch(() => [])
