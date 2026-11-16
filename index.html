@@ -1677,7 +1677,7 @@ function drawTeam(){
   const list=$("#teamList");if(!list)return;
   list.innerHTML=TEAM.map((m,k)=>{
     const name=String(m[1]||"").trim(),role=String(m[0]||"Участник Совета").trim();
-    return '<button type="button" class="team-member rv" data-k="'+k+'" aria-label="Открыть профиль: '+esc(name||role)+'"><span class="team-member-photo">'+photo(m[4],ini(name||role))+'</span><span class="team-member-copy"><small>'+esc(role)+'</small><b>'+esc(name||"Скоро появится")+'</b>'+(m[2]?'<span class="team-member-class">'+esc(m[2])+'</span>':'')+'</span></button>';
+    return '<button type="button" class="team-member rv" data-k="'+k+'" aria-label="Открыть профиль: '+esc(name||role)+'"><span class="team-member-photo">'+photo(m[4],ini(name||role))+'</span><span class="team-member-copy"><small>'+esc(role)+'</small><b>'+esc(name||"Скоро появится")+'</b></span></button>';
   }).join("");
   list.querySelectorAll(".team-member").forEach((b,i)=>{b.style.setProperty("--i",Math.min(i,9));b.addEventListener("click",()=>{
     const m=TEAM[Number(b.dataset.k)],name=String(m[1]||"").trim()||m[0];
@@ -2080,10 +2080,9 @@ function renderPublicEvents(){
  if(status)status.textContent=selectedEventCategory==="all"?"Все события по датам — от ближайших к более поздним.":"Показаны мероприятия категории «"+selectedEventCategory+"».";
  if(total)total.textContent=visible.length;
  root.innerHTML=selected.length?selected.map(e=>{
-  const registration=safeUrl(e.registration_url||"");
-  return '<article class="day-event-card"><div class="day-event-top"><span class="day-event-category">'+esc(e.category||'Мероприятие')+'</span>'+(e.event_time?'<span class="day-event-time">'+esc(e.event_time)+'</span>':'')+'</div><h3>'+esc(e.title)+'</h3>'+(e.description?'<p>'+esc(e.description)+'</p>':'')+(e.location?'<div class="day-event-meta">📍 '+esc(e.location)+'</div>':'')+(registration&&new URL(registration).protocol==="https:"?'<a class="event-register" href="'+esc(registration)+'" target="_blank" rel="noopener noreferrer">Участвовать / регистрация ↗</a>':'')+'<div class="event-actions"><button type="button" data-add-calendar>＋ Добавить в календарь</button><button type="button" data-share-event>↗ Поделиться</button></div></article>';
+  return '<article class="day-event-card"><h3>'+esc(e.title)+'</h3></article>';
  }).join(''):'<div class="day-empty"><b>✦</b><strong>'+(selectedEventCategory==="all"?"На эту дату пока ничего не запланировано":"В этой категории на выбранную дату событий нет")+'</strong><span>'+(selectedEventCategory==="all"?"Посмотри список ниже или выбери другой день.":"Выбери другую дату или вернись ко всем категориям.")+'</span></div>';
- root.querySelectorAll(".day-event-card").forEach((card,index)=>{const event=selected[index];card.querySelector("[data-add-calendar]")?.addEventListener("click",()=>addEventToCalendar(event));card.querySelector("[data-share-event]")?.addEventListener("click",()=>shareEvent(event));});
+ /* Карточка дня показывает только само мероприятие; действия временно убраны по просьбе пользователя. */
  if(allList){
   allList.innerHTML=visible.length?visible.map(e=>{
    const date=eventDateFromKey(e.event_date),day=date.toLocaleDateString("ru-RU",{day:"2-digit"}),month=date.toLocaleDateString("ru-RU",{month:"short"}).replace(".","");
@@ -2319,5 +2318,38 @@ nav .scrub-target .nav-label{color:#fff!important}
 #team .team-profile-photo{border:4px solid #fff;box-shadow:0 0 0 1px #eadde1,0 8px 22px rgba(55,12,25,.08)}
 @media(max-width:360px){#team .team-list{gap:9px!important}#team .team-member-copy{padding:9px 9px 11px}#team .team-member-copy>b{font-size:11px}}
 </style>
+
+<style id="team-events-quiet-polish-2026">
+/* Обращения: оставляем только синюю стрелку внутри кнопки Telegram */
+#appeal .appeal-alt:after{content:none!important;display:none!important}
+
+/* Состав: класс показываем только в раскрытом профиле, карточки — чище */
+#team .team-member-class{display:none!important}
+#team .team-member{border:1px solid #eee3e6;background:linear-gradient(155deg,#fff 0%,#fffafb 100%);box-shadow:0 5px 16px rgba(61,0,13,.055)}
+#team .team-member:active{background:#fff;box-shadow:0 7px 20px rgba(61,0,13,.10)}
+#team .team-member-photo{background:#f4edef}
+#team .team-member-copy{gap:6px;padding:12px 12px 14px}
+#team .team-member-copy>small{min-height:2.4em;color:#986071;font-size:9px;line-height:1.35}
+#team .team-member-copy>b{font-size:12.5px;line-height:1.35;color:#302128}
+#pn:has(.team-profile){background:#fff!important;color:#302128!important}
+#pn:has(.team-profile) .team-profile{width:100%;min-height:100%;padding:12px 8px 28px;background:#fff!important;color:#302128!important}
+#pn:has(.team-profile) .team-profile-photo{width:146px;height:146px;margin:8px auto 19px;border:5px solid #fff;background:#f4edef;box-shadow:0 0 0 1px #eadde1,0 10px 26px rgba(61,0,13,.10)}
+#pn:has(.team-profile) .team-profile-role{max-width:100%;padding:7px 12px;border-radius:99px;background:#f8edf0;color:#8d2944;font-size:10px;letter-spacing:.075em}
+#pn:has(.team-profile) .team-profile h3{margin:12px 0 13px;color:#2d2025;font-size:23px;line-height:1.2;letter-spacing:-.5px}
+#pn:has(.team-profile) .team-profile-class{margin:0 0 14px;padding:8px 13px;border:1px solid #eee3e6;border-radius:12px;background:#faf6f7;color:#796970;font-size:12px}
+#pn:has(.team-profile) .team-profile-class b{color:#4a2632}
+#pn:has(.team-profile) .team-profile p{max-width:38ch;margin:0;padding:14px 16px;border:1px solid #f0e7e9;border-radius:16px;background:#fffafb;color:#6f6066;font-size:13px;line-height:1.65;text-align:left}
+
+/* Мероприятия: карточка содержит только название события */
+#events .day-event-card{display:flex;align-items:center;min-height:76px;margin:8px 0!important;padding:18px 17px!important;border:1px solid #eee3e6!important;border-radius:18px!important;background:linear-gradient(145deg,#fff 0%,#fffafb 100%)!important;box-shadow:0 5px 16px rgba(61,0,13,.045)!important}
+#events .day-event-card h3{margin:0!important;color:#302128;font-size:16px!important;line-height:1.4!important;font-weight:800;letter-spacing:-.02em}
+@media(max-width:380px){
+ #team .team-member-copy{padding:10px 10px 12px}
+ #team .team-member-copy>b{font-size:11.5px}
+ #events .day-event-card{min-height:70px;padding:15px!important}
+ #events .day-event-card h3{font-size:15px!important}
+}
+</style>
+
 </body>
 </html>
