@@ -724,7 +724,7 @@ self.addEventListener("notificationclick", event => {
       const captchaToken = cleanText(body.turnstileToken, 2048);
       if (body.rulesAccepted !== true ||
           !["Ученик", "Родитель", "Учитель"].includes(role) ||
-          !["Идея или предложение", "Новость школы", "Обратная связь"].includes(category) ||
+          !["Идея или предложение", "Новость школы", "Обратная связь", "Проблема на сайте"].includes(category) ||
           message.length < 5 || message.length > MAX_MESSAGE) {
         return json({ error: "Проверьте заполнение формы." }, 400, { ...headers, ...cors(origin) });
       }
