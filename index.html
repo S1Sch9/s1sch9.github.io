@@ -1227,7 +1227,22 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
 #games .game-hint svg{width:15px;height:15px;flex:none;fill:none;stroke:#9b7a39;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 #news .news-social-actions .news-like{min-width:44px}
 #news .news-social-actions .news-bookmark{width:29px;min-width:29px;padding:5px;font-size:15px}
-</style></head>
+</style>
+<style id="site-issue-report-entry-2026">
+.home-bug-report{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:max-content;max-width:100%;margin:10px auto 0;padding:7px 12px;
+  border:1px solid rgba(255,255,255,.2);border-radius:999px;
+  color:rgba(255,255,255,.82);background:rgba(255,255,255,.07);
+  font-size:11px;line-height:1.35;font-weight:600;text-decoration:none;
+  transition:background .18s,border-color .18s,transform .18s
+}
+.home-bug-report span{font-size:12px;color:#f0c869}
+.home-bug-report b{color:#fff;font-weight:800;text-decoration:underline;text-decoration-color:rgba(240,200,105,.7);text-underline-offset:3px}
+.home-bug-report:active{transform:scale(.97);background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.38)}
+@media(prefers-reduced-motion:reduce){.home-bug-report{transition:none}}
+</style>
+</head>
 <body>
 <div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button></div>
 <div class="site-search-panel" id="siteSearchPanel" hidden><div class="site-search-head"><label for="siteSearchInput">Поиск по всему сайту</label><button type="button" id="siteSearchClose" aria-label="Закрыть поиск">×</button></div><input id="siteSearchInput" type="search" placeholder="Новости, мероприятия, люди, ссылки…" autocomplete="off"><div id="siteSearchResults" class="site-search-results"><p class="note">Начни вводить запрос — найдём нужное.</p></div><button type="button" id="siteInstallHelp" class="site-install-help">Как добавить сайт на экран телефона</button></div>
@@ -1244,6 +1259,7 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
           <div class="home-brand-title"><h1>СОВЕТ ПЕРВЫХ</h1><h2>ШКОЛЫ ДЕВЯТЬ</h2><span>НОВО-САВИНОВСКИЙ РАЙОН · КАЗАНЬ</span></div>
         </div>
         <a class="home-appeal" href="#appeal" aria-label="Оставить обращение Совету Первых школы №9"><span class="home-appeal-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5.5 4 4M4 20l4.5-.9L19 8.6a2.8 2.8 0 0 0-4-4L4.5 15.1 4 20Z"/><path d="M12 20h8"/></svg></span><span><b>Есть идея? Предложи её!</b><small>Напиши Совету Первых школы №9 — твоё мнение важно</small></span><strong>→</strong></a>
+        <a class="home-bug-report" href="#appeal" data-appeal-kind="Проблема на сайте"><span aria-hidden="true">⚑</span> Нашёл ошибку на сайте? <b>Сообщить</b></a>
         <div class="home-flip-hint"><span>↗</span> Узнать о Совете</div>
       </div>
       <div class="home-hero-face home-hero-back" aria-hidden="true">
@@ -1322,7 +1338,7 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
     <form id="form" style="margin-top:8px">
       <div class="appeal-fields">
         <div class="appeal-field"><label for="who">Кто ты</label><select id="who" name="Кто"><option>Ученик</option><option>Родитель</option><option>Учитель</option></select></div>
-        <div class="appeal-field"><label for="kind">Тема обращения</label><select id="kind" name="Тип"><option>Идея или предложение</option><option>Новость школы</option><option>Обратная связь</option></select></div>
+        <div class="appeal-field"><label for="kind">Тема обращения</label><select id="kind" name="Тип"><option>Идея или предложение</option><option>Новость школы</option><option>Обратная связь</option><option>Проблема на сайте</option></select></div>
         <div class="appeal-field appeal-field-wide"><label for="msg">Твоё сообщение *</label><textarea id="msg" name="Сообщение" required minlength="5" maxlength="1500" placeholder="Расскажи подробнее о своей идее…"></textarea></div>
       </div>
       <div class="rules-gate rv" id="rulesGate">
@@ -1946,6 +1962,14 @@ Promise.all([
   .catch(err => console.log("Ошибка загрузки новостей:", err));
 if (C.newsCsv) load(C.newsCsv).then(r => { if (r.length) { NEWS = r.map(x => ({d:x[0], t:x[1], x:x[2] || ""})).reverse(); drawNews(); } }).catch(() => {});
 if (C.teamCsv) load(C.teamCsv).then(r => { if (r.length) { TEAM = r.map(x => [x[0]||"", x[1]||"", x[2]||"", x[3]||"", x[4]||""]); drawTeam(); } }).catch(() => {});
+document.querySelectorAll("[data-appeal-kind]").forEach(link => {
+  link.addEventListener("click", () => {
+    const kind = $("#kind");
+    if (kind) kind.value = link.dataset.appealKind;
+    const message = $("#msg");
+    if (message) message.placeholder = "Опиши, что именно не работает, где возникла ошибка и что ты ожидал увидеть…";
+  });
+});
 $("#form").addEventListener("submit", async e => {
   e.preventDefault();
   const st = $("#status"), b = $("#send");
