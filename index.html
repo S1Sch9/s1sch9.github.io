@@ -2703,6 +2703,19 @@ function getDateObservances(date){
  }
  return found;
 }
+function getPublicEventKind(event){
+ const saved=String(event?.category||event?.type||event?.kind||"").trim();
+ if(saved)return saved;
+ const title=String(event?.title||"").toLocaleLowerCase("ru-RU");
+ if(/парад/.test(title))return "Парад";
+ if(/митинг|возложени|минута молчания/.test(title))return "Памятная дата";
+ if(/акци|субботник|сбор макулатур/.test(title))return "Акция";
+ if(/соревнован|турнир|эстафет|матч/.test(title))return "Спортивное событие";
+ if(/экскурси|поездк/.test(title))return "Экскурсия";
+ if(/встреча|собрание|заседание/.test(title))return "Встреча";
+ if(/праздник|день знаний|новый год|рождеств/.test(title))return "Праздник";
+ return "Мероприятие";
+}
 function renderPublicEvents(){
  const root=$('#publicEventsList'),dateLabel=$('#dayDate');if(!root||!dateLabel)return;
  const d=eventDateFromKey(selectedEventDay),today=localDateKey(new Date()),isToday=selectedEventDay===today;
@@ -2724,7 +2737,7 @@ function renderPublicEvents(){
  if(status)status.textContent=selectedEventCategory==="all"?"Все события по датам — от ближайших к более поздним.":"Показаны мероприятия категории «"+selectedEventCategory+"».";
  if(total)total.textContent=visible.length;
  root.innerHTML=selected.length?selected.map(e=>{
-  const eventKind=String(e.category||"Мероприятие").trim()||"Мероприятие";
+  const eventKind=getPublicEventKind(e);
   return '<article class="day-event-card"><div class="day-event-top"><span class="day-event-category">'+esc(eventKind)+'</span></div><h3>'+esc(e.title)+'</h3></article>';
  }).join(''):'<div class="day-empty"><b>✦</b><strong>'+(selectedEventCategory==="all"?"На эту дату пока ничего не запланировано":"В этой категории на выбранную дату событий нет")+'</strong><span>'+(selectedEventCategory==="all"?"Посмотри список ниже или выбери другой день.":"Выбери другую дату или вернись ко всем категориям.")+'</span></div>';
  /* Карточка дня показывает только само мероприятие; действия временно убраны по просьбе пользователя. */
@@ -4715,3 +4728,11 @@ html[data-s1-theme="dark"] .site-search-trigger{
   #pn:has(.team-profile) .team-profile h3{font-size:20px!important}
 }
 </style>
+
+/* Чистая единая подпись типа для каждого события в блоке выбранной даты */
+#events .day-event-top{display:flex;align-items:center;justify-content:flex-start;margin:0 0 7px;gap:0}
+#events .day-event-category{display:inline-flex;align-items:center;gap:7px;padding:0;border:0;border-radius:0;background:transparent;color:#98727c;font-size:10px;font-weight:750;letter-spacing:.045em;text-transform:none;line-height:1.3}
+#events .day-event-category:before{content:"";width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:#a52a49}
+#events .day-event-card h3{margin:0;font-size:17px;line-height:1.35}
+html[data-s1-theme="dark"] #events .day-event-category{color:#d7aab6}
+html[data-s1-theme="dark"] #events .day-event-category:before{background:#e18aa2}
