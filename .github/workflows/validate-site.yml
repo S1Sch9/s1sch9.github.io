@@ -32,6 +32,58 @@ jobs:
         run: |
           npm install --prefix cloudflare --no-package-lock
           node cloudflare/security-smoke-test.mjs
+      - name: Validate HTML pages, local assets and JSON
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const vm = require('node:vm');
+          const root = process.cwd();
+          const walk = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+            if (entry.name === '.git' || entry.name === 'node_modules') return [];
+            const full = path.join(dir, entry.name);
+            return entry.isDirectory() ? walk(full) : [full];
+          });
+          const htmlFiles = walk(root).filter(file => file.endsWith('.html'));
+          const failures = [];
+          for (const file of htmlFiles) {
+            const html = fs.readFileSync(file, 'utf8');
+            const ids = [...html.matchAll(/\\bid=["']([^"']+)["']/gi)].map(match => match[1]);
+            const seen = new Set();
+            for (const id of ids) {
+              if (seen.has(id)) failures.push(`${path.relative(root, file)}: duplicate id "${id}"`);
+              seen.add(id);
+            }
+            for (const match of html.matchAll(/\\b(?:href|src)=["']([^"'#][^"']*)["']/gi)) {
+              const value = match[1].trim();
+              if (/^(?:https?:|mailto:|tel:|data:|javascript:|\\/\\/)/i.test(value)) continue;
+              const pathname = decodeURIComponent(value.split(/[?#]/, 1)[0]);
+              if (!pathname) continue;
+              const target = pathname.startsWith('/')
+                ? pathname.replace(/^\\/+/, '')
+                : path.posix.normalize(path.posix.join(path.posix.dirname(path.relative(root, file)), pathname));
+              const resolved = path.join(root, target);
+              const candidate = target.endsWith('/') ? path.join(resolved, 'index.html') : resolved;
+              if (!fs.existsSync(candidate)) failures.push(`${path.relative(root, file)}: missing local reference "${value}"`);
+            }
+            let scriptIndex = 0;
+            for (const match of html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)) {
+              const attrs = match[1], code = match[2];
+              if (/\\bsrc\\s*=/.test(attrs) || /application\\/(?:ld\\+json|json)/i.test(attrs) || !code.trim()) continue;
+              try { new vm.Script(code, { filename: `${path.relative(root, file)} inline script ${++scriptIndex}` }); }
+              catch (error) { failures.push(`${path.relative(root, file)} inline script: ${error.message}`); }
+            }
+          }
+          for (const file of ['news.json', 'manifest.json', 'cloudflare/package.json']) {
+            try { JSON.parse(fs.readFileSync(path.join(root, file), 'utf8')); }
+            catch (error) { failures.push(`${file}: invalid JSON: ${error.message}`); }
+          }
+          if (failures.length) {
+            console.error(failures.join('\\n'));
+            process.exit(1);
+          }
+          console.log(`Validated ${htmlFiles.length} HTML pages, local references, IDs, inline scripts and JSON files.`);
+          NODE
       - name: Check required site safeguards
         run: |
           node <<'NODE'
