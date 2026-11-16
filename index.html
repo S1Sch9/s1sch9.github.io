@@ -1392,6 +1392,119 @@ section.on{animation:s1-light-section-enter .22s ease both!important}
 </style>
 
 
+
+<style id="s1-dark-theme-specificity-fix-2026">
+/* Исправление каскада: несколько старых светлых правил с #section имели больший приоритет,
+   поэтому часть карточек оставалась белой даже при активной тёмной теме. */
+html[data-s1-theme="dark"] #home .home-shortcut,
+html[data-s1-theme="dark"] #team .team-member,
+html[data-s1-theme="dark"] #events .event-list-item,
+html[data-s1-theme="dark"] #events .calendar-details,
+html[data-s1-theme="dark"] #links .row.link,
+html[data-s1-theme="dark"] #appeal .appeal-alt,
+html[data-s1-theme="dark"] .site-search-trigger,
+html[data-s1-theme="dark"] .site-install-help,
+html[data-s1-theme="dark"] .news-search,
+html[data-s1-theme="dark"] #latest .home-latest-link,
+html[data-s1-theme="dark"] #homeUpcoming .home-upcoming-link {
+  background:var(--s1-surface)!important;
+  color:var(--s1-text)!important;
+  border-color:var(--s1-stroke)!important;
+  box-shadow:none!important;
+}
+html[data-s1-theme="dark"] #home .home-shortcut:active,
+html[data-s1-theme="dark"] #team .team-member:active,
+html[data-s1-theme="dark"] #events .event-list-item:active,
+html[data-s1-theme="dark"] #links .row.link:active,
+html[data-s1-theme="dark"] #appeal .appeal-alt:active {
+  background:var(--s1-surface-raised)!important;
+  border-color:#76505e!important;
+}
+html[data-s1-theme="dark"] #home .home-shortcut b,
+html[data-s1-theme="dark"] #home .home-shortcut small,
+html[data-s1-theme="dark"] #team .team-member-copy,
+html[data-s1-theme="dark"] #team .team-member-copy b,
+html[data-s1-theme="dark"] #events .event-list-item,
+html[data-s1-theme="dark"] #events .event-list-item b,
+html[data-s1-theme="dark"] #links .row.link,
+html[data-s1-theme="dark"] #links .row.link b,
+html[data-s1-theme="dark"] #appeal .appeal-alt,
+html[data-s1-theme="dark"] #appeal .appeal-alt b,
+html[data-s1-theme="dark"] #appeal .appeal-alt small {
+  color:var(--s1-text)!important;
+}
+html[data-s1-theme="dark"] #team .team-member-copy small,
+html[data-s1-theme="dark"] #links .row.link em,
+html[data-s1-theme="dark"] #appeal .appeal-alt small,
+html[data-s1-theme="dark"] .site-install-help {
+  color:var(--s1-muted)!important;
+}
+html[data-s1-theme="dark"] #events .event-list-date {
+  background:#3b252e!important;
+  color:#ffdce4!important;
+  border-color:#65404c!important;
+}
+html[data-s1-theme="dark"] #events #goToday,
+html[data-s1-theme="dark"] #events .day-today {
+  background:#3b252e!important;
+  color:#ffdce4!important;
+  border:1px solid #65404c!important;
+}
+html[data-s1-theme="dark"] #events .calendar-details .mini-calendar-wrap {
+  background:var(--s1-surface)!important;
+  border-color:var(--s1-stroke)!important;
+}
+html[data-s1-theme="dark"] #events .calendar-details .calendar-heading,
+html[data-s1-theme="dark"] #events .calendar-details .mini-calendar-title {
+  color:var(--s1-text)!important;
+}
+html[data-s1-theme="dark"] #events .calendar-details .calendar-legend span {
+  background:#30252d!important;
+  color:#e9dce2!important;
+}
+html[data-s1-theme="dark"] #appeal .appeal-alt-action {
+  background:#183341!important;
+  color:#9bdcff!important;
+  border-color:#31566a!important;
+}
+html[data-s1-theme="dark"] .site-search-trigger {
+  width:39px!important;height:39px!important;
+  border-radius:12px!important;
+  background:#30252d!important;
+  color:#ffe2e9!important;
+}
+html[data-s1-theme="dark"] .site-search-panel .site-search-head,
+html[data-s1-theme="dark"] .site-search-panel label {
+  color:var(--s1-text)!important;
+}
+html[data-s1-theme="dark"] .site-search-panel .site-install-help {
+  background:#30252d!important;
+  color:#d7cbd1!important;
+}
+html[data-s1-theme="dark"] #latest .home-latest-link,
+html[data-s1-theme="dark"] #homeUpcoming .home-upcoming-link {
+  background:#30252d!important;
+  color:#ffdce4!important;
+}
+html[data-s1-theme="dark"] #latest .home-latest-link>span,
+html[data-s1-theme="dark"] #homeUpcoming .home-upcoming-link>span {
+  background:#49303b!important;
+  color:#ffe2e9!important;
+}
+html[data-s1-theme="dark"] .news-search input,
+html[data-s1-theme="dark"] .news-search button {
+  background:transparent!important;
+  color:var(--s1-text)!important;
+}
+html[data-s1-theme="dark"] .news-search input::placeholder {
+  color:#a99ba3!important;
+}
+html[data-s1-theme="dark"] .news-search svg,
+html[data-s1-theme="dark"] .news-search button {
+  color:#e8dce2!important;
+}
+</style>
+
 </head>
 <body>
 <svg id="s1-floating-ribbons" aria-hidden="true" focusable="false" style="visibility:hidden" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
