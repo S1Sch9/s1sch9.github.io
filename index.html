@@ -109,8 +109,8 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .rules-gate.is-accepted .rules-gate-icon,.rules-gate.is-accepted .rules-gate-copy span,.rules-gate.is-accepted .note{display:none}
 .rules-gate.is-accepted .rules-gate-copy{flex:1}
 .rules-gate.is-accepted .rules-gate-copy b{font-size:11.5px;color:#55545a;font-weight:700}
-.rules-gate.is-accepted .btn{width:auto;grid-column:auto;margin:0;padding:7px 10px;border-radius:10px;font-size:11px;white-space:nowrap;background:#e7e7ea;color:#4d4c52}
-@media(max-width:420px){.rules-gate.is-accepted{gap:5px;padding:6px 8px}.rules-gate.is-accepted .btn{padding:6px 8px;font-size:10px}}
+.rules-gate.is-accepted .btn{width:auto;grid-column:auto;margin:0;padding:5px 8px;min-height:29px;border-radius:9px;font-size:10px;line-height:1.15;white-space:nowrap;background:#e7e7ea;color:#4d4c52;box-shadow:none}
+@media(max-width:420px){.rules-gate.is-accepted{gap:5px;padding:6px 8px}.rules-gate.is-accepted .btn{padding:4px 7px;min-height:27px;font-size:9.5px}}
 .rules-consent{display:flex;align-items:flex-start;gap:10px;margin:12px 0 14px;padding:12px 14px;border:1px solid #eadfe1;border-radius:15px;background:#fffafb;color:var(--mut);font-size:12.5px;line-height:1.45;font-weight:400;cursor:pointer}
 .rules-consent input[type="checkbox"]{appearance:none;-webkit-appearance:none;position:relative;display:block;flex:0 0 19px;width:19px;height:19px;padding:0;margin:1px 0 0;border:1.5px solid #cdbbc0;border-radius:6px;background:#fff;box-shadow:none;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
 .rules-consent input[type="checkbox"]:checked{background:var(--red);border-color:var(--red)}
@@ -1705,7 +1705,7 @@ html[data-s1-theme="dark"] .more-close{
     <path class="s1-ribbon-glint" d="M520 1010 C650 790 790 690 930 755 S1130 910 1360 635" />
   </g>
 </svg>
-<div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button></div>
+<div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button><button class="site-settings-trigger" id="siteSettingsTrigger" type="button" aria-label="Открыть настройки" title="Настройки" onclick="openSiteSettings()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.4 13.5 1.1.9-1.2 2.1-1.4-.5a7.8 7.8 0 0 1-1.7 1l-.2 1.5h-2.4l-.3-1.5a7.8 7.8 0 0 1-1.8-1l-1.4.5-1.2-2.1 1.1-.9a7.5 7.5 0 0 1 0-2l-1.1-.9 1.2-2.1 1.4.5a7.8 7.8 0 0 1 1.8-1l.3-1.5h2.4l.2 1.5a7.8 7.8 0 0 1 1.7 1l1.4-.5 1.2 2.1-1.1.9a7.5 7.5 0 0 1 0 2Z"/></svg></button></div>
 <div class="site-search-panel" id="siteSearchPanel" hidden><div class="site-search-head"><label for="siteSearchInput">Поиск по всему сайту</label><button type="button" id="siteSearchClose" aria-label="Закрыть поиск">×</button></div><input id="siteSearchInput" type="search" placeholder="Новости, мероприятия, люди, ссылки…" autocomplete="off"><div id="siteSearchResults" class="site-search-results"><p class="note">Начни вводить запрос — найдём нужное.</p></div><button type="button" id="siteInstallHelp" class="site-install-help">Как добавить сайт на экран телефона</button></div>
 <div id="siteToast" class="site-toast" role="status" aria-live="polite"></div>
 <div id="connectionStatus" class="connection-status" role="status" aria-live="polite" hidden></div>
@@ -2071,11 +2071,11 @@ function closeSh(){
 }
 
 const S1_PREFS_KEY="s1sch9_display_preferences_v1";
-const S1_DEFAULT_PREFS={theme:"light",motion:true};
-function s1ReadPrefs(){try{return {...S1_DEFAULT_PREFS,...JSON.parse(localStorage.getItem(S1_PREFS_KEY)||"{}")};}catch(_){return {...S1_DEFAULT_PREFS};}}
+const S1_DEFAULT_PREFS={theme:"light",motion:true,textSize:"normal",contrast:false,reading:false};
+function s1ReadPrefs(){try{const saved=JSON.parse(localStorage.getItem(S1_PREFS_KEY)||"{}");return {...S1_DEFAULT_PREFS,...saved,theme:saved.theme==="dark"?"dark":"light",motion:saved.motion!==false,textSize:["normal","large","xlarge"].includes(saved.textSize)?saved.textSize:"normal",contrast:saved.contrast===true,reading:saved.reading===true};}catch(_){return {...S1_DEFAULT_PREFS};}}
 let S1_PREFS=s1ReadPrefs();
 function s1ApplyPrefs(){
- const root=document.documentElement;root.dataset.s1Theme=S1_PREFS.theme==="dark"?"dark":"light";
+ const root=document.documentElement;root.dataset.s1Theme=S1_PREFS.theme==="dark"?"dark":"light";root.dataset.s1TextSize=S1_PREFS.textSize;root.dataset.s1Contrast=S1_PREFS.contrast?"high":"normal";root.dataset.s1Reading=S1_PREFS.reading?"comfortable":"normal";
  document.body.classList.toggle("s1-motion-off",!S1_PREFS.motion);
  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=S1_PREFS.theme==="dark"?"#171216":"#3d000d";
 }
@@ -2098,6 +2098,19 @@ function openSiteSettings(){
      <button type="button" class="s1-theme-choice" data-s1-theme-choice="dark" onclick="s1SetTheme('dark')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-dark"><i></i><i></i><i></i></span><b>Тёмная</b></button>
     </div>
    </div>
+   <div class="s1-setting-group">
+    <div class="s1-setting-title"><b>Размер текста</b><small>Сделай подписи и материалы удобнее для чтения</small></div>
+    <div class="s1-text-size-options" role="group" aria-label="Размер текста">
+     <button type="button" data-s1-text-choice="normal" onclick="s1SetTextSize('normal')" aria-pressed="false">Обычный</button>
+     <button type="button" data-s1-text-choice="large" onclick="s1SetTextSize('large')" aria-pressed="false">Крупнее</button>
+     <button type="button" data-s1-text-choice="xlarge" onclick="s1SetTextSize('xlarge')" aria-pressed="false">Крупный</button>
+    </div>
+   </div>
+   <div class="s1-setting-group">
+    <div class="s1-setting-title"><b>Комфорт и доступность</b><small>Дополнительные настройки для удобного просмотра</small></div>
+    <div class="s1-switch-row"><span class="s1-switch-symbol" aria-hidden="true">◐</span><span class="s1-switch-copy"><b>Повышенная контрастность</b><small data-s1-contrast-status>Выключена</small></span><button class="s1-switch" type="button" role="switch" aria-checked="false" aria-label="Повышенная контрастность" data-s1-contrast-toggle onclick="s1SetContrast(!S1_PREFS.contrast)"><span></span></button></div>
+    <div class="s1-switch-row"><span class="s1-switch-symbol" aria-hidden="true">≡</span><span class="s1-switch-copy"><b>Комфортное чтение</b><small data-s1-reading-status>Обычные интервалы</small></span><button class="s1-switch" type="button" role="switch" aria-checked="false" aria-label="Комфортное чтение" data-s1-reading-toggle onclick="s1SetReading(!S1_PREFS.reading)"><span></span></button></div>
+   </div>
    <div class="s1-setting-group s1-setting-group-motion">
     <div class="s1-setting-title"><b>Анимация интерфейса</b><small>Плавность переходов и движения элементов</small></div>
     <div class="s1-switch-row"><span class="s1-switch-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19V5m7 14V9m7 10V3"/></svg></span><span class="s1-switch-copy"><b>Эффекты и переходы</b><small data-s1-motion-status>Включены</small></span><button class="s1-switch" type="button" role="switch" aria-checked="true" aria-label="Анимация интерфейса" data-s1-motion-toggle onclick="s1SetMotion(!S1_PREFS.motion)"><span></span></button></div>
@@ -2109,12 +2122,20 @@ function openSiteSettings(){
 function s1RenderSettings(){
  const p=$("#pn");if(!p||!p.classList.contains("s1-settings-panel"))return;
  p.querySelectorAll("[data-s1-theme-choice]").forEach(b=>{const v=b.dataset.s1ThemeChoice===S1_PREFS.theme;b.classList.toggle("is-selected",v);b.setAttribute("aria-pressed",String(v));});
+ p.querySelectorAll("[data-s1-text-choice]").forEach(b=>{const v=b.dataset.s1TextChoice===S1_PREFS.textSize;b.classList.toggle("is-selected",v);b.setAttribute("aria-pressed",String(v));});
+ const contrastToggle=p.querySelector("[data-s1-contrast-toggle]");if(contrastToggle){contrastToggle.classList.toggle("is-on",!!S1_PREFS.contrast);contrastToggle.setAttribute("aria-checked",String(!!S1_PREFS.contrast));}
+ const contrastStatus=p.querySelector("[data-s1-contrast-status]");if(contrastStatus)contrastStatus.textContent=S1_PREFS.contrast?"Включена":"Выключена";
+ const readingToggle=p.querySelector("[data-s1-reading-toggle]");if(readingToggle){readingToggle.classList.toggle("is-on",!!S1_PREFS.reading);readingToggle.setAttribute("aria-checked",String(!!S1_PREFS.reading));}
+ const readingStatus=p.querySelector("[data-s1-reading-status]");if(readingStatus)readingStatus.textContent=S1_PREFS.reading?"Увеличенные интервалы":"Обычные интервалы";
  const toggle=p.querySelector("[data-s1-motion-toggle]");
  if(toggle){toggle.classList.toggle("is-on",!!S1_PREFS.motion);toggle.setAttribute("aria-checked",String(!!S1_PREFS.motion));}
  const status=p.querySelector("[data-s1-motion-status]");if(status)status.textContent=S1_PREFS.motion?"Включены":"Выключены";
 }
 function s1SetTheme(v){S1_PREFS.theme=v==="dark"?"dark":"light";s1SavePrefs();s1RenderSettings();}
 function s1SetMotion(v){S1_PREFS.motion=!!v;s1SavePrefs();s1RenderSettings();}
+function s1SetTextSize(v){S1_PREFS.textSize=["normal","large","xlarge"].includes(v)?v:"normal";s1SavePrefs();s1RenderSettings();}
+function s1SetContrast(v){S1_PREFS.contrast=!!v;s1SavePrefs();s1RenderSettings();}
+function s1SetReading(v){S1_PREFS.reading=!!v;s1SavePrefs();s1RenderSettings();}
 function s1ResetPrefs(){S1_PREFS={...S1_DEFAULT_PREFS};s1SavePrefs();s1RenderSettings();}
 
 function openMoreMenu(){
@@ -4387,4 +4408,31 @@ html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-photo {
 html[data-s1-theme="dark"] #news .news-open-label {
   color:#ff9eb4!important;
 }
+</style>
+
+<style id="s1-settings-upgrade-2026">
+.site-settings-trigger{flex:0 0 38px;width:38px;height:38px;margin-left:7px;display:grid;place-items:center;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--deep);cursor:pointer;box-shadow:none;padding:0}
+.site-settings-trigger svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.site-settings-trigger:active{transform:scale(.96);background:#fff5f7}
+html[data-s1-theme="dark"] .site-settings-trigger{background:#30252d;color:#ffe2e9;border-color:#5a4650}
+@media(max-width:380px){.site-settings-trigger{width:36px;height:36px;flex-basis:36px;margin-left:5px}.site-search-trigger{margin-right:0}}
+.s1-text-size-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.s1-text-size-options button{min-height:42px;padding:8px 5px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:700 11px Onest,system-ui;cursor:pointer}
+.s1-text-size-options button.is-selected{border-color:#a1001f;background:#fff4f6;color:#8d001c;box-shadow:inset 0 0 0 1px rgba(161,0,31,.12)}
+.s1-settings-panel .s1-switch-row+.s1-switch-row{margin-top:8px}
+html[data-s1-theme="dark"] .s1-text-size-options button{background:#292027;color:#f4edf0;border-color:#51414a}
+html[data-s1-theme="dark"] .s1-text-size-options button.is-selected{background:#432631;color:#ffe2e9;border-color:#c46b82}
+html[data-s1-text-size="large"] main p,html[data-s1-text-size="large"] main li,html[data-s1-text-size="large"] main .note,html[data-s1-text-size="large"] main .event-list-item,html[data-s1-text-size="large"] main .news-feed-card,html[data-s1-text-size="large"] main .resource-caption{font-size:calc(1em + 1px)!important}
+html[data-s1-text-size="xlarge"] main p,html[data-s1-text-size="xlarge"] main li,html[data-s1-text-size="xlarge"] main .note,html[data-s1-text-size="xlarge"] main .event-list-item,html[data-s1-text-size="xlarge"] main .news-feed-card,html[data-s1-text-size="xlarge"] main .resource-caption{font-size:calc(1em + 2px)!important}
+html[data-s1-reading="comfortable"] main p,html[data-s1-reading="comfortable"] main li,html[data-s1-reading="comfortable"] main .note{line-height:1.75!important;letter-spacing:.01em}
+html[data-s1-reading="comfortable"] main p{margin-bottom:1.05em}
+html[data-s1-contrast="high"]{--line:#8e7d82;--mut:#51464a}
+html[data-s1-contrast="high"] body{color:#171115}
+html[data-s1-contrast="high"] a{text-decoration-thickness:1.5px;text-underline-offset:3px}
+html[data-s1-contrast="high"] button,html[data-s1-contrast="high"] input,html[data-s1-contrast="high"] textarea,html[data-s1-contrast="high"] select{border-width:1.5px}
+html[data-s1-contrast="high"] :focus-visible{outline:3px solid #7b0019!important;outline-offset:3px!important}
+html[data-s1-theme="dark"][data-s1-contrast="high"]{--s1-text:#fff;--s1-muted:#f0e6eb;--s1-stroke:#9b7c89}
+html[data-s1-theme="dark"][data-s1-contrast="high"] body{color:#fff}
+html[data-s1-theme="dark"][data-s1-contrast="high"] :focus-visible{outline-color:#ffd5df!important}
+html[data-s1-contrast="high"] .s1-settings-panel .s1-setting-title small,html[data-s1-contrast="high"] .s1-switch-copy small{color:var(--mut)!important}
 </style>
