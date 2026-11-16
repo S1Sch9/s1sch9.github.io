@@ -1794,21 +1794,21 @@ function s1ApplyPrefs(){
 function s1SavePrefs(){try{localStorage.setItem(S1_PREFS_KEY,JSON.stringify(S1_PREFS));}catch(_){}s1ApplyPrefs();}
 function openSiteSettings(){
  openSh(`
-  <div class="more-menu-heading s1-settings-heading"><div><span>ВАШ КОМФОРТ</span><h3>Настройки</h3><p>Настрой внешний вид сайта под себя</p></div><button class="more-close" type="button" onclick="closeSh()" aria-label="Закрыть">×</button></div>
+  <div class="more-menu-heading s1-settings-heading"><div class="s1-settings-heading-copy"><span>ПЕРСОНАЛЬНЫЙ ВИД</span><h3>Настройки сайта</h3><p>Выбери, как будет выглядеть сайт и двигаться его элементы</p></div><div class="s1-settings-heading-art" aria-hidden="true"><svg viewBox="0 0 72 72"><path d="M36 7 42 12 50 11 54 19 62 23 60 32 65 39 59 47 59 56 49 58 43 65 34 61 25 65 19 58 10 55 12 46 7 38 13 30 12 21 22 18 27 10Z"/><circle cx="36" cy="36" r="17"/><circle cx="36" cy="36" r="6"/></svg></div><button class="more-close" type="button" onclick="closeSh()" aria-label="Закрыть">×</button></div>
   <div class="s1-settings-content">
-   <section class="s1-setting-group"><div class="s1-setting-title"><b>Оформление</b><small>Выбери тему сайта</small></div><div class="s1-setting-options">
+   <section class="s1-setting-group"><div class="s1-setting-title"><b>Тема оформления</b><small>Светлая или тёмная — выбери удобный вариант</small></div><div class="s1-setting-options">
     <button type="button" class="s1-choice" data-s1-theme-choice="light" onclick="s1SetTheme('light')"><span class="s1-choice-icon">☀</span><span>Светлая</span><i></i></button>
     <button type="button" class="s1-choice" data-s1-theme-choice="dark" onclick="s1SetTheme('dark')"><span class="s1-choice-icon">☾</span><span>Тёмная</span><i></i></button>
    </div></section>
-   <section class="s1-setting-group"><div class="s1-setting-title"><b>Анимация интерфейса</b><small>Переходы и декоративные эффекты</small></div><div class="s1-setting-options">
+   <section class="s1-setting-group"><div class="s1-setting-title"><b>Анимация интерфейса</b><small>Включает и выключает плавные движения и эффекты</small></div><div class="s1-setting-options">
     <button type="button" class="s1-choice" data-s1-motion-choice="on" onclick="s1SetMotion(true)"><span class="s1-choice-icon">✦</span><span>Включена</span><i></i></button>
     <button type="button" class="s1-choice" data-s1-motion-choice="off" onclick="s1SetMotion(false)"><span class="s1-choice-icon">Ⅱ</span><span>Выключена</span><i></i></button>
    </div></section>
-   <section class="s1-setting-group"><div class="s1-setting-title"><b>Движущийся фон</b><small>Медленные световые пятна и ленты</small></div><div class="s1-setting-options">
+   <section class="s1-setting-group"><div class="s1-setting-title"><b>Анимированный фон</b><small>Отдельно управляй движением фоновых элементов</small></div><div class="s1-setting-options">
     <button type="button" class="s1-choice" data-s1-bg-choice="on" onclick="s1SetBackground(true)"><span class="s1-choice-icon">〰</span><span>Включён</span><i></i></button>
     <button type="button" class="s1-choice" data-s1-bg-choice="off" onclick="s1SetBackground(false)"><span class="s1-choice-icon">—</span><span>Статичный</span><i></i></button>
    </div></section>
-   <p class="s1-settings-note">Настройки сохраняются на этом устройстве. Их можно изменить в любой момент.</p>
+   <p class="s1-settings-note">Изменения сохраняются автоматически в этом браузере. При следующем посещении выбранный вид останется таким же.</p>
   </div>`);
  $("#pn").classList.add("more-panel","s1-settings-panel");s1RenderSettings();
 }
@@ -1836,7 +1836,7 @@ function openMoreMenu(){
       <a class="more-menu-item" href="#appeal" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-7a7.5 7.5 0 1 1 17.5-2.5Z"/><path d="M8 10h8M8 14h5"/></svg></i><span>Обращение</span></a>
       <a class="more-menu-item" href="#games" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.8 6.4l-.8 2.8a2 2 0 0 1-3.2 1l-2.1-1.7H8.8l-2.1 1.7a2 2 0 0 1-3.2-1l-.8-2.8A5 5 0 0 1 7.5 8Z"/><path d="M8 11v4M6 13h4M16 12h.01M18 14h.01"/></svg></i><span>Мини-игры</span></a>
       <a class="more-menu-item" href="#links" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13.5 14 9.5M8.2 15.8l-1.4 1.4a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0M15.8 8.2l1.4-1.4a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0"/></svg></i><span>Наши ресурсы</span></a>
-      <button class="more-menu-item" type="button" onclick="openSiteSettings()"><i aria-hidden="true">⚙</i><span>Настройки</span></button>
+      <button class="more-menu-item" type="button" onclick="openSiteSettings()"><i aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.4 13.5 1.1.9-1.5 2.6-1.4-.5a7.8 7.8 0 0 1-1.5.9l-.2 1.5h-3l-.3-1.5a7.8 7.8 0 0 1-1.5-.9l-1.4.5-1.5-2.6 1.1-.9a7.3 7.3 0 0 1 0-1.8l-1.1-.9 1.5-2.6 1.4.5a7.8 7.8 0 0 1 1.5-.9l.3-1.5h3l.2 1.5a7.8 7.8 0 0 1 1.5.9l1.4-.5 1.5 2.6-1.1.9a7.3 7.3 0 0 1 0 1.8Z"/></svg></i><span>Настройки</span></button>
     </div>
   `);
   $("#pn").classList.add("more-panel");
@@ -3517,15 +3517,15 @@ body::before{
 
 
 <style id="s1-user-display-settings-2026">
-.s1-settings-content{padding:20px 0 8px}.s1-setting-group{margin:0 0 22px}.s1-setting-title{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}.s1-setting-title b{font-size:15px;color:var(--ink)}.s1-setting-title small{font-size:11.5px;color:var(--mut)}
-.s1-setting-options{display:grid;grid-template-columns:1fr 1fr;gap:9px}.s1-choice{display:flex;align-items:center;gap:9px;min-height:52px;padding:9px 11px;border:1px solid #eadfe1;border-radius:15px;background:#fff;color:#35272c;text-align:left;font:700 12px Onest,system-ui,sans-serif;cursor:pointer}
+.s1-settings-panel .s1-settings-heading{align-items:center;gap:12px;padding:10px 0 20px}.s1-settings-heading-copy{min-width:0;flex:1}.s1-settings-heading-art{width:66px;height:66px;flex:none;display:grid;place-items:center;border-radius:21px;background:linear-gradient(145deg,#f8e8ec,#f2d7df);color:#a1001f}.s1-settings-heading-art svg{width:48px;height:48px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.s1-settings-content{padding:20px 0 8px}.s1-settings-panel .s1-setting-group{display:block!important;margin:0 0 22px}.s1-setting-title{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}.s1-setting-title b{font-size:15px;color:var(--ink)}.s1-setting-title small{font-size:11.5px;color:var(--mut)}
+.s1-setting-options{display:grid;grid-template-columns:1fr 1fr;gap:9px}.s1-choice{display:flex;align-items:center;gap:9px;min-height:58px;padding:9px 11px;border:1px solid #eadfe1;border-radius:15px;background:#fff;color:#35272c;text-align:left;font:700 12px Onest,system-ui,sans-serif;cursor:pointer}
 .s1-choice-icon{display:grid;place-items:center;width:29px;height:29px;flex:none;border-radius:10px;background:#f8edf0;color:#9b1835;font-size:17px}.s1-choice>span:nth-child(2){flex:1}.s1-choice>i{width:15px;height:15px;flex:none;border:1.5px solid #cbb9bf;border-radius:50%}
 .s1-choice.is-selected{border-color:#b96b7d;background:#fff7f8;box-shadow:0 0 0 2px rgba(161,0,31,.055)}.s1-choice.is-selected>i{border-color:#a1001f;background:#a1001f;box-shadow:inset 0 0 0 3px #fff}
 .s1-settings-note{margin:4px 0 0;padding:12px 13px;border-radius:13px;background:#f8f3f4;color:#77686d;font-size:11px;line-height:1.5}
 body.s1-motion-off *,body.s1-motion-off *::before,body.s1-motion-off *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 body.s1-bg-static::before,body.s1-bg-static::after{animation:none!important;transform:none!important}
 body.s1-bg-static #s1-floating-ribbons .s1-ribbon{animation:none!important;transform:none!important;will-change:auto!important}
-@media(max-width:600px){.s1-choice{min-height:50px;padding:8px 9px;gap:7px;font-size:11.5px}}
+@media(max-width:600px){.s1-settings-heading-art{width:56px;height:56px;border-radius:18px}.s1-settings-heading-art svg{width:41px;height:41px}.s1-choice{min-height:54px;padding:8px 9px;gap:7px;font-size:11.5px}}
 html[data-s1-theme="dark"],html[data-s1-theme="dark"] body{background:#171216!important;color:#f4edf0!important}
 html[data-s1-theme="dark"] body{--ink:#f4edf0;--mut:#b9aab0;--bg:#171216;--card:#241c22;--line:#40323a}
 html[data-s1-theme="dark"] .bar{background:rgba(31,23,29,.96)!important;color:#f4edf0!important;border-color:#40323a!important}
