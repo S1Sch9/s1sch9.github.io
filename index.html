@@ -1766,6 +1766,52 @@ html[data-s1-theme="dark"] .more-close{
 html[data-s1-theme="dark"] #events .day-event-category{border-color:rgba(225,138,162,.18);background:rgba(225,138,162,.09);color:#e8a9b9}
 </style>
 
+<style id="s1-events-unified-date-category-title">
+/* Дата, тип и название — единая вертикальная последовательность, без отдельной карточки вокруг типа. */
+#events .day-switch{margin-bottom:10px}
+#events .day-date{padding-bottom:0}
+#events .day-event-list{margin-top:0}
+#events .day-event-card{
+  margin:0!important;
+  padding:0 2px 4px!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+#events .day-event-top{
+  display:block!important;
+  margin:0 0 4px!important;
+  padding:0!important;
+}
+#events .day-event-category{
+  display:block!important;
+  width:max-content;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:var(--red)!important;
+  font-size:12px!important;
+  font-weight:750!important;
+  letter-spacing:.01em!important;
+  line-height:1.35!important;
+  text-transform:none!important;
+}
+#events .day-event-category:before{display:none!important}
+#events .day-event-card h3{
+  margin:0!important;
+  font-size:18px!important;
+  line-height:1.35!important;
+}
+html[data-s1-theme="dark"] #events .day-event-category{color:#e8a9b9!important}
+#events .day-event-card + .day-event-card{
+  margin-top:13px!important;
+  padding-top:11px!important;
+  border-top:1px solid var(--line)!important;
+}
+</style>
+
 <style id="s1-events-date-label-and-background-focus">
 /* В выбранной дате — только спокойная дата, без цветных категорийных плашек. */
 #events .day-event-top{display:flex;align-items:center;justify-content:flex-start;margin:0 0 5px;gap:0}
