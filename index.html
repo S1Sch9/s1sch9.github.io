@@ -4103,14 +4103,14 @@ html[data-s1-theme="dark"] .appeal-rules-body b{color:#e18aa2}
 /* Полная тёмная палитра: единая система поверх всех разделов, без отдельных случайных оттенков. */
 html[data-s1-theme="dark"]{
  color-scheme:dark;
- --s1-night:#141316;
- --s1-surface:#201d21;
- --s1-surface-raised:#282329;
- --s1-stroke:#40363e;
- --s1-text:#f5eff2;
- --s1-muted:#c0b4ba;
- --s1-accent:#f07891;
- --s1-accent-soft:#3b252e;
+ --s1-night:#19171c;
+ --s1-surface:#242027;
+ --s1-surface-raised:#302a33;
+ --s1-stroke:#4a404b;
+ --s1-text:#f7f1f4;
+ --s1-muted:#c5b8c0;
+ --s1-accent:#f08ca3;
+ --s1-accent-soft:#3c2832;
  --s1-gold:#eac76b;
 }
 html[data-s1-theme="dark"],html[data-s1-theme="dark"] body{
@@ -4324,5 +4324,57 @@ html[data-s1-theme="dark"] .site-toast{background:#29242b!important;color:var(--
 html[data-s1-theme="dark"] a{ text-decoration-color:rgba(240,120,145,.55) }
 @media(max-width:420px){
  html[data-s1-theme="dark"] .sh .pn{background:#1c191e!important}
+}
+
+
+/* Финальная унификация карточек, которые раньше принудительно оставались светлыми. */
+html[data-s1-theme="dark"] #appeal .appeal-form-card,
+html[data-s1-theme="dark"] #events .day-event-card,
+html[data-s1-theme="dark"] #news .news-open,
+html[data-s1-theme="dark"] #pn:has(.team-profile),
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile {
+  background:var(--s1-surface)!important;
+  color:var(--s1-text)!important;
+  border-color:var(--s1-stroke)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.2)!important;
+}
+html[data-s1-theme="dark"] #appeal .appeal-form-head b,
+html[data-s1-theme="dark"] #news .news-open b,
+html[data-s1-theme="dark"] #events .day-event-card h3,
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile h3 {
+  color:var(--s1-text)!important;
+}
+html[data-s1-theme="dark"] #appeal .appeal-form-head small,
+html[data-s1-theme="dark"] #appeal .appeal-field label,
+html[data-s1-theme="dark"] #news .news-open p,
+html[data-s1-theme="dark"] #events .day-event-card p,
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile p {
+  color:var(--s1-muted)!important;
+}
+html[data-s1-theme="dark"] #events .day-event-card p,
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile p {
+  background:var(--s1-surface-raised)!important;
+  border-color:var(--s1-stroke)!important;
+}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-role {
+  background:var(--s1-accent-soft)!important;
+  color:#ffdce4!important;
+  border-color:#65404c!important;
+}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-class {
+  background:var(--s1-surface-raised)!important;
+  color:var(--s1-muted)!important;
+  border-color:var(--s1-stroke)!important;
+}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-class b {
+  color:var(--s1-text)!important;
+}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-photo {
+  background:var(--s1-surface-raised)!important;
+  border-color:var(--s1-stroke)!important;
+  box-shadow:0 0 0 7px var(--s1-surface),0 12px 30px rgba(0,0,0,.22)!important;
+}
+html[data-s1-theme="dark"] #news .news-open-label {
+  color:#ff9eb4!important;
 }
 </style>
