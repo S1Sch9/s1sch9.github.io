@@ -1233,6 +1233,98 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
 #appeal .appeal-issue-link span{font-size:14px;color:#a1001f}
 #appeal .appeal-issue-link:active{opacity:.65}
 </style>
+
+<style id="s1-visible-motion-system-2026">
+/* Живой фирменный фон: видимые, медленные световые формы без визуального шума. */
+body{isolation:isolate!important}
+body::before{z-index:-1!important;opacity:1!important}
+.home-hero-front{isolation:isolate!important;overflow:hidden!important}
+.home-hero-front::before{
+ content:"";position:absolute;z-index:0;pointer-events:none;
+ width:260px;height:260px;right:-92px;top:-122px;border-radius:50%;
+ background:radial-gradient(circle at 42% 44%,rgba(255,226,165,.42) 0%,rgba(255,86,122,.25) 30%,rgba(255,61,99,.08) 56%,transparent 72%);
+ filter:blur(10px);transform:translate3d(0,0,0) scale(.92);
+ animation:s1-hero-orb-one 13s ease-in-out infinite alternate;
+}
+.home-hero-front::after{
+ content:"";position:absolute;z-index:0;inset:-18%;
+ pointer-events:none;opacity:.52;
+ background:
+  radial-gradient(circle,rgba(255,238,194,.9) 0 1.4px,transparent 2.4px) 12% 22%/118px 112px,
+  radial-gradient(circle,rgba(255,255,255,.8) 0 1px,transparent 2px) 72% 38%/154px 146px,
+  radial-gradient(circle,rgba(240,200,105,.95) 0 1.5px,transparent 2.6px) 48% 82%/176px 158px,
+  radial-gradient(circle,rgba(255,255,255,.6) 0 1px,transparent 2px) 88% 75%/130px 138px;
+ animation:s1-hero-particles 24s linear infinite alternate;
+}
+.home-hero-front>*{position:relative;z-index:1}
+.home-hero-front .home-hero-glow{z-index:0!important;pointer-events:none}
+@keyframes s1-hero-orb-one{
+  0%{transform:translate3d(0,0,0) scale(.88)}
+  50%{transform:translate3d(-34px,26px,0) scale(1.12)}
+  100%{transform:translate3d(-12px,48px,0) scale(.96)}
+}
+@keyframes s1-hero-particles{
+  0%{background-position:12% 22%,72% 38%,48% 82%,88% 75%;transform:translate3d(-1.5%,0,0)}
+  50%{background-position:22% 34%,60% 22%,58% 68%,76% 88%;transform:translate3d(1.5%,-1%,0)}
+  100%{background-position:30% 18%,82% 48%,40% 90%,96% 60%;transform:translate3d(-.5%,1.5%,0)}
+}
+/* На остальных вкладках — фирменные световые пятна в заголовках и календаре. */
+.section-heading{position:relative!important;isolation:isolate!important;overflow:visible!important}
+.section-heading::before{
+ content:"";position:absolute;z-index:-1;right:-22px;top:-28px;width:170px;height:110px;
+ border-radius:50%;pointer-events:none;
+ background:radial-gradient(ellipse,rgba(161,0,31,.11) 0%,rgba(240,200,105,.08) 38%,transparent 72%);
+ filter:blur(13px);transform:translate3d(0,0,0);
+ animation:s1-heading-light 15s ease-in-out infinite alternate;
+}
+@keyframes s1-heading-light{
+ from{transform:translate3d(12px,-5px,0) scale(.88);opacity:.55}
+ to{transform:translate3d(-28px,13px,0) scale(1.18);opacity:1}
+}
+#events .day-showcase{position:relative;isolation:isolate;overflow:hidden}
+#events .day-showcase::before{
+ content:"";position:absolute;z-index:-1;right:-62px;top:-82px;width:190px;height:190px;
+ border-radius:50%;pointer-events:none;
+ background:radial-gradient(circle,rgba(240,200,105,.23),rgba(161,0,31,.06) 42%,transparent 72%);
+ animation:s1-calendar-orb 17s ease-in-out infinite alternate;
+}
+@keyframes s1-calendar-orb{
+ from{transform:translate3d(0,0,0) scale(.84)}
+ to{transform:translate3d(-46px,34px,0) scale(1.16)}
+}
+/* Навигация — более цельная стеклянная панель, сохраняя существующий свайп-индикатор. */
+nav{
+ background:rgba(255,255,255,.82)!important;
+ border-color:rgba(255,255,255,.82)!important;
+ backdrop-filter:blur(24px) saturate(1.5)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(1.5)!important;
+ box-shadow:0 10px 30px rgba(61,0,13,.13),inset 0 1px 0 rgba(255,255,255,.95)!important;
+}
+nav .nav-indicator{
+ box-shadow:0 7px 18px rgba(161,0,31,.24),inset 0 1px 0 rgba(255,255,255,.24)!important;
+}
+nav a.on i,nav button.on i{animation:s1-nav-pop .42s cubic-bezier(.2,1.45,.35,1) both}
+@keyframes s1-nav-pop{
+ 0%{transform:scale(.82) translateY(2px)}
+ 65%{transform:scale(1.2) translateY(-1px)}
+ 100%{transform:scale(1.08) translateY(0)}
+}
+nav a,nav button{min-height:54px}
+.home-shortcut{transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,border-color .28s ease!important}
+.home-shortcut:active{transform:translateY(-2px) scale(.975)!important}
+section.on{animation:s1-section-arrive .42s cubic-bezier(.2,.8,.2,1) both!important}
+@keyframes s1-section-arrive{
+ from{opacity:0;transform:translate3d(0,11px,0) scale(.994)}
+ to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ body::before,.home-hero-front::before,.home-hero-front::after,.section-heading::before,
+ #events .day-showcase::before,nav a.on i,nav button.on i,section.on{
+  animation:none!important;transform:none!important
+ }
+}
+</style>
+
 </head>
 <body>
 <div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button></div>
