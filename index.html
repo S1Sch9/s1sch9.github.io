@@ -2724,7 +2724,8 @@ function renderPublicEvents(){
  if(status)status.textContent=selectedEventCategory==="all"?"Все события по датам — от ближайших к более поздним.":"Показаны мероприятия категории «"+selectedEventCategory+"».";
  if(total)total.textContent=visible.length;
  root.innerHTML=selected.length?selected.map(e=>{
-  return '<article class="day-event-card"><h3>'+esc(e.title)+'</h3></article>';
+  const eventKind=String(e.category||"Мероприятие").trim()||"Мероприятие";
+  return '<article class="day-event-card"><div class="day-event-top"><span class="day-event-category">'+esc(eventKind)+'</span></div><h3>'+esc(e.title)+'</h3></article>';
  }).join(''):'<div class="day-empty"><b>✦</b><strong>'+(selectedEventCategory==="all"?"На эту дату пока ничего не запланировано":"В этой категории на выбранную дату событий нет")+'</strong><span>'+(selectedEventCategory==="all"?"Посмотри список ниже или выбери другой день.":"Выбери другую дату или вернись ко всем категориям.")+'</span></div>';
  /* Карточка дня показывает только само мероприятие; действия временно убраны по просьбе пользователя. */
  if(allList){
