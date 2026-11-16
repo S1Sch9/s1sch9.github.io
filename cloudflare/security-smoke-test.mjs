@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import worker from "./worker.js";
 
 const env = { ADMIN_TOKEN: "test-admin-token-".padEnd(48, "x") };
+assert.equal(typeof worker.scheduled, "function", "Worker must expose the scheduled handler");
+await worker.scheduled({ cron: "* * * * *" }, {});
 const adminRoutes = [
   ["GET", "/api/admin/push/config"],
   ["POST", "/api/admin/push/config"],
