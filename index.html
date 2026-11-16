@@ -1687,44 +1687,21 @@ function closeSh(){
 function openMoreMenu(){
   openSh(`
     <div class="more-menu-heading">
-      <div class="more-menu-brand"><span class="more-menu-kicker">СОВЕТ ПЕРВЫХ · ШКОЛА №9</span><h3>Открывай<br>наш сайт</h3><p>Все разделы и возможности — в одном месте</p><div class="more-menu-count"><span></span> 7 разделов для тебя</div></div>
+      <div><span>СОВЕТ ПЕРВЫХ · ШКОЛА №9</span><h3>Ещё</h3><p>Всё самое важное — рядом</p></div>
       <button class="more-close" type="button" onclick="closeSh()" aria-label="Закрыть">×</button>
-      <div class="more-menu-orbit" aria-hidden="true">✳</div>
     </div>
-    <div class="more-menu-caption">КУДА ОТПРАВИМСЯ?</div>
     <div class="more-menu-list">
-      <a class="more-menu-item" href="#home" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10 8.5-7 8.5 7v10a1 1 0 0 1-1 1h-5.2v-6.5H9.7V21H4.5a1 1 0 0 1-1-1z"/></svg></i><span><b>Главная</b><small>На стартовую страницу</small></span></a>
-      <a class="more-menu-item" href="#team" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20v-1.5a6 6 0 0 1 12 0V20M16 5.2a3.2 3.2 0 0 1 0 6.2M18 14.5a5 5 0 0 1 3 4.5V20"/></svg></i><span><b>Наша команда</b><small>Познакомиться с Советом</small></span></a>
-      <a class="more-menu-item" href="#news" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5Z"/><path d="M7.5 8h9M7.5 12h9M7.5 16h5"/></svg></i><span><b>Новости</b><small>Что происходит в школе</small></span></a>
-      <a class="more-menu-item" href="#events" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M3.5 9.5h17M8 13h2M14 13h2"/></svg></i><span><b>Мероприятия</b><small>Планы и календарь событий</small></span></a>
-      <a class="more-menu-item" href="#appeal" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-7a7.5 7.5 0 1 1 17.5-2.5Z"/><path d="M8 10h8M8 14h5"/></svg></i><span><b>Обращение</b><small>Идеи, вопросы и предложения</small></span></a>
-      <a class="more-menu-item" href="#games" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.8 6.4l-.8 2.8a2 2 0 0 1-3.2 1l-2.1-1.7H8.8l-2.1 1.7a2 2 0 0 1-3.2-1l-.8-2.8A5 5 0 0 1 7.5 8Z"/><path d="M8 11v4M6 13h4M16 12h.01M18 14h.01"/></svg></i><span><b>Мини-игры</b><small>Немного отдыха и веселья</small></span></a>
-      <a class="more-menu-item" href="#links" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13.5 14 9.5M8.2 15.8l-1.4 1.4a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0M15.8 8.2l1.4-1.4a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0"/></svg></i><span><b>Наши ресурсы</b><small>Полезные каналы и ссылки</small></span></a>
+      <a class="more-menu-item" href="#home" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10 8.5-7 8.5 7v10a1 1 0 0 1-1 1h-5.2v-6.5H9.7V21H4.5a1 1 0 0 1-1-1z"/></svg></i><span>Главная</span></a>
+      <a class="more-menu-item" href="#team" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20v-1.5a6 6 0 0 1 12 0V20M16 5.2a3.2 3.2 0 0 1 0 6.2M18 14.5a5 5 0 0 1 3 4.5V20"/></svg></i><span>Состав</span></a>
+      <a class="more-menu-item" href="#news" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5Z"/><path d="M7.5 8h9M7.5 12h9M7.5 16h5"/></svg></i><span>Новости</span></a>
+      <a class="more-menu-item" href="#events" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M3.5 9.5h17M8 13h2M14 13h2"/></svg></i><span>Мероприятия</span></a>
+      <a class="more-menu-item" href="#appeal" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-7a7.5 7.5 0 1 1 17.5-2.5Z"/><path d="M8 10h8M8 14h5"/></svg></i><span>Обращение</span></a>
+      <a class="more-menu-item" href="#games" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.8 6.4l-.8 2.8a2 2 0 0 1-3.2 1l-2.1-1.7H8.8l-2.1 1.7a2 2 0 0 1-3.2-1l-.8-2.8A5 5 0 0 1 7.5 8Z"/><path d="M8 11v4M6 13h4M16 12h.01M18 14h.01"/></svg></i><span>Мини-игры</span></a>
+      <a class="more-menu-item" href="#links" onclick="closeSh()"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13.5 14 9.5M8.2 15.8l-1.4 1.4a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0M15.8 8.2l1.4-1.4a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0"/></svg></i><span>Наши ресурсы</span></a>
     </div>
   `);
   $("#pn").classList.add("more-panel");
 }
-const APPEAL_RULES_VERSION = "2026-11-12-v2";
-const APPEAL_RULES_KEY = "s1sch9-appeal-rules-" + APPEAL_RULES_VERSION;
-const appealRulesHTML = `
-  <button class="rules-scroll-cue is-intro" id="appealRulesScrollCue" type="button" aria-label="Прокрутить правила вниз" title="К согласию и отправке">↓</button>
-  <div class="c">
-    <div style="font-size:34px;margin:2px 0 8px">💙</div>
-    <h3>Здесь важен каждый</h3>
-    <p class="note" style="margin:0 0 16px">О Совете Первых и правила пользования сайтом и ботом</p>
-  </div>
-  <p>Совет Первых школы № 9 — это пространство для школьных инициатив, идей и совместных дел. Его смысл — помогать делать школьную жизнь интереснее, добрее и насыщеннее, поддерживать предложения учеников и давать возможность каждому быть услышанным. Для этого не обязательно состоять в Совете: предложить идею, задать вопрос или поделиться мнением может любой ученик.</p>
-  <p><b>Что есть на сайте и в боте</b><br>На сайте собраны новости, события, проекты, полезные ссылки и материалы о деятельности Совета. Здесь же можно отправить обращение. Telegram-бот помогает сделать это прямо в мессенджере. Новости и важные обновления публикуются в официальных информационных каналах Совета. На сайте также есть интерактивная игра — отдельная часть проекта, не требующая регистрации.</p>
-  <p><b>О чём можно написать</b><br>Предложить мероприятие или школьный проект, поделиться идеей по улучшению школьной жизни, задать вопрос, оставить конструктивное замечание, рассказать о полезной инициативе или интересном школьном событии. Пожалуйста, формулируйте обращение понятно и по существу.</p>
-  <p><b>Уважение и недопустимые сообщения</b><br>Общайтесь уважительно. Нельзя отправлять оскорбления, угрозы, травлю, нецензурные сообщения, спам, рекламу, заведомо ложные сведения и материалы, не относящиеся к работе Совета и школьной жизни. Не используйте обращения для давления на других людей или распространения конфликтов.</p>
-  <p><b>Как рассматриваются обращения</b><br>Поступившие сообщения читаются и рассматриваются Советом. Идеи могут обсуждаться, уточняться и оцениваться с учётом реальных возможностей, безопасности и необходимых согласований. Если предложение окажется подходящим, Совет постарается помочь ему воплотиться. На рассмотрение может потребоваться время; отправка обращения не означает, что его обязательно получится реализовать.</p>
-  <p><b>Конфиденциальность и личные данные</b><br>На сайте не требуется указывать имя, номер телефона или другие контактные данные. Для защиты от спама сайт использует технический обезличенный идентификатор подключения; он не является именем или номером телефона. В Telegram-боте для обработки обращений и защиты от злоупотреблений используется технический Telegram ID аккаунта. Эти технические идентификаторы не публикуются на сайте. Не указывайте в сообщении свои личные данные и данные других людей, если в этом нет необходимости.</p>
-  <p><b>Публикация предложений</b><br>Обращения не появляются на сайте автоматически. Если идея окажется полезной для школьного сообщества, Совет может отдельно рассказать о ней или использовать её как основу для инициативы. При подготовке публичного материала личные сведения и данные, позволяющие определить автора, не раскрываются.</p>
-  <p><b>Ограничения и блокировка</b><br>При нарушении правил Совет может ограничить возможность отправлять обращения. В Telegram ограничение применяется к аккаунту, а на сайте — к техническому идентификатору подключения. Поэтому блокировка на сайте иногда может затронуть и других пользователей той же сети. Если вы считаете, что ограничение применено ошибочно, свяжитесь с Советом через доступные официальные каналы.</p>
-  <p><b>Регистрация и игра</b><br>Для просмотра сайта регистрация не нужна. Результаты игры сохраняются в браузере на том устройстве, где вы играете, и не привязываются к имени или профилю. При очистке данных браузера или переходе на другое устройство сохранённый результат может потеряться.</p>
-  <p style="margin-top:18px"><b>Совет начинается с инициативы. Не бойся предложить, спросить или поделиться тем, что действительно важно. Даже небольшая идея может стать началом хорошего общего дела. Мы хотим, чтобы каждый ученик знал: его голос имеет значение. Важен каждый! 💙</b></p>
-  <button class="btn full" id="acceptAppealRules" type="button" style="margin-top:20px">✓ Я ознакомился(ась) и согласен(на)</button>
-`;
 function setAppealRulesAccepted(){
   const accepted = localStorage.getItem(APPEAL_RULES_KEY) === "yes";
   const gate = $("#rulesGate"), button = $("#openAppealRules"), send = $("#send");
@@ -3302,33 +3279,22 @@ section.on .game{
  }
 }
 
-/* 2026-11: выразительное меню «Ещё» и родные белые карточки разделов */
-.more-panel{padding:12px 17px calc(25px + env(safe-area-inset-bottom))!important;background:#fff!important}
-.more-panel .grip{width:42px;height:5px;border-radius:99px;background:#e7d9dd;margin:0 auto 13px}
-.more-menu-heading{position:relative;isolation:isolate;display:flex;min-height:166px;overflow:hidden;align-items:flex-start;padding:23px 20px 18px;border-radius:23px;background:linear-gradient(135deg,#4a0719 0%,#870f2d 58%,#a51c3c 100%);color:#fff;box-shadow:0 12px 28px rgba(87,8,30,.18)}
-.more-menu-brand{position:relative;z-index:2;max-width:80%}
-.more-menu-kicker{display:inline-flex;align-items:center;min-height:23px;padding:4px 9px;border:1px solid rgba(255,255,255,.23);border-radius:99px;background:rgba(255,255,255,.09);color:#f4d9df;font-size:8px;font-weight:850;letter-spacing:.13em}
-.more-menu-heading h3{margin:12px 0 5px;color:#fff;font-size:30px;line-height:.98;letter-spacing:-1.1px;font-weight:850}
-.more-menu-heading p{margin:8px 0 0;color:rgba(255,255,255,.78);font-size:11px;line-height:1.4}
-.more-menu-count{display:inline-flex;align-items:center;gap:7px;margin-top:13px;color:#f5d9a0;font-size:9px;font-weight:800;letter-spacing:.04em}
-.more-menu-count span{width:6px;height:6px;border-radius:50%;background:#f0c869;box-shadow:0 0 0 4px rgba(240,200,105,.14)}
-.more-menu-orbit{position:absolute;z-index:1;right:-21px;bottom:-62px;width:190px;height:190px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.15);border-radius:50%;color:rgba(255,255,255,.15);font-size:130px;line-height:1;transform:rotate(-12deg)}
-.more-menu-orbit:before,.more-menu-orbit:after{content:"";position:absolute;border:1px solid rgba(255,255,255,.13);border-radius:50%}
-.more-menu-orbit:before{inset:17px}.more-menu-orbit:after{inset:37px}
-.more-close{position:absolute;z-index:4;top:13px;right:13px;width:34px;height:34px;border:1px solid rgba(255,255,255,.22);border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:23px;box-shadow:none}
-.more-close:active{background:rgba(255,255,255,.25)}
-.more-menu-caption{margin:19px 3px 9px;color:#a27d87;font-size:8px;font-weight:900;letter-spacing:.15em}
-.more-menu-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0}
-.more-menu-item{position:relative;display:flex;align-items:flex-start;gap:10px;min-width:0;min-height:76px;padding:12px 10px;border:1px solid #eee4e7;border-radius:16px;background:linear-gradient(150deg,#fff 0%,#fffafb 100%);color:#321a22;text-decoration:none;box-shadow:0 3px 11px rgba(61,0,13,.035);font-size:12px;transition:transform .2s,border-color .2s,box-shadow .2s,background .2s}
-.more-menu-item:active{transform:scale(.975);padding-left:10px;border-color:#dcb8c1;background:#fff6f8;box-shadow:0 5px 14px rgba(61,0,13,.07)}
-.more-menu-item i{display:grid;place-items:center;flex:none;width:34px;height:34px;border:1px solid #f0dfe4;border-radius:12px;background:#f9eef1;color:#8a1832}
-.more-menu-item i svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.more-menu-item span{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px;padding-top:2px;line-height:1.2}
-.more-menu-item b{font-size:11px;line-height:1.2;font-weight:850}
-.more-menu-item small{color:#8c7c82;font-size:9px;line-height:1.3;font-weight:550}
-.more-menu-item:after{content:none!important;display:none!important}
-@media(max-width:360px){.more-panel{padding-left:13px!important;padding-right:13px!important}.more-menu-list{gap:7px}.more-menu-item{gap:7px;padding:10px 8px}.more-menu-item i{width:30px;height:30px}.more-menu-item b{font-size:10px}.more-menu-item small{font-size:8px}}
-@media(prefers-reduced-motion:reduce){.more-menu-item{transition:none!important}}
+/* Полноэкранное «Ещё»: простой список, лёгкая живая анимация */
+.sh .pn.more-panel{position:fixed!important;inset:0!important;top:0!important;bottom:0!important;width:100%!important;max-width:none!important;height:100dvh!important;max-height:100dvh!important;margin:0!important;overflow-y:auto!important;border-radius:0!important;padding:calc(18px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom))!important;background:#fff!important;animation:moreScreenIn .38s cubic-bezier(.2,.8,.2,1)!important}
+.more-panel .grip{margin:0 auto 24px;width:38px;height:4px;border-radius:9px;background:#eadde1}
+.more-panel .more-menu-heading{align-items:center;padding:8px 0 22px;border-bottom:1px solid #f0e7e9}
+.more-panel .more-menu-heading h3{font-size:32px;letter-spacing:-1px}
+.more-panel .more-menu-heading p{font-size:13px}
+.more-panel .more-close{width:40px;height:40px;border-radius:50%;background:#f8edf0;transition:transform .22s,background .22s}
+.more-panel .more-close:active{transform:rotate(90deg) scale(.92);background:#f1dce2}
+.more-panel .more-menu-list{margin-top:16px}
+.more-panel .more-menu-item{animation:moreItemIn .42s both;transform-origin:left center}
+.more-panel .more-menu-item:nth-child(1){animation-delay:.035s}.more-panel .more-menu-item:nth-child(2){animation-delay:.075s}.more-panel .more-menu-item:nth-child(3){animation-delay:.115s}.more-panel .more-menu-item:nth-child(4){animation-delay:.155s}.more-panel .more-menu-item:nth-child(5){animation-delay:.195s}.more-panel .more-menu-item:nth-child(6){animation-delay:.235s}.more-panel .more-menu-item:nth-child(7){animation-delay:.275s}
+.more-panel .more-menu-item i{transition:transform .25s cubic-bezier(.2,.8,.2,1),background .25s,color .25s}
+.more-panel .more-menu-item:active i{transform:scale(1.12) rotate(-7deg);background:#f1dce2;color:#a1001f}
+@keyframes moreScreenIn{from{opacity:.65;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes moreItemIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+@media(prefers-reduced-motion:reduce){.sh .pn.more-panel,.more-panel .more-menu-item{animation:none!important}.more-panel .more-menu-item i,.more-panel .more-close{transition:none!important}}
 #home .home-shortcut{border:1px solid #eadde1!important;background:#fff!important;box-shadow:0 3px 12px rgba(61,0,13,.045)!important}
 #home .home-shortcut:active{border-color:#d6aab5!important;box-shadow:0 6px 16px rgba(61,0,13,.08)!important}
 
