@@ -1765,6 +1765,26 @@ html[data-s1-theme="dark"] .more-close{
 #events .day-event-card h3{margin:0;font-size:17px;line-height:1.35;letter-spacing:-.02em}
 html[data-s1-theme="dark"] #events .day-event-category{border-color:rgba(225,138,162,.18);background:rgba(225,138,162,.09);color:#e8a9b9}
 </style>
+
+<style id="s1-events-date-label-and-background-focus">
+/* В выбранной дате — только спокойная дата, без цветных категорийных плашек. */
+#events .day-event-top{display:flex;align-items:center;justify-content:flex-start;margin:0 0 5px;gap:0}
+#events .day-event-date{display:block;padding:0;border:0;background:transparent;color:var(--mut);font-size:11px;font-weight:650;letter-spacing:0;line-height:1.3}
+#events .day-event-card h3{margin:0;font-size:17px;line-height:1.35;letter-spacing:-.02em}
+#events .day-observances{display:block;margin:6px auto 0;max-width:100%;color:var(--mut);font-size:11px;font-weight:600;line-height:1.35}
+#events .day-observance{display:inline;padding:0;border:0;border-radius:0;background:transparent;color:inherit;font-size:inherit;font-weight:inherit;line-height:inherit}
+#events .day-observance.is-holiday,#events .day-observance.is-memorial,#events .day-observance.is-theme{background:transparent;border:0;color:inherit}
+html[data-s1-theme="dark"] #events .day-event-date,
+html[data-s1-theme="dark"] #events .day-observances{color:#b9aab0}
+/* Декоративный фон становится мягче и менее контрастным; содержимое не размывается. */
+body::before{filter:blur(16px)!important;opacity:.56!important}
+#s1-floating-ribbons{filter:blur(2.4px)!important;opacity:.34!important}
+@media(max-width:600px){
+ body::before{filter:blur(13px)!important;opacity:.48!important}
+ #s1-floating-ribbons{filter:blur(2px)!important;opacity:.26!important}
+}
+</style>
+
 </head>
 <body>
 <svg id="s1-floating-ribbons" aria-hidden="true" focusable="false" style="visibility:hidden" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
@@ -2805,7 +2825,7 @@ function renderPublicEvents(){
  const root=$('#publicEventsList'),dateLabel=$('#dayDate');if(!root||!dateLabel)return;
  const d=eventDateFromKey(selectedEventDay),today=localDateKey(new Date()),isToday=selectedEventDay===today;
  const weekday=d.toLocaleDateString('ru-RU',{weekday:'long'}),year=d.getFullYear(),observances=getDateObservances(d);
- dateLabel.innerHTML='<strong>'+ (isToday?'Сегодня':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})) +'</strong><span>'+weekday+' · '+year+'</span>'+(observances.length?'<div class="day-observances" aria-label="Праздники и памятные даты">'+observances.map(([kind,name])=>'<span class="day-observance '+(kind==='Праздник'?'is-holiday':kind==='Памятная дата'?'is-memorial':'is-theme')+'"><b>'+kind+'</b><small>'+name+'</small></span>').join('')+'</div>':'');
+ dateLabel.innerHTML='<strong>'+ (isToday?'Сегодня':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})) +'</strong><span>'+weekday+' · '+year+'</span>'+(observances.length?'<div class="day-observances" aria-label="Памятная дата">'+observances.map(([,name])=>'<span class="day-observance">'+name+'</span>').join(' · ')+'</div>':'');
  const categoryFilter=$('#eventCategoryFilter');
  if(categoryFilter){
   const categories=[...new Set(PUBLIC_EVENTS.map(e=>String(e.category||"Мероприятие").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ru"));
@@ -2822,8 +2842,8 @@ function renderPublicEvents(){
  if(status)status.textContent=selectedEventCategory==="all"?"Все события по датам — от ближайших к более поздним.":"Показаны мероприятия категории «"+selectedEventCategory+"».";
  if(total)total.textContent=visible.length;
  root.innerHTML=selected.length?selected.map(e=>{
-  const eventKind=getPublicEventKind(e);
-  return '<article class="day-event-card"><div class="day-event-top"><span class="day-event-category">'+esc(eventKind)+'</span></div><h3>'+esc(e.title)+'</h3></article>';
+  const eventDay=eventDateFromKey(e.event_date).toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
+  return '<article class="day-event-card"><div class="day-event-top"><span class="day-event-date">'+esc(eventDay)+'</span></div><h3>'+esc(e.title)+'</h3></article>';
  }).join(''):'<div class="day-empty"><b>✦</b><strong>'+(selectedEventCategory==="all"?"На эту дату пока ничего не запланировано":"В этой категории на выбранную дату событий нет")+'</strong><span>'+(selectedEventCategory==="all"?"Посмотри список ниже или выбери другой день.":"Выбери другую дату или вернись ко всем категориям.")+'</span></div>';
  /* Карточка дня показывает только само мероприятие; действия временно убраны по просьбе пользователя. */
  if(allList){
