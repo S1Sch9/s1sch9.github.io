@@ -3049,8 +3049,6 @@ body::before{
 .site-search-result>span:last-child{display:none!important}
 </style>
 
-</body>
-
 <style id="s1-visible-motion-refresh-2026">
 /* Фон действительно виден: отдельный слой внутри body, но под содержимым. */
 html{background:#faf6f6!important}
@@ -3205,109 +3203,104 @@ section.on .game{
 }
 </style>
 
-</html>
 
-<style id="remove-gradient-accent-stripes-2026">
-/* Полностью убираем декоративные бордово-золотые градиентные полоски */
-#home .home-section-title:after,
-.section-heading>small:before,
-#team .team-member:before,
-#pn:has(.team-profile) .team-profile:before{
- content:none!important;
- display:none!important;
+<style id="s1-individual-motion-art-direction-2026">
+/* Каждой зоне — свой характер. Большие круги главной обложки двигаются свободно и медленно. */
+.home-hero-front::before{
+ animation:s1-cover-orbit-drift 17s cubic-bezier(.45,0,.35,1) infinite alternate!important;
+ transform-origin:52% 48%!important;
 }
-</style>
-
-
-<style id="final-home-stripe-and-like-feedback-2026">
-/* Убираем декоративную бордово-золотую полоску под заголовками */
-#home .home-section-title::after,#home .home-section-title:after,
-.section-heading::after,.section-heading:after,
-.section-heading>small::before,.section-heading>small:before{
- content:none!important;display:none!important;width:0!important;height:0!important;
- background:none!important;box-shadow:none!important;
+@keyframes s1-cover-orbit-drift{
+ 0%{transform:translate3d(0,0,0) scale(.86) rotate(-8deg);opacity:.48}
+ 42%{transform:translate3d(-24px,17px,0) scale(1.04) rotate(3deg);opacity:.72}
+ 100%{transform:translate3d(-48px,34px,0) scale(1.18) rotate(11deg);opacity:.9}
 }
-/* Заметное подтверждение установленного лайка */
-.news-like.is-liked{
- color:#fff!important;background:#b00032!important;border-color:#8f0028!important;
- box-shadow:0 4px 12px rgba(161,0,31,.24),inset 0 1px 0 rgba(255,255,255,.18)!important;
- transform:scale(1.045);
+.home-hero-back::before{
+ animation:s1-cover-back-glide 21s ease-in-out infinite alternate!important;
 }
-.news-like.is-liked .news-dock-icon,.news-like.is-liked .news-dock-icon svg{color:#fff!important;fill:#fff!important}
-.news-like.is-liked .news-dock-icon svg path{fill:#fff!important;stroke:#fff!important}
-.news-social .news-like.is-liked{color:#fff!important;background:#b00032!important;border-color:#8f0028!important}
-.news-like.is-liked [data-like-count],.news-like.is-liked .news-dock-count{color:#fff!important}
-.news-like.is-liked:active{transform:scale(.98)}
-.news-like:not(.is-liked),.news-like.is-liked{transition:background .2s,border-color .2s,color .2s,transform .2s,box-shadow .2s}
-.news-like.is-liked .news-dock-icon{animation:news-like-pop .32s cubic-bezier(.2,1.5,.4,1)}
-@keyframes news-like-pop{0%{transform:scale(.65)}65%{transform:scale(1.28)}100%{transform:scale(1)}}
-@media(prefers-reduced-motion:reduce){.news-like.is-liked .news-dock-icon{animation:none}}
-</style>
-
-
-<style id="s1-no-particles-more-orbs-and-no-link-preview-2026">
-/* Убираем мелкую россыпь частиц на лицевой стороне обложки: оставляем только мягкий свет. */
-.home-hero-front::after{content:none!important;display:none!important;animation:none!important}
-
-/* Больше крупных размытых пульсирующих огней в заголовках разделов. Это именно световые круги, не полосы. */
-.section-heading{isolation:isolate!important}
-.section-heading::after{
- content:""!important;display:block!important;position:absolute!important;z-index:-1!important;
- left:28%!important;top:-25px!important;width:116px!important;height:116px!important;
- border:0!important;border-radius:50%!important;pointer-events:none!important;
- background:radial-gradient(circle,rgba(240,200,105,.19) 0%,rgba(161,0,31,.075) 38%,transparent 73%)!important;
- filter:blur(9px)!important;box-shadow:none!important;
- animation:s1-heading-orb-two 17s ease-in-out infinite alternate!important;
-}
-.section-heading>*{position:relative;z-index:1}
-@keyframes s1-heading-orb-two{
- 0%{transform:translate3d(14px,0,0) scale(.78);opacity:.42}
- 55%{transform:translate3d(-20px,15px,0) scale(1.16);opacity:.88}
- 100%{transform:translate3d(8px,26px,0) scale(.92);opacity:.58}
+@keyframes s1-cover-back-glide{
+ from{transform:translate3d(10px,-4px,0) scale(.82);opacity:.42}
+ to{transform:translate3d(-34px,25px,0) scale(1.15);opacity:.82}
 }
 
-/* На карточках — два больших мягких световых пятна вместо мелкого декора. */
+/* Последняя новость: один мягкий световой след, движущийся по диагонали. */
+#latest .home-latest{
+ position:relative!important;isolation:isolate!important;overflow:hidden!important;
+ background:linear-gradient(135deg,#fff 0%,#fffafb 58%,#fff7ed 100%)!important;
+}
+#latest .home-latest::before{
+ content:""!important;display:block!important;position:absolute!important;z-index:0!important;
+ width:210px!important;height:170px!important;right:-112px!important;top:-105px!important;
+ border-radius:50%!important;pointer-events:none!important;
+ background:radial-gradient(ellipse,rgba(240,200,105,.27) 0%,rgba(240,200,105,.10) 38%,transparent 73%)!important;
+ animation:s1-latest-light-travel 12s ease-in-out infinite alternate!important;
+}
+@keyframes s1-latest-light-travel{
+ 0%{transform:translate3d(15px,-4px,0) scale(.78);opacity:.38}
+ 55%{transform:translate3d(-22px,18px,0) scale(1.12);opacity:.78}
+ 100%{transform:translate3d(-44px,34px,0) scale(.94);opacity:.52}
+}
+
+/* Ближайшее мероприятие: другая пластика — спокойный бордовый ореол снизу, без бегущего блика. */
+#homeUpcoming.home-upcoming{
+ position:relative!important;isolation:isolate!important;overflow:hidden!important;
+ background:linear-gradient(155deg,#fff 0%,#fff9f7 62%,#fbf1e8 100%)!important;
+}
+#homeUpcoming.home-upcoming::before{
+ content:""!important;display:block!important;position:absolute!important;z-index:0!important;
+ width:190px!important;height:190px!important;left:-112px!important;bottom:-130px!important;
+ border-radius:50%!important;pointer-events:none!important;
+ background:radial-gradient(circle,rgba(161,0,31,.13) 0%,rgba(161,0,31,.045) 45%,transparent 73%)!important;
+ animation:s1-upcoming-warmth 10s ease-in-out infinite alternate!important;
+}
+#homeUpcoming.home-upcoming::after{
+ content:""!important;position:absolute!important;z-index:0!important;
+ width:118px!important;height:118px!important;right:-68px!important;top:-72px!important;
+ border-radius:50%!important;pointer-events:none!important;
+ background:radial-gradient(circle,rgba(240,200,105,.20) 0%,transparent 72%)!important;
+ animation:s1-upcoming-halo 16s ease-in-out infinite alternate!important;
+}
+#latest .home-latest>* ,#homeUpcoming.home-upcoming>*{position:relative!important;z-index:1!important}
+@keyframes s1-upcoming-warmth{
+ from{transform:translate3d(0,0,0) scale(.88);opacity:.38}
+ to{transform:translate3d(30px,-20px,0) scale(1.13);opacity:.72}
+}
+@keyframes s1-upcoming-halo{
+ from{transform:translate3d(0,0,0) scale(.78);opacity:.36}
+ to{transform:translate3d(-22px,19px,0) scale(1.12);opacity:.68}
+}
+
+/* Убираем одинаковые пульсирующие круги с обычных карточек и ярлыков разделов. */
+.section-heading::before,.section-heading::after,
 .news-feed-card::before,.day-event-card::before,.event-card::before,
-.home-shortcut::before,.card::before,.tile::before{
- background:
-  radial-gradient(circle at 72% 32%,rgba(240,200,105,.22) 0%,rgba(240,200,105,.08) 34%,transparent 70%),
-  radial-gradient(circle at 28% 78%,rgba(161,0,31,.10) 0%,rgba(161,0,31,.035) 38%,transparent 72%)!important;
- background-repeat:no-repeat!important;
- opacity:.72!important;
- animation:s1-card-orb-breathe 10s ease-in-out infinite alternate!important;
-}
-@keyframes s1-card-orb-breathe{
- 0%{transform:translate3d(5px,-3px,0) scale(.82);opacity:.42}
- 50%{transform:translate3d(-16px,12px,0) scale(1.12);opacity:.86}
- 100%{transform:translate3d(-4px,19px,0) scale(.94);opacity:.58}
-}
-
-/* Дополнительный тихий круг на календарном блоке — движение остаётся внутри карточки. */
+.home-shortcut::before,.card::before,.tile::before,
 #events .day-showcase::after{
- content:"";position:absolute;z-index:-1;left:-78px;bottom:-112px;
- width:180px;height:180px;border-radius:50%;pointer-events:none;
- background:radial-gradient(circle,rgba(161,0,31,.10) 0%,rgba(240,200,105,.07) 42%,transparent 72%);
- animation:s1-calendar-orb-two 19s ease-in-out infinite alternate;
+ content:none!important;display:none!important;animation:none!important;
 }
-@keyframes s1-calendar-orb-two{
- from{transform:translate3d(0,0,0) scale(.82);opacity:.42}
- to{transform:translate3d(42px,-28px,0) scale(1.18);opacity:.82}
+#news .section-heading{position:relative!important;isolation:isolate!important}
+#news .section-heading::before{
+ content:""!important;display:block!important;position:absolute!important;z-index:-1!important;
+ width:150px!important;height:90px!important;right:-22px!important;top:-28px!important;
+ border-radius:50%!important;pointer-events:none!important;
+ background:radial-gradient(ellipse,rgba(161,0,31,.10) 0%,rgba(161,0,31,.035) 46%,transparent 74%)!important;
+ animation:s1-news-heading-bloom 18s ease-in-out infinite alternate!important;
 }
-
-/* Отключаем системную ссылочную карточку iOS при удержании. Обычные нажатия и переходы сохраняются. */
-body :not(input):not(textarea):not(select):not([contenteditable="true"]){
- -webkit-touch-callout:none!important;
+@keyframes s1-news-heading-bloom{
+ from{transform:translate3d(10px,0,0) scale(.82);opacity:.38}
+ to{transform:translate3d(-16px,14px,0) scale(1.12);opacity:.72}
 }
-a[href],a[href] *{
- -webkit-touch-callout:none!important;
- -webkit-user-select:none!important;
- user-select:none!important;
- -webkit-user-drag:none!important;
-}
-a[href] img{-webkit-user-drag:none!important}
+/* Команда, обращения, ресурсы и обычные карточки остаются чистыми и статичными. */
+#team .section-heading::before,#events .section-heading::before,
+#appeal .section-heading::before,#games .section-heading::before,
+#links .section-heading::before{content:none!important;display:none!important}
+#home .home-shortcut{animation:none!important}
 @media(prefers-reduced-motion:reduce){
- .section-heading::after,.news-feed-card::before,.day-event-card::before,
- .event-card::before,.home-shortcut::before,.card::before,.tile::before,
- #events .day-showcase::after{animation:none!important;transform:none!important}
+ .home-hero-front::before,.home-hero-back::before,
+ #latest .home-latest::before,#homeUpcoming.home-upcoming::before,
+ #homeUpcoming.home-upcoming::after,#news .section-heading::before{
+  animation:none!important;transform:none!important
+ }
 }
 </style>
+</body>
+</html>
