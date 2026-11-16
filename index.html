@@ -1813,7 +1813,7 @@ function openSiteSettings(){
     <div class="s1-setting-title"><b>Анимация интерфейса</b><small>Плавность переходов и движения элементов</small></div>
     <div class="s1-switch-row"><span class="s1-switch-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19V5m7 14V9m7 10V3"/></svg></span><span class="s1-switch-copy"><b>Эффекты и переходы</b><small data-s1-motion-status>Включены</small></span><button class="s1-switch" type="button" role="switch" aria-checked="true" aria-label="Анимация интерфейса" data-s1-motion-toggle onclick="s1SetMotion(!S1_PREFS.motion)"><span></span></button></div>
    </div>
-   <div class="s1-settings-footer"><div class="s1-settings-save"><span class="s1-save-dot"></span><span>Настройки сохраняются автоматически на этом устройстве</span></div><button type="button" class="s1-reset-button" onclick="s1ResetPrefs()">Сбросить настройки</button></div>
+   <div class="s1-settings-footer"><button type="button" class="s1-reset-button" onclick="s1ResetPrefs()">Сбросить настройки</button></div>
   </div>`);
  $("#pn").classList.add("more-panel","s1-settings-panel");s1RenderSettings();
 }
@@ -3786,3 +3786,139 @@ html[data-s1-theme="dark"] .sh .pn.s1-settings-panel .s1-settings-heading{border
  }
 })();
 </script>
+
+<style id="s1-settings-cleanup-and-dark-theme-v2">
+/* Убираем лишний статус автосохранения: сохранение остаётся автоматическим и бесшумным */
+.s1-settings-save,.s1-save-dot{display:none!important}
+.s1-settings-footer{padding-top:2px!important;margin-top:2px!important}
+.s1-reset-button{
+ display:inline-flex!important;align-items:center!important;gap:7px!important;
+ margin:4px 0 0!important;padding:10px 13px!important;border:1px solid var(--line)!important;
+ border-radius:12px!important;background:var(--card)!important;color:var(--mut)!important;
+ font-size:12px!important;font-weight:750!important;transition:background .18s,border-color .18s,color .18s!important;
+}
+.s1-reset-button:active{transform:scale(.98)}
+/* Карточки выбора темы — спокойные, понятные миниатюры интерфейса */
+.s1-theme-choice{
+ position:relative!important;overflow:hidden!important;
+ min-height:118px!important;padding:10px!important;
+ border:1.5px solid var(--line)!important;border-radius:17px!important;
+ background:var(--card)!important;box-shadow:0 2px 10px rgba(61,0,13,.035)!important;
+}
+.s1-theme-choice.is-selected{
+ border:1.5px solid #a1001f!important;
+ background:#fff8f9!important;
+ box-shadow:0 0 0 3px rgba(161,0,31,.08)!important;
+}
+.s1-theme-choice.is-selected:after{
+ content:"✓";position:absolute;right:10px;top:10px;
+ display:grid;place-items:center;width:20px;height:20px;border-radius:50%;
+ background:#a1001f;color:#fff;font-size:12px;font-weight:900;
+}
+.s1-theme-preview{
+ height:65px!important;padding:8px!important;gap:6px!important;
+ border-radius:11px!important;margin:0 0 2px!important;
+}
+.s1-theme-preview i{height:45px!important;border-radius:6px!important}
+.s1-theme-preview-light{background:#f3edf0!important}
+.s1-theme-preview-light i{background:#fff!important;border:1px solid #e9dfe3!important}
+.s1-theme-preview-light i:first-child{background:linear-gradient(145deg,#a1001f,#5b1025)!important;border:0!important}
+.s1-theme-preview-dark{background:#17151a!important}
+.s1-theme-preview-dark i{background:#302a33!important;border:1px solid #48404a!important}
+.s1-theme-preview-dark i:first-child{background:linear-gradient(145deg,#a92a49,#4b1729)!important;border:0!important}
+.s1-theme-choice b{font-size:13px!important;font-weight:850!important}
+
+/* Полная тёмная палитра сайта: графитовые поверхности, мягкий светлый текст и бордовый акцент */
+html[data-s1-theme="dark"],html[data-s1-theme="dark"] body{
+ color-scheme:dark!important;background:#151318!important;color:#f4eff2!important;
+}
+html[data-s1-theme="dark"] body{
+ --ink:#f4eff2!important;--mut:#bdb2ba!important;
+ --bg:#151318!important;--card:#211d25!important;--line:#39323d!important;
+}
+html[data-s1-theme="dark"] .bar{
+ background:rgba(27,23,31,.97)!important;color:#f4eff2!important;
+ border-color:#39323d!important;box-shadow:0 5px 20px rgba(0,0,0,.22)!important;
+}
+html[data-s1-theme="dark"] nav{
+ background:rgba(32,27,36,.97)!important;border-color:#39323d!important;
+ box-shadow:0 10px 30px rgba(0,0,0,.28)!important;
+}
+html[data-s1-theme="dark"] nav a,html[data-s1-theme="dark"] nav button{color:#c9bec7!important}
+html[data-s1-theme="dark"] nav a.on,html[data-s1-theme="dark"] nav button.on{color:#fff!important}
+html[data-s1-theme="dark"] .section-heading h1,
+html[data-s1-theme="dark"] .section-heading p,
+html[data-s1-theme="dark"] .resource-caption,
+html[data-s1-theme="dark"] .note{color:#eee7ec!important}
+html[data-s1-theme="dark"] .card,
+html[data-s1-theme="dark"] .tile:not(.red),
+html[data-s1-theme="dark"] .row.link,
+html[data-s1-theme="dark"] .home-shortcut,
+html[data-s1-theme="dark"] #latest .home-latest,
+html[data-s1-theme="dark"] #homeUpcoming.home-upcoming,
+html[data-s1-theme="dark"] #events .day-showcase,
+html[data-s1-theme="dark"] .event-card,
+html[data-s1-theme="dark"] .day-event-card,
+html[data-s1-theme="dark"] .news-feed-card,
+html[data-s1-theme="dark"] .team-member,
+html[data-s1-theme="dark"] .game,
+html[data-s1-theme="dark"] .rules-gate,
+html[data-s1-theme="dark"] .appeal-alt{
+ background:#211d25!important;color:#f4eff2!important;
+ border-color:#39323d!important;box-shadow:0 5px 18px rgba(0,0,0,.18)!important;
+}
+html[data-s1-theme="dark"] .more-panel,
+html[data-s1-theme="dark"] .sh .pn{
+ background:#1c1920!important;color:#f4eff2!important;border-color:#39323d!important;
+}
+html[data-s1-theme="dark"] .more-menu-heading,
+html[data-s1-theme="dark"] .s1-settings-heading{border-color:#39323d!important}
+html[data-s1-theme="dark"] .more-menu-heading h3,
+html[data-s1-theme="dark"] .s1-settings-heading h3,
+html[data-s1-theme="dark"] .more-menu-item,
+html[data-s1-theme="dark"] .s1-setting-title b,
+html[data-s1-theme="dark"] .s1-switch-copy b{color:#f4eff2!important}
+html[data-s1-theme="dark"] .more-menu-heading p,
+html[data-s1-theme="dark"] .s1-settings-heading p,
+html[data-s1-theme="dark"] .s1-setting-title small,
+html[data-s1-theme="dark"] .s1-switch-copy small{color:#bdb2ba!important}
+html[data-s1-theme="dark"] .more-menu-item{border-color:#39323d!important}
+html[data-s1-theme="dark"] .more-menu-item i,
+html[data-s1-theme="dark"] .s1-switch-symbol{
+ background:#382632!important;color:#f0a6b9!important;
+}
+html[data-s1-theme="dark"] .s1-theme-choice{
+ background:#24202a!important;color:#f4eff2!important;border-color:#49414d!important;
+ box-shadow:0 2px 10px rgba(0,0,0,.16)!important;
+}
+html[data-s1-theme="dark"] .s1-theme-choice.is-selected{
+ background:#30212b!important;border-color:#c05a78!important;
+ box-shadow:0 0 0 3px rgba(192,90,120,.13)!important;
+}
+html[data-s1-theme="dark"] .s1-theme-choice.is-selected:after{background:#b6385b!important;color:#fff!important}
+html[data-s1-theme="dark"] .s1-switch-row{
+ background:#24202a!important;border-color:#49414d!important;color:#f4eff2!important;
+}
+html[data-s1-theme="dark"] .s1-switch{
+ background:#514954!important;border-color:#514954!important;
+}
+html[data-s1-theme="dark"] .s1-switch.is-on{background:#a92e50!important;border-color:#a92e50!important}
+html[data-s1-theme="dark"] .s1-reset-button{
+ background:#24202a!important;border-color:#49414d!important;color:#d7cbd3!important;
+}
+html[data-s1-theme="dark"] .s1-reset-button:active{background:#382632!important}
+html[data-s1-theme="dark"] input,
+html[data-s1-theme="dark"] textarea,
+html[data-s1-theme="dark"] select{
+ background:#24202a!important;color:#f4eff2!important;border-color:#49414d!important;
+}
+html[data-s1-theme="dark"] input::placeholder,
+html[data-s1-theme="dark"] textarea::placeholder{color:#988c96!important}
+html[data-s1-theme="dark"] .sh .pn.s1-settings-panel .s1-settings-heading-copy>span{color:#e18aa2!important}
+html[data-s1-theme="dark"] .sh .pn.s1-settings-panel .s1-settings-heading-copy p{color:#bdb2ba!important}
+@media(max-width:420px){
+ .s1-theme-choice{min-height:112px!important}
+ .s1-theme-preview{height:59px!important}
+ .s1-theme-preview i{height:41px!important}
+}
+</style>
