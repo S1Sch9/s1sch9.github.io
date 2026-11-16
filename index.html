@@ -1278,7 +1278,7 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
   <button class="btn ghost full rv" id="share" style="margin-top:14px">Поделиться сайтом ↗</button>
 </section>
 <section id="team">
-  <div class="section-heading rv"><small>КОМАНДА СОВЕТА</small><h1>Основной состав</h1><p>Председатель, заместители, наставник и лидеры направлений — команда, которая координирует работу Совета Первых.</p><div class="team-overview"><b id="teamCount">0</b><span>представителей основного состава</span></div></div>
+  <div class="section-heading rv"><small>КОМАНДА СОВЕТА</small><h1>Состав Совета</h1><p>Знакомься с командой: кто координирует работу Совета и ведёт отдельные направления.</p></div>
   <div class="team-list" id="teamList" aria-label="Основной состав Совета Первых"></div>
 </section>
 <section id="news">
@@ -1303,15 +1303,15 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
       <div class="events-list" id="allEventsList" aria-live="polite"></div>
     </div>
   </details>
-  <details class="calendar-details rv">
-    <summary><span><b>Календарь по месяцам</b><small>Даты, на которые запланированы события</small></span><i aria-hidden="true">⌄</i></summary>
-    <div class="mini-calendar-wrap">
+  <div class="calendar-details rv">
+    <div class="calendar-heading"><span><b>Календарь событий</b><small>Выбирай дату и смотри, что запланировано</small></span><span class="calendar-heading-mark" aria-hidden="true">▦</span></div>
+    <div class="mini-calendar-wrap>
       <div class="mini-calendar-title"><div><strong>Календарь</strong><span>Отмечены дни с мероприятиями</span></div><div class="mini-month-nav"><button class="btn ghost" id="prevMonth" type="button" aria-label="Предыдущий месяц">‹</button><b id="monthLabel">Месяц</b><button class="btn ghost" id="nextMonth" type="button" aria-label="Следующий месяц">›</button></div></div>
       <div class="calendar-grid calendar-weekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
       <div class="calendar-grid mini-calendar-grid" id="calendarGrid"></div>
       <div class="calendar-legend"><span><i class="legend-event"></i>Есть событие</span><span><i class="legend-today"></i>Сегодня</span><span><i class="legend-selected"></i>Выбрано</span></div>
     </div>
-  </details>
+  </div>
 </section>
 <section id="appeal">
   <div class="section-heading rv"><small>ОБРАТНАЯ СВЯЗЬ</small><h1>Написать Совету</h1><p>Предложи идею, задай вопрос или расскажи, что стоит изменить в школе.</p></div>
@@ -1674,12 +1674,18 @@ const load = u => fetch(u).then(r => r.text()).then(t => csv(t).slice(1).filter(
 if (C.logo) $("#logo").innerHTML = '<img src="' + esc(C.logo) + '" alt="Логотип">';
 $("#tg").href = C.tg || "#"; $("#mx").href = C.max || "#";
 function drawTeam(){
-  const list=$("#teamList"),count=$("#teamCount");if(!list)return;
-  const named=TEAM.filter(m=>String(m[1]||"").trim()).length;
-  if(count)count.textContent=named;
-  list.innerHTML=TEAM.map((m,k)=>{
-    const name=String(m[1]||"").trim(),role=String(m[0]||"Участник Совета").trim();
-    return '<button type="button" class="team-member rv" data-k="'+k+'" aria-label="Открыть профиль: '+esc(name||role)+'"><span class="team-member-photo">'+photo(m[4],ini(name||role))+'</span><span class="team-member-copy"><small>'+esc(role)+'</small><b>'+esc(name||"Скоро появится")+'</b>'+(m[2]?'<span class="team-member-class">'+esc(m[2])+'</span>':'')+'</span><span class="team-member-arrow" aria-hidden="true">↗</span></button>';
+  const list=$("#teamList");if(!list)return;
+  const groups=[
+    {title:"Руководство",test:m=>/наставник|председатель|заместитель/i.test(String(m[0]||""))},
+    {title:"Лидеры направлений",test:m=>!/наставник|председатель|заместитель/i.test(String(m[0]||""))}
+  ];
+  list.innerHTML=groups.map(group=>{
+    const members=TEAM.map((m,k)=>({m,k})).filter(x=>group.test(x.m));
+    if(!members.length)return "";
+    return '<section class="team-group"><h2 class="team-group-title">'+group.title+'</h2><div class="team-group-list">'+members.map(({m,k})=>{
+      const name=String(m[1]||"").trim(),role=String(m[0]||"Участник Совета").trim();
+      return '<button type="button" class="team-member rv" data-k="'+k+'" aria-label="Открыть профиль: '+esc(name||role)+'"><span class="team-member-photo">'+photo(m[4],ini(name||role))+'</span><span class="team-member-copy"><small>'+esc(role)+'</small><b>'+esc(name||"Имя уточняется")+'</b>'+(m[2]?'<span class="team-member-class">'+esc(m[2])+'</span>':'')+'</span><span class="team-member-arrow" aria-hidden="true">↗</span></button>';
+    }).join("")+'</div></section>';
   }).join("");
   list.querySelectorAll(".team-member").forEach((b,i)=>{b.style.setProperty("--i",Math.min(i,9));b.addEventListener("click",()=>{
     const m=TEAM[Number(b.dataset.k)],name=String(m[1]||"").trim()||m[0];
@@ -2254,6 +2260,50 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 #events .calendar-details .calendar-day{min-height:34px!important}
 #events .calendar-details .calendar-legend{margin-top:9px;padding-top:8px}
 @media(prefers-reduced-motion:reduce){#events .events-archive>summary>i,#events .calendar-details>summary>i{transition:none}}
+</style>
+
+<style id="team-calendar-nav-finish-2026">
+/* Состав: редакционный список с понятным разделением ролей, без счётчика и тяжёлых карточек */
+#team .section-heading p{max-width:31em}
+#team .team-list{display:block!important;gap:0!important}
+#team .team-group{margin:22px 0 0}
+#team .team-group:first-child{margin-top:4px}
+#team .team-group-title{display:flex;align-items:center;gap:11px;margin:0 2px 8px;color:#8c263f;font-size:11px;font-weight:850;letter-spacing:.11em;text-transform:uppercase}
+#team .team-group-title:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,#ead9de,transparent)}
+#team .team-group-list{display:grid;gap:0}
+#team .team-member{position:relative;gap:13px;min-height:90px;padding:11px 2px;border:0;border-bottom:1px solid #eee7e9;border-radius:0;background:transparent;box-shadow:none}
+#team .team-member:active{transform:none;background:#fcf8f9}
+#team .team-member-photo{width:70px;height:70px;border:3px solid #fff;border-radius:17px;background:#f5edef;box-shadow:0 0 0 1px #eadde1,0 3px 10px rgba(55,12,25,.06)}
+#team .team-member-photo img{object-position:center 22%}
+#team .team-member-copy{gap:4px}
+#team .team-member-copy>small{font-size:9px;letter-spacing:.025em;color:#98717b;font-weight:750}
+#team .team-member-copy>b{font-size:13px;line-height:1.35;letter-spacing:-.015em;color:#302128}
+#team .team-member-class{min-height:0;padding:0;background:transparent;color:#9a858c;font-size:10px;font-weight:650}
+#team .team-member-arrow{width:27px;height:27px;display:grid;place-items:center;border:1px solid #eee5e7;border-radius:50%;font-size:15px;color:#9b6876}
+#team .team-profile-photo{border:4px solid #fff;box-shadow:0 0 0 1px #eadde1,0 8px 22px rgba(55,12,25,.08)}
+/* Календарь всегда открыт и визуально является частью раздела */
+#events .calendar-details{display:block;margin-top:13px;border:1px solid #eee5e7;border-radius:18px;background:#fff;overflow:hidden}
+#events .calendar-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 15px 11px}
+#events .calendar-heading>span:first-child{display:flex;flex-direction:column;gap:3px}
+#events .calendar-heading b{font-size:14px;letter-spacing:-.02em;color:#32131d}
+#events .calendar-heading small{font-size:10px;color:#91848a}
+#events .calendar-heading-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:#f8eff1;color:#8b1834;font-size:18px}
+#events .calendar-details .mini-calendar-wrap{margin:0!important;padding:12px 13px 13px!important;border:0!important;border-top:1px solid #f0e8ea!important;border-radius:0!important}
+#events .calendar-details .mini-calendar-title{margin-bottom:10px}
+#events .calendar-details .calendar-day{min-height:36px!important}
+#events .calendar-details .calendar-legend{margin-top:10px;padding-top:9px}
+/* Во время перетаскивания прежний пункт не остаётся белым вне красного индикатора */
+nav.nav-dragging a.on:not(.scrub-target),nav.nav-dragging button.on:not(.scrub-target){color:var(--mut)!important}
+nav.nav-dragging a.on:not(.scrub-target) .nav-label,nav.nav-dragging button.on:not(.scrub-target) .nav-label{color:var(--mut)!important}
+nav .scrub-target{color:#fff!important}
+nav .scrub-target .nav-label{color:#fff!important}
+@media(max-width:380px){
+ #team .team-member{gap:11px;min-height:84px;padding:9px 1px}
+ #team .team-member-photo{width:62px;height:62px;border-radius:15px}
+ #team .team-member-copy>b{font-size:12px}
+ #events .calendar-heading{padding:12px}
+}
+@media(prefers-reduced-motion:reduce){#team .team-member{transition:none}}
 </style>
 </body>
 </html>
