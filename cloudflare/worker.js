@@ -214,6 +214,15 @@ async function ensureNewsSocial(env) {
   })();
   try{await newsSocialSchemaPromise;}catch(error){newsSocialSchemaPromise=null;throw error;}
 }
+function parseTelegramNewsMedia(raw) {
+  try {
+    const parsed = typeof raw === "string" ? JSON.parse(raw || "[]") : raw;
+    return Array.isArray(parsed) ? parsed.filter(item => item && typeof item === "object" && !Array.isArray(item)) : [];
+  } catch {
+    // Повреждённые вложения одной публикации не должны скрывать всю новостную ленту.
+    return [];
+  }
+}
 async function ensureTelegramNews(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_news (
     id TEXT PRIMARY KEY, date TEXT NOT NULL, text TEXT NOT NULL, media TEXT NOT NULL DEFAULT '[]'
@@ -501,7 +510,7 @@ export default {
     if (url.pathname === "/api/news" && request.method === "GET") {
       try {
         await ensureTelegramNews(env);
-        const result = await env.DB.prepare("SELECT id, date, text, media, title, description, publish_at, status FROM telegram_news WHERE status = 'published' AND (publish_at = '' OR publish_at <= ?) ORDER BY date DESC, rowid DESC LIMIT 50")
+        const result = await env.DB.prepare("SELECT id, date, text, media, title, description, publish_at, status FROM telegram_news WHERE COALESCE(status, 'published') = 'published' AND (publish_at IS NULL OR publish_at = '' OR publish_at <= ?) ORDER BY date DESC, rowid DESC LIMIT 100")
           .bind(new Date().toISOString()).all();
         const items = (result.results || []).map(item => {
           const lines = String(item.text || "").split(/\r?\n/);
@@ -512,7 +521,7 @@ export default {
             text: item.text,
             title: item.title || fallbackTitle,
             description: item.description || lines.join("\n").trim(),
-            media: JSON.parse(item.media || "[]").map((m, index) => ({
+            media: parseTelegramNewsMedia(item.media).map((m, index) => ({
               type: m.type,
               url: new URL("/api/news-media/" + encodeURIComponent(item.id) + "/" + index, request.url).toString()
             }))
@@ -960,7 +969,7 @@ self.addEventListener("notificationclick", event => {
         const result = await env.DB.prepare("SELECT id, date, text, media, title, description, publish_at, status FROM telegram_news ORDER BY date DESC, rowid DESC LIMIT 100").all();
         const items = (result.results || []).map(item => ({
           ...item,
-          media: JSON.parse(item.media || "[]").map((m, index) => ({
+          media: parseTelegramNewsMedia(item.media).map((m, index) => ({
             ...m,
             url: new URL("/api/news-media/" + encodeURIComponent(item.id) + "/" + index, request.url).toString()
           }))
