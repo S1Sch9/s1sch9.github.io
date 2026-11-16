@@ -1228,19 +1228,10 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
 #news .news-social-actions .news-like{min-width:44px}
 #news .news-social-actions .news-bookmark{width:29px;min-width:29px;padding:5px;font-size:15px}
 </style>
-<style id="site-issue-report-entry-2026">
-.home-bug-report{
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  width:max-content;max-width:100%;margin:10px auto 0;padding:7px 12px;
-  border:1px solid rgba(255,255,255,.2);border-radius:999px;
-  color:rgba(255,255,255,.82);background:rgba(255,255,255,.07);
-  font-size:11px;line-height:1.35;font-weight:600;text-decoration:none;
-  transition:background .18s,border-color .18s,transform .18s
-}
-.home-bug-report span{font-size:12px;color:#f0c869}
-.home-bug-report b{color:#fff;font-weight:800;text-decoration:underline;text-decoration-color:rgba(240,200,105,.7);text-underline-offset:3px}
-.home-bug-report:active{transform:scale(.97);background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.38)}
-@media(prefers-reduced-motion:reduce){.home-bug-report{transition:none}}
+<style id="appeal-issue-link-refinement-2026">
+#appeal .appeal-issue-link{display:inline-flex;align-items:center;gap:7px;margin-top:7px;color:#8d1832;font-size:12px;font-weight:700;line-height:1.4;text-decoration:none;text-underline-offset:3px}
+#appeal .appeal-issue-link span{font-size:14px;color:#a1001f}
+#appeal .appeal-issue-link:active{opacity:.65}
 </style>
 </head>
 <body>
@@ -1259,7 +1250,6 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
           <div class="home-brand-title"><h1>СОВЕТ ПЕРВЫХ</h1><h2>ШКОЛЫ ДЕВЯТЬ</h2><span>НОВО-САВИНОВСКИЙ РАЙОН · КАЗАНЬ</span></div>
         </div>
         <a class="home-appeal" href="#appeal" aria-label="Оставить обращение Совету Первых школы №9"><span class="home-appeal-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5.5 4 4M4 20l4.5-.9L19 8.6a2.8 2.8 0 0 0-4-4L4.5 15.1 4 20Z"/><path d="M12 20h8"/></svg></span><span><b>Есть идея? Предложи её!</b><small>Напиши Совету Первых школы №9 — твоё мнение важно</small></span><strong>→</strong></a>
-        <a class="home-bug-report" href="#appeal" data-appeal-kind="Проблема на сайте"><span aria-hidden="true">⚑</span> Нашёл ошибку на сайте? <b>Сообщить</b></a>
         <div class="home-flip-hint"><span>↗</span> Узнать о Совете</div>
       </div>
       <div class="home-hero-face home-hero-back" aria-hidden="true">
@@ -1330,7 +1320,7 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
   </div>
 </section>
 <section id="appeal">
-  <div class="section-heading rv"><small>ОБРАТНАЯ СВЯЗЬ</small><h1>Написать Совету</h1><p>Предложи идею, задай вопрос или расскажи, что стоит изменить в школе.</p></div>
+  <div class="section-heading rv"><small>ОБРАТНАЯ СВЯЗЬ</small><h1>Написать Совету</h1><p>Предложи идею, задай вопрос или расскажи, что стоит изменить в школе.</p><a class="appeal-issue-link" href="#appeal" data-appeal-kind="Проблема на сайте"><span aria-hidden="true">⚑</span> Сообщить об ошибке на сайте</a></div>
 
   <div class="appeal-form-card rv">
     <div class="appeal-form-head"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14.5 5.5 4 4M4 20l4.5-.9L19 8.6a2.8 2.8 0 0 0-4-4L4.5 15.1 4 20Z"/><path d="M12 20h8"/></svg></span><div><b>Новое обращение</b><small>Опиши идею, вопрос или предложение — сообщение увидит Совет.</small></div></div>
