@@ -1079,6 +1079,22 @@ nav .nav-label{margin-top:0;font-size:9px;letter-spacing:0}
  nav{left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom))}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,a.btn,button{transition:none!important}}
+
+/* Исправление положения нижней панели на узких экранах.
+   Ранее мобильное правило задавало left/right вместе с фиксированной шириной
+   и translateX(-50%), из-за чего панель уезжала за левый край. */
+@media(max-width:420px){
+  body>nav, nav[aria-label], nav#bottomNav{
+    left:50%!important;
+    right:auto!important;
+    width:calc(100% - 20px)!important;
+    max-width:616px!important;
+    box-sizing:border-box!important;
+    transform:translateX(-50%)!important;
+    bottom:calc(8px + env(safe-area-inset-bottom, 0px))!important;
+  }
+}
+
 </style><style id="full-section-overhaul-2026">
 /* Структура разделов: отдельная композиция для каждого сценария */
 #home .home-section-title{margin:25px 2px 12px}
