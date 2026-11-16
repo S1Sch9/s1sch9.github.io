@@ -1392,6 +1392,30 @@ section.on{animation:s1-light-section-enter .22s ease both!important}
 </style>
 </head>
 <body>
+<svg id="s1-floating-ribbons" aria-hidden="true" focusable="false" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="s1-ribbon-burgundy" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a1001f" stop-opacity="0"/>
+      <stop offset=".28" stop-color="#a1001f" stop-opacity=".24"/>
+      <stop offset=".68" stop-color="#c66b7d" stop-opacity=".19"/>
+      <stop offset="1" stop-color="#a1001f" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="s1-ribbon-gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d7a94e" stop-opacity="0"/>
+      <stop offset=".34" stop-color="#d7a94e" stop-opacity=".25"/>
+      <stop offset=".72" stop-color="#f0c869" stop-opacity=".19"/>
+      <stop offset="1" stop-color="#d7a94e" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g class="s1-ribbon s1-ribbon-burgundy">
+    <path class="s1-ribbon-wide" d="M-150 250 C40 55 190 65 315 170 S500 315 690 145" />
+    <path class="s1-ribbon-glint" d="M-150 250 C40 55 190 65 315 170 S500 315 690 145" />
+  </g>
+  <g class="s1-ribbon s1-ribbon-gold">
+    <path class="s1-ribbon-wide" d="M520 1010 C650 790 790 690 930 755 S1130 910 1360 635" />
+    <path class="s1-ribbon-glint" d="M520 1010 C650 790 790 690 930 755 S1130 910 1360 635" />
+  </g>
+</svg>
 <div class="bar"><img class="brand-logo" src="official-logo.svg?v=20261114-final" alt="Логотип Совета Первых школы №9"><div class="brand-name"><strong>СОВЕТ ПЕРВЫХ ШКОЛЫ ДЕВЯТЬ</strong></div><button class="site-search-trigger" id="siteSearchTrigger" type="button" aria-label="Поиск по сайту" aria-expanded="false">⌕</button></div>
 <div class="site-search-panel" id="siteSearchPanel" hidden><div class="site-search-head"><label for="siteSearchInput">Поиск по всему сайту</label><button type="button" id="siteSearchClose" aria-label="Закрыть поиск">×</button></div><input id="siteSearchInput" type="search" placeholder="Новости, мероприятия, люди, ссылки…" autocomplete="off"><div id="siteSearchResults" class="site-search-results"><p class="note">Начни вводить запрос — найдём нужное.</p></div><button type="button" id="siteInstallHelp" class="site-install-help">Как добавить сайт на экран телефона</button></div>
 <div id="siteToast" class="site-toast" role="status" aria-live="polite"></div>
@@ -3383,6 +3407,43 @@ section.on .game{
 #home .home-shortcut{border:1px solid #eadde1!important;background:#fff!important;box-shadow:0 3px 12px rgba(61,0,13,.045)!important}
 #home .home-shortcut:active{border-color:#d6aab5!important;box-shadow:0 6px 16px rgba(61,0,13,.08)!important}
 
+
+/* Two light, floating brand ribbons: vector strokes only, no blur or canvas. */
+#s1-floating-ribbons{
+ position:fixed;inset:0;width:100%;height:100%;z-index:-1;
+ pointer-events:none;overflow:visible;opacity:.92;
+}
+#s1-floating-ribbons .s1-ribbon{
+ fill:none;transform-box:fill-box;transform-origin:center;
+ will-change:transform;
+}
+#s1-floating-ribbons .s1-ribbon-wide{
+ stroke-width:13;stroke-linecap:round;stroke-linejoin:round;
+}
+#s1-floating-ribbons .s1-ribbon-glint{
+ stroke:rgba(255,255,255,.58);stroke-width:2.1;
+ stroke-linecap:round;stroke-linejoin:round;
+}
+#s1-floating-ribbons .s1-ribbon-burgundy .s1-ribbon-wide{stroke:url(#s1-ribbon-burgundy)}
+#s1-floating-ribbons .s1-ribbon-gold .s1-ribbon-wide{stroke:url(#s1-ribbon-gold)}
+#s1-floating-ribbons .s1-ribbon-burgundy{animation:s1-ribbon-drift-one 34s ease-in-out infinite alternate}
+#s1-floating-ribbons .s1-ribbon-gold{animation:s1-ribbon-drift-two 39s ease-in-out infinite alternate}
+@keyframes s1-ribbon-drift-one{
+ from{transform:translate3d(-9px,-7px,0) rotate(-1deg)}
+ to{transform:translate3d(19px,17px,0) rotate(1.5deg)}
+}
+@keyframes s1-ribbon-drift-two{
+ from{transform:translate3d(12px,10px,0) rotate(1deg)}
+ to{transform:translate3d(-18px,-15px,0) rotate(-1.5deg)}
+}
+@media(max-width:600px){
+ #s1-floating-ribbons{opacity:.68}
+ #s1-floating-ribbons .s1-ribbon-wide{stroke-width:10}
+ #s1-floating-ribbons .s1-ribbon-glint{stroke-width:1.6}
+}
+@media(prefers-reduced-motion:reduce){
+ #s1-floating-ribbons .s1-ribbon{animation:none!important;will-change:auto}
+}
 </style>
 </body>
 </html>
