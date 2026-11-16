@@ -1679,6 +1679,47 @@ html[data-s1-theme="dark"] .more-close{
   box-shadow:0 4px 14px rgba(0,0,0,.22)!important;
 }
 </style>
+<style id="s1-modern-team-calendar-text-2026">
+/* Увеличение текста действует и на открытые панели, включая настройки */
+#pn [data-s1-base-font-size]{max-width:100%}
+/* Иконка календаря — аккуратная контурная пиктограмма */
+#events .calendar-heading-mark{width:38px;height:38px;border-radius:12px;background:#f8eff1;color:#8b1834}
+#events .calendar-heading-mark svg{display:block;width:21px;height:21px}
+/* Карточки состава: фото не круглые, ровная современная сетка */
+#team .team-member{border-radius:17px;background:#fff;box-shadow:0 4px 15px rgba(61,0,13,.055)}
+#team .team-member-photo{aspect-ratio:4/3;height:auto;padding:5px;background:#f5edef}
+#team .team-member-photo img{inset:5px;width:calc(100% - 10px);height:calc(100% - 10px);border:0;border-radius:12px;box-shadow:none;object-fit:cover}
+#team .team-member-photo .photo-placeholder{inset:5px;border:0;border-radius:12px}
+#team .team-member-copy{padding:10px 11px 13px;gap:5px}
+#team .team-member-copy>small{min-height:2.3em}
+#team .team-member-copy>b{font-size:13px;line-height:1.35}
+/* Профиль участника — компактная карточка с прямоугольным портретом */
+#pn:has(.team-profile){background:#fff!important;color:#302128!important}
+#pn:has(.team-profile) .team-profile{display:flex;flex-direction:column;align-items:stretch;gap:0;width:100%;min-height:100%;padding:12px 8px 28px;background:#fff!important;color:#302128!important;text-align:left}
+#pn:has(.team-profile) .team-profile-head{display:grid;grid-template-columns:112px minmax(0,1fr);align-items:center;gap:16px;padding:8px 0 19px}
+#pn:has(.team-profile) .team-profile-photo{width:112px;height:142px;margin:0;overflow:hidden;border:0;border-radius:16px;background:#f4edef;box-shadow:0 5px 16px rgba(61,0,13,.10)}
+#pn:has(.team-profile) .team-profile-photo img{width:100%;height:100%;object-fit:cover;object-position:center 20%}
+#pn:has(.team-profile) .team-profile-identity{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:9px}
+#pn:has(.team-profile) .team-profile-role{max-width:100%;padding:6px 9px;border-radius:8px;background:#f8edf0;color:#8d2944;font-size:9px;line-height:1.35;letter-spacing:.055em}
+#pn:has(.team-profile) .team-profile h3{margin:0;color:#2d2025;font-size:21px;line-height:1.18;letter-spacing:-.45px;overflow-wrap:anywhere}
+#pn:has(.team-profile) .team-profile-class{margin:0;padding:7px 10px;border:1px solid #eee3e6;border-radius:9px;background:#faf6f7;color:#796970;font-size:11px}
+#pn:has(.team-profile) .team-profile-bio{padding:14px 15px;border:1px solid #f0e7e9;border-radius:14px;background:#fffafb}
+#pn:has(.team-profile) .team-profile-bio p{max-width:none;margin:0;padding:0;border:0;background:transparent;color:#6f6066;font-size:13px;line-height:1.65;text-align:left}
+html[data-s1-theme="dark"] #pn:has(.team-profile){background:#211b21!important;color:#f5edf0!important}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile{background:#211b21!important;color:#f5edf0!important}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-role{background:#402631;color:#ffc3d0}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile h3{color:#fff}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-class{background:#30252d;border-color:#51404a;color:#e4d6dc}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-class b{color:#fff}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-bio{background:#29232a;border-color:#493b45}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-bio p{color:#e2d6dc}
+html[data-s1-theme="dark"] #events .calendar-heading-mark{background:#3b252e!important;color:#ffdce4!important}
+@media(max-width:370px){
+ #pn:has(.team-profile) .team-profile-head{grid-template-columns:94px minmax(0,1fr);gap:12px}
+ #pn:has(.team-profile) .team-profile-photo{width:94px;height:126px}
+ #pn:has(.team-profile) .team-profile h3{font-size:18px}
+}
+</style>
 </head>
 <body>
 <svg id="s1-floating-ribbons" aria-hidden="true" focusable="false" style="visibility:hidden" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
@@ -1780,7 +1821,7 @@ html[data-s1-theme="dark"] .more-close{
     </div>
   </details>
   <div class="calendar-details rv">
-    <div class="calendar-heading"><span><b>Календарь событий</b><small>Выбирай дату и смотри, что запланировано</small></span><span class="calendar-heading-mark" aria-hidden="true">▦</span></div>
+    <div class="calendar-heading"><span><b>Календарь событий</b><small>Выбирай дату и смотри, что запланировано</small></span><span class="calendar-heading-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 10h17M8 14h2m4 0h2m-8 3h2"/></svg></span></div>
     <div class="mini-calendar-wrap">
       <div class="mini-calendar-title"><div><strong>Календарь</strong><span>Отмечены дни с мероприятиями</span></div><div class="mini-month-nav"><button class="btn ghost" id="prevMonth" type="button" aria-label="Предыдущий месяц">‹</button><b id="monthLabel">Месяц</b><button class="btn ghost" id="nextMonth" type="button" aria-label="Следующий месяц">›</button></div></div>
       <div class="calendar-grid calendar-weekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
@@ -2058,7 +2099,7 @@ function openSh(h){
   }
   $("#pn").classList.remove("more-panel","news-detail-panel","news-comments-panel");if(h.includes("news-detail-content"))$("#pn").classList.add("news-detail-panel");const hasOwnClose=h.includes("more-menu-heading")||h.includes("news-comments-modal");$("#pn").innerHTML='<div class="grip"></div>'+(hasOwnClose?"":'<button class="sh-close" type="button" onclick="closeSh()" aria-label="Закрыть окно">×</button>')+h;
   const rulesCue=$("#appealRulesScrollCue");if(rulesCue)$("#sh").appendChild(rulesCue);
-  updateS1VisualHeight();$("#sh").classList.add("on");
+  updateS1VisualHeight();$("#sh").classList.add("on");s1ApplyTextScale($("#pn"));
 }
 function closeSh(){
   const rulesCue=$("#appealRulesScrollCue");if(rulesCue)rulesCue.remove();
@@ -2075,7 +2116,8 @@ const S1_DEFAULT_PREFS={theme:"light",motion:true,textSize:"normal"};
 function s1ReadPrefs(){try{const saved=JSON.parse(localStorage.getItem(S1_PREFS_KEY)||"{}");return {...S1_DEFAULT_PREFS,...saved,theme:saved.theme==="dark"?"dark":"light",motion:saved.motion!==false,textSize:saved.textSize==="xlarge"||saved.textSize==="large"?"large":"normal"};}catch(_){return {...S1_DEFAULT_PREFS};}}
 let S1_PREFS=s1ReadPrefs();
 function s1ApplyTextScale(root){
- root=root||document.querySelector("main");if(!root)return;
+ if(!root){s1ApplyTextScale(document.querySelector("main"));s1ApplyTextScale(document.querySelector("#pn"));return;}
+ if(!root)return;
  const factor=S1_PREFS.textSize==="large"?1.12:1;
  const nodes=[root,...root.querySelectorAll("*")];
  const eligible=[];
@@ -2264,7 +2306,7 @@ function drawTeam(){
   }).join("");
   list.querySelectorAll(".team-member").forEach((b,i)=>{b.style.setProperty("--i",Math.min(i,9));b.addEventListener("click",()=>{
     const m=TEAM[Number(b.dataset.k)],name=String(m[1]||"").trim()||m[0];
-    openSh('<div class="team-profile"><div class="team-profile-photo">'+photo(m[4],ini(name))+'</div><div class="team-profile-role">'+esc(m[0])+'</div><h3>'+esc(name)+'</h3>'+(m[2]?'<div class="team-profile-class">Класс <b>'+esc(m[2])+'</b></div>':'')+(m[3]?'<p>'+esc(m[3])+'</p>':'')+'</div>');
+    openSh('<div class="team-profile"><div class="team-profile-head"><div class="team-profile-photo">'+photo(m[4],ini(name))+'</div><div class="team-profile-identity"><div class="team-profile-role">'+esc(m[0])+'</div><h3>'+esc(name)+'</h3>'+(m[2]?'<div class="team-profile-class">Класс <b>'+esc(m[2])+'</b></div>':'')+'</div></div>'+(m[3]?'<div class="team-profile-bio"><p>'+esc(m[3])+'</p></div>':'')+'</div>');
   });});
 }
 function drawNews(){
