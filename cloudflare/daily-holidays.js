@@ -73,7 +73,7 @@ async function makeDraft(env) {
   const date = localDate();
   const old = await env.DB.prepare("SELECT status, created_at FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
   if (old && ["pending", "publishing", "published", "skipped"].includes(old.status)) return;
-  if (old && old.status === "generating" && Date.now() / 1000 - old.created_at < 1800) return;
+  if (old && ["generating", "failed"].includes(old.status) && Date.now() / 1000 - old.created_at < 1800) return;
   await env.DB.prepare("INSERT INTO daily_holiday_drafts (date, chat_id, status, created_at) VALUES (?, ?, 'generating', ?) ON CONFLICT(date) DO UPDATE SET chat_id=excluded.chat_id, message_id=NULL, status='generating', created_at=excluded.created_at")
     .bind(date, String(env.TELEGRAM_ADMIN_ID), Math.floor(Date.now() / 1000)).run();
 
@@ -168,13 +168,15 @@ async function callback(env, item, adminId) {
   try {
     await tg(env, "copyMessage", { chat_id: CHANNEL, from_chat_id: adminId, message_id: row.message_id });
     await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'published' WHERE date = ?").bind(date).run();
-    await tg(env, "editMessageReplyMarkup", { chat_id: adminId, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } });
-    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Опубликовано в канале!" });
   } catch (error) {
     await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'pending' WHERE date = ? AND status = 'publishing'").bind(date).run();
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Ошибка публикации. Черновик сохранён." });
     throw error;
   }
+  try {
+    await tg(env, "editMessageReplyMarkup", { chat_id: adminId, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } });
+  } catch {}
+  await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Опубликовано в канале!" });
 }
 
 async function processUpdate(env, item, adminId) {
