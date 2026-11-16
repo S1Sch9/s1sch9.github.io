@@ -71,6 +71,7 @@ button{font:inherit}
 .play-hint-dot{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#B3002A;box-shadow:0 0 0 4px rgba(179,0,42,.1)}
 @media(max-width:370px){.top-bar{gap:7px}.field-stats{top:11px;gap:15px}.field-stats #score{font-size:32px}.field-stats .combo{min-width:53px;padding:6px 10px}.icon-btn{width:46px;height:46px}.canvas-wrapper{width:min(100%,350px,calc((100dvh - 148px)*.75))}.play-hint{font-size:9px;padding:8px 8px}.logo-container{gap:12px;padding:11px 15px;width:min(100%,310px);min-height:68px}.logo-container img{height:34px}.logo-container img:first-child{height:39px}}
 canvas{display:block;width:100%;height:100%;touch-action:none}
+canvas:focus-visible{outline:3px solid rgba(255,224,157,.95);outline-offset:-5px}
 .canvas-wrapper:before{content:"";position:absolute;inset:9px;z-index:1;pointer-events:none;border:1px solid rgba(240,200,105,.12);border-radius:16px}
 .canvas-wrapper:after{content:none}
 .canvas-wrapper.combo-streak{box-shadow:0 14px 34px rgba(61,0,13,.16),0 0 18px 2px rgba(255,218,137,.34),inset 20px 0 30px -8px rgba(255,218,137,.28),inset -20px 0 30px -8px rgba(255,218,137,.28),inset 0 0 20px rgba(255,218,137,.10);transition:box-shadow .65s ease}
@@ -168,9 +169,9 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
                 <span class="stats-divider" aria-hidden="true"></span>
                 <div class="combo-block"><small>КОМБО</small><span id="combo" class="combo">×0</span></div>
             </div>
-            <canvas id="gameCanvas"></canvas><div id="project-label" aria-live="polite"></div><div id="feedback" class="feedback" aria-live="polite"></div><div id="bonus-pop" class="bonus-pop" aria-hidden="true"></div>
+            <canvas id="gameCanvas" tabindex="0" role="button" aria-label="Игровое поле. Нажмите, коснитесь или используйте пробел или Enter, чтобы поставить блок. Escape — пауза."></canvas><div id="project-label" aria-live="polite"></div><div id="feedback" class="feedback" aria-live="polite"></div><div id="bonus-pop" class="bonus-pop" aria-hidden="true"></div>
         </div>
-        <div class="play-hint"><span class="play-hint-dot"></span> НАЖМИ НА ПОЛЕ, ЧТОБЫ ПОСТАВИТЬ БЛОК</div>
+        <div class="play-hint"><span class="play-hint-dot"></span> НАЖМИ НА ПОЛЕ ИЛИ ПРОБЕЛ, ЧТОБЫ ПОСТАВИТЬ БЛОК</div>
         <div class="overlay" id="pause-screen">
             <h2>⏸️ Пауза</h2>
             <p style="font-size:14px;color:#F1DFBD;margin:0 20px 18px">Передохни и возвращайся к своей башне!</p>
@@ -263,10 +264,12 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     movementLogoImage.src = 'strelka.png';
     function resizeCanvas() {
         const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-        canvasWidth = canvas.width;
-        canvasHeight = canvas.height;
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        canvasWidth = rect.width;
+        canvasHeight = rect.height;
+        canvas.width = Math.max(1, Math.round(canvasWidth * pixelRatio));
+        canvas.height = Math.max(1, Math.round(canvasHeight * pixelRatio));
+        ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
         if(!ambientParticles.length){ambientParticles=Array.from({length:34},()=>({x:Math.random()*canvasWidth,y:Math.random()*canvasHeight,r:Math.random()*1.8+.5,speed:Math.random()*.28+.08,phase:Math.random()*Math.PI*2,alpha:Math.random()*.42+.12}));}
         else{ambientParticles.forEach(p=>{p.x=Math.min(canvasWidth,Math.max(0,p.x));p.y=Math.min(canvasHeight,Math.max(0,p.y));});}
         updateCameraBounds();
@@ -305,6 +308,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
         gameScreen.classList.add('active');
         setTimeout(() => {
             resizeCanvas();
+            canvas.focus({ preventScroll: true });
             isGameOver = false;
             isPaused = false;
             score = 0;
@@ -633,8 +637,22 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     }
     function draw(){ctx.clearRect(0,0,canvasWidth,canvasHeight);drawAtmosphere();ctx.save();ctx.translate(canvasWidth/2,canvasHeight);ctx.scale(cameraScale,cameraScale);ctx.translate(-canvasWidth/2,-canvasHeight+cameraY);drawTopTarget();blocks.forEach(b=>{if(isBlockOnScreen(b))drawIsoBlock(b,1);});fallingPieces.forEach(p=>{if(p.type==='block'){ctx.save();const cx=p.x+p.width/2,cy=p.y+p.height/2;ctx.translate(cx,cy);ctx.rotate(p.rotation);ctx.translate(-cx,-cy);draw3DBox(p.x,p.y,p.width,p.height,p.style,p.alpha);ctx.restore();}else{ctx.fillStyle=p.color;ctx.globalAlpha=p.alpha;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}});if(currentBlock&&!isGameOver){drawIsoBlock(currentBlock,1);}ctx.restore();}
 
-    canvas.addEventListener('mousedown', (e) => { e.preventDefault(); dropBlock(); });
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); dropBlock(); }, {passive: false});
+    canvas.addEventListener('pointerdown', (e) => {
+        if (e.button !== undefined && e.button !== 0) return;
+        e.preventDefault();
+        canvas.focus({ preventScroll: true });
+        dropBlock();
+    });
+    canvas.addEventListener('keydown', (e) => {
+        if (e.repeat) return;
+        if (e.code === 'Space' || e.code === 'Enter') {
+            e.preventDefault();
+            dropBlock();
+        } else if (e.code === 'Escape' && !isPaused && !isGameOver) {
+            e.preventDefault();
+            pauseGame();
+        }
+    });
 
     function pauseGame() {
         if (isGameOver) return;
