@@ -1398,9 +1398,9 @@ const safeUrl = value => { try { const u = new URL(String(value || ""), location
 const src = p => p;
 const ini = s => s.split(/\s+/).filter(w => /^[А-ЯЁA-Z]/.test(w)).slice(0,2).map(w => w[0]).join("");
 /* Если фото есть — показываем только фото; если нет — инициалы */
-const placeholderHTML = () => '<div class="photo-placeholder"><small>ФОТО СКОРО<br>ПОЯВИТСЯ</small></div>';
-function photoError(el){ el.outerHTML = placeholderHTML(); }
-const photo = (p, i) => { const safe = safeUrl(src(p)); return safe ? '<img src="' + esc(safe) + '" alt="" loading="lazy" onerror="photoError(this)">' : placeholderHTML(); };
+const placeholderHTML = (initials) => '<div class="photo-placeholder"><span class="photo-placeholder-mark">'+esc(initials||"✦")+'</span><small>ФОТО СКОРО<br>ПОЯВИТСЯ</small></div>';
+function photoError(el){ el.outerHTML = placeholderHTML("✦"); }
+const photo = (p, i) => { const safe = safeUrl(src(p)); return safe ? '<img src="' + esc(safe) + '" alt="" loading="lazy" onerror="photoError(this)">' : placeholderHTML(i); };
 
 function route(){
   const id = (location.hash || "#home").slice(1);
@@ -2349,6 +2349,72 @@ nav .scrub-target .nav-label{color:#fff!important}
  #events .day-event-card{min-height:70px;padding:15px!important}
  #events .day-event-card h3{font-size:15px!important}
 }
+</style>
+
+
+<style id="team-card-premium-refresh-2026">
+/* Состав: цельные карточки с более выразительной типографикой */
+#team .team-list{gap:13px!important}
+#team .team-member{
+ position:relative;isolation:isolate;border:1px solid #eadde1!important;border-radius:20px!important;
+ background:#fff!important;box-shadow:0 5px 18px rgba(61,0,13,.065),inset 0 1px 0 rgba(255,255,255,.9)!important;
+ transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s ease,border-color .22s ease!important
+}
+#team .team-member:before{content:"";position:absolute;z-index:2;top:0;left:16px;right:16px;height:3px;border-radius:0 0 5px 5px;background:linear-gradient(90deg,#a1001f,#d7a64a);opacity:.85}
+#team .team-member:active{transform:scale(.975)!important;border-color:#d8bbc3!important;box-shadow:0 3px 10px rgba(61,0,13,.08)!important}
+#team .team-member-photo{aspect-ratio:1/1;background:#f7f0f2!important;padding:8px!important}
+#team .team-member-photo img{inset:8px!important;width:calc(100% - 16px)!important;height:calc(100% - 16px)!important;border:0!important;border-radius:15px!important;box-shadow:0 1px 5px rgba(61,0,13,.08)!important}
+#team .team-member-photo .photo-placeholder{
+ position:absolute;inset:8px!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
+ overflow:hidden;border:1px solid #ead4dc!important;border-radius:15px!important;
+ background:radial-gradient(circle at 82% 18%,rgba(240,200,105,.32),transparent 34%),linear-gradient(145deg,#f8e9ed 0%,#f1dce3 52%,#ead0d9 100%)!important;
+ color:#8c203d!important
+}
+#team .team-member-photo .photo-placeholder:before{content:"";position:absolute;width:116px;height:116px;border:1px solid rgba(161,0,31,.10);border-radius:50%;box-shadow:0 0 0 12px rgba(255,255,255,.18),0 0 0 25px rgba(255,255,255,.12)}
+#team .photo-placeholder-mark{position:relative;display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(161,0,31,.15);border-radius:16px;background:rgba(255,255,255,.68);color:#9b2544;font-size:20px;font-weight:850;letter-spacing:-.04em;box-shadow:0 5px 15px rgba(93,13,39,.08)}
+#team .team-member-photo .photo-placeholder small{position:relative;font-size:7px!important;line-height:1.35;letter-spacing:.12em;color:#986071!important;font-weight:850}
+#team .team-member-copy{gap:7px!important;padding:12px 13px 15px!important}
+#team .team-member-copy>small{min-height:2.3em!important;color:#9a5b6d!important;font-size:9px!important;line-height:1.35!important;letter-spacing:.045em!important}
+#team .team-member-copy>b{font-size:13px!important;line-height:1.35!important;letter-spacing:-.025em;color:#302128!important}
+#team .team-member-class{display:none!important}
+#team .team-member-arrow{display:none!important}
+
+/* Раскрытый профиль: отдельная аккуратная композиция, фото или заглушка в едином стиле */
+#pn:has(.team-profile){background:#fff!important;color:#302128!important}
+#pn:has(.team-profile) .team-profile{
+ position:relative;display:flex;align-items:center;width:100%;min-height:100%;padding:26px 17px 34px!important;
+ border:1px solid #f0e5e8;border-radius:22px 22px 0 0;background:linear-gradient(180deg,#fff 0%,#fff 58%,#fffafb 100%)!important;
+ text-align:center
+}
+#pn:has(.team-profile) .team-profile:before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#a1001f,#f0c869,#a1001f)}
+#pn:has(.team-profile) .team-profile-photo{
+ position:relative;width:154px;height:154px;flex:none;margin:8px auto 22px!important;padding:6px;overflow:hidden;
+ border:1px solid #eadde1!important;border-radius:50%!important;background:#f8eef1!important;
+ box-shadow:0 0 0 7px #fbf6f7,0 12px 30px rgba(61,0,13,.11)!important
+}
+#pn:has(.team-profile) .team-profile-photo img{width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:center 20%}
+#pn:has(.team-profile) .team-profile-photo .photo-placeholder{
+ position:absolute;inset:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+ border:1px solid #e7cfd7;border-radius:50%;background:radial-gradient(circle at 75% 22%,rgba(240,200,105,.38),transparent 36%),linear-gradient(145deg,#f8e9ed,#ecd3dc);color:#8c203d
+}
+#pn:has(.team-profile) .team-profile-photo .photo-placeholder:before{content:"";position:absolute;width:120px;height:120px;border:1px solid rgba(161,0,31,.12);border-radius:50%;box-shadow:0 0 0 12px rgba(255,255,255,.18)}
+#pn:has(.team-profile) .team-profile-photo .photo-placeholder-mark{position:relative;display:grid;place-items:center;width:54px;height:54px;border-radius:18px;background:rgba(255,255,255,.7);color:#9b2544;font-size:21px;font-weight:850}
+#pn:has(.team-profile) .team-profile-photo .photo-placeholder small{position:relative;font-size:7px;line-height:1.35;letter-spacing:.11em;color:#986071;font-weight:850}
+#pn:has(.team-profile) .team-profile-role{max-width:min(100%,340px);padding:8px 14px!important;border:1px solid #f0dfe4;border-radius:99px;background:#fbf2f5!important;color:#92213f!important;font-size:9px!important;font-weight:850;letter-spacing:.09em!important}
+#pn:has(.team-profile) .team-profile h3{max-width:100%;margin:15px 0 14px!important;color:#2d2025!important;font-size:25px!important;line-height:1.18!important;font-weight:850;letter-spacing:-.045em!important;overflow-wrap:anywhere}
+#pn:has(.team-profile) .team-profile-class{display:inline-flex;align-items:center;gap:5px;margin:0 0 16px!important;padding:9px 15px!important;border:1px solid #eee2e6!important;border-radius:12px!important;background:#faf6f7!important;color:#8a727b!important;font-size:11px!important}
+#pn:has(.team-profile) .team-profile-class b{color:#542638!important;font-weight:850}
+#pn:has(.team-profile) .team-profile p{width:100%;max-width:39ch;margin:0!important;padding:16px 17px!important;border:1px solid #f0e5e8!important;border-radius:17px!important;background:#fff!important;color:#6f6066!important;font-size:13px!important;line-height:1.7!important;text-align:left!important;box-shadow:0 4px 14px rgba(61,0,13,.035)}
+@media(max-width:380px){
+ #team .team-list{gap:10px!important}
+ #team .team-member{border-radius:17px!important}
+ #team .team-member-copy{padding:10px 10px 13px!important}
+ #team .team-member-copy>b{font-size:12px!important}
+ #pn:has(.team-profile) .team-profile{padding:23px 13px 30px!important}
+ #pn:has(.team-profile) .team-profile-photo{width:136px;height:136px}
+ #pn:has(.team-profile) .team-profile h3{font-size:22px!important}
+}
+@media(prefers-reduced-motion:reduce){#team .team-member{transition:none!important}}
 </style>
 
 </body>
