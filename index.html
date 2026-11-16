@@ -1936,17 +1936,30 @@ function setAppealRulesAccepted(){
   $("#rulesGateStatus").textContent = accepted ? "Согласие сохранено на этом устройстве." : "После подтверждения форма станет доступна.";
 }
 $("#openAppealRules").addEventListener("click", () => {
-  openSh(appealRulesHTML);
-  const rulesPanel = $("#pn"), rulesCue = $("#appealRulesScrollCue");
-  const updateRulesCue = () => rulesCue.classList.toggle("is-hidden", rulesPanel.scrollTop + rulesPanel.clientHeight >= rulesPanel.scrollHeight - 24);
-  rulesPanel.addEventListener("scroll", updateRulesCue, {passive:true});
-  rulesCue.addEventListener("click", () => rulesPanel.scrollTo({top:rulesPanel.scrollHeight,behavior:"smooth"}));
-  requestAnimationFrame(updateRulesCue);
-  $("#acceptAppealRules").addEventListener("click", () => {
-    localStorage.setItem(APPEAL_RULES_KEY, "yes");
+  const rulesHTML = `
+    <div class="appeal-rules-modal">
+      <div class="more-menu-heading">
+        <div><small>СОВЕТ ПЕРВЫХ · ШКОЛА №9</small><h3>Правила обращений</h3><p>Пожалуйста, ознакомься перед отправкой</p></div>
+      </div>
+      <div class="appeal-rules-body">
+        <p><b>1. Уважительное общение.</b> Пиши корректно, без оскорблений, угроз и дискриминации.</p>
+        <p><b>2. По существу.</b> Обращение должно относиться к работе Совета, школьным инициативам, мероприятиям или работе сайта.</p>
+        <p><b>3. Достоверность.</b> Указывай правдивую информацию. Не отправляй заведомо ложные сведения и спам.</p>
+        <p><b>4. Личные данные.</b> Не указывай чужие пароли, адреса, телефоны и другие личные сведения без необходимости и разрешения.</p>
+        <p><b>5. Конфиденциальность.</b> Обращения рассматриваются командой Совета и не публикуются в открытой ленте.</p>
+        <p><b>6. Рассмотрение.</b> Отправка обращения не гарантирует его реализацию. При необходимости команда может уточнить детали.</p>
+      </div>
+      <button class="btn full" id="acceptAppealRules" type="button">Принимаю правила</button>
+    </div>`;
+  openSh(rulesHTML);
+  const acceptButton = $("#acceptAppealRules");
+  if (!acceptButton) return;
+  acceptButton.addEventListener("click", () => {
+    try { localStorage.setItem(APPEAL_RULES_KEY, "yes"); }
+    catch (_) { $("#rulesGateStatus").textContent = "Не удалось сохранить согласие. Разреши сохранение данных в браузере и попробуй снова."; return; }
     setAppealRulesAccepted();
     closeSh();
-  });
+  }, {once:true});
 });
 setAppealRulesAccepted();
 let appealSenderBlocked = false;
@@ -3858,3 +3871,16 @@ html[data-s1-theme="dark"] .sh .pn.s1-settings-panel .s1-settings-heading{border
  }
 })();
 </script>
+
+<style id="s1-appeal-rules-modal-fix">
+.appeal-rules-modal{padding:4px 0 8px;text-align:left}
+.appeal-rules-modal .more-menu-heading{margin:0 0 16px;padding:0 0 14px;border-bottom:1px solid var(--line)}
+.appeal-rules-modal .more-menu-heading small{display:block;color:var(--red);font-size:10px;font-weight:850;letter-spacing:1px;margin-bottom:5px}
+.appeal-rules-modal .more-menu-heading h3{margin:0;color:var(--ink);font-size:25px;font-weight:850}
+.appeal-rules-modal .more-menu-heading p{margin:5px 0 0;color:var(--mut);font-size:13px}
+.appeal-rules-body{display:grid;gap:12px;margin:0 0 20px}
+.appeal-rules-body p{margin:0;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font-size:13px;line-height:1.55}
+.appeal-rules-body b{color:var(--red)}
+html[data-s1-theme="dark"] .appeal-rules-body p{background:#24202a;color:#f4eff2;border-color:#49414d}
+html[data-s1-theme="dark"] .appeal-rules-body b{color:#e18aa2}
+</style>
