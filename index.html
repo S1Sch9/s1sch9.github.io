@@ -1472,7 +1472,7 @@ addEventListener("hashchange", route);
     if(!item)return;
     if(item.matches("a[href^='#']")){
       const hash=item.getAttribute("href");
-      if(location.hash===hash)route();else location.hash=hash;
+      if(location.hash!==hash)location.hash=hash;route();
     }else if(item.matches("button[data-more='true']"))openMoreMenu();
   };
   const beginDrag=(state,clientX)=>{
@@ -1515,7 +1515,7 @@ addEventListener("hashchange", route);
   nav.addEventListener("touchend",e=>{
     if(!touchStart)return;
     const wasDragging=touchDragging,selected=candidate;
-    if(wasDragging){suppressClickUntil=Date.now()+900;if(e.cancelable)e.preventDefault();clearGesture();activate(selected);}
+    if(wasDragging){suppressClickUntil=Date.now()+900;if(e.cancelable)e.preventDefault();activate(selected);clearGesture();}
     else clearGesture();
   },{passive:false});
   nav.addEventListener("touchcancel",clearGesture,{passive:true});
@@ -1536,7 +1536,7 @@ addEventListener("hashchange", route);
   },{passive:false});
   window.addEventListener("pointerup",e=>{
     if(!mousePointer||e.pointerId!==mousePointer.id)return;
-    if(mousePointer.dragging){const selected=candidate;suppressClickUntil=Date.now()+900;clearGesture();activate(selected);}
+    if(mousePointer.dragging){const selected=candidate;suppressClickUntil=Date.now()+900;activate(selected);clearGesture();}
     else clearGesture();
   });
   window.addEventListener("pointercancel",()=>{if(mousePointer)clearGesture();});
