@@ -2078,15 +2078,22 @@ function s1ApplyTextScale(root){
  root=root||document.querySelector("main");if(!root)return;
  const factor=S1_PREFS.textSize==="large"?1.12:S1_PREFS.textSize==="xlarge"?1.25:1;
  const nodes=[root,...root.querySelectorAll("*")];
+ const eligible=[];
  for(const el of nodes){
   if(!(el instanceof HTMLElement)||el.closest("svg,script,style,noscript")||el.matches("svg,script,style,noscript"))continue;
   const ownText=Array.from(el.childNodes).some(n=>n.nodeType===Node.TEXT_NODE&&n.textContent.trim());
   if(!ownText&&!el.matches("input,textarea,select,button"))continue;
   if(!el.hasAttribute("data-s1-base-font-size")){
-   el.dataset.s1BaseFontSize=getComputedStyle(el).fontSize;
+   const computed=getComputedStyle(el).fontSize;
+   const parent=el.parentElement;
+   const inherited=parent&&parent.hasAttribute("data-s1-base-font-size")&&computed===getComputedStyle(parent).fontSize;
+   el.dataset.s1BaseFontSize=inherited?parent.dataset.s1BaseFontSize:computed;
    el.dataset.s1BaseInlineFontSize=el.style.getPropertyValue("font-size");
    el.dataset.s1BaseInlineFontPriority=el.style.getPropertyPriority("font-size");
   }
+  eligible.push(el);
+ }
+ for(const el of eligible){
   if(factor===1){
    const v=el.dataset.s1BaseInlineFontSize,p=el.dataset.s1BaseInlineFontPriority;
    if(v)el.style.setProperty("font-size",v,p);else el.style.removeProperty("font-size");
