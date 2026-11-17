@@ -232,18 +232,37 @@ async function saveTemplateFromTelegram(env, msg, adminId) {
   const photo = Array.isArray(msg.photo) && msg.photo.length ? msg.photo[msg.photo.length - 1] : null;
   const file = doc || photo;
   if (!file) return false;
+
   const name = String(doc && doc.file_name || "telegram-template.jpg");
-  const mime = String(doc && doc.mime_type || "image/jpeg").toLowerCase();
-  if (!(mime === "image/jpeg" || mime === "image/png" || /\\.(jpe?g|png)$/i.test(name)) || Number(file.file_size || 0) > 900000) {
-    await tg(env, "sendMessage", { chat_id: adminId, text: "Пришли исходный шаблон как файл JPG или PNG размером до 900 КБ. Лучше отправить именно как документ, без сжатия." });
+  const extension = /\\.(jpe?g|png)$/i.exec(name);
+  const reportedSize = Number(file.file_size || 0);
+  if (!extension) {
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Не удалось распознать формат. Пришли файл с именем, оканчивающимся на .JPG, .JPEG или .PNG." });
     return true;
   }
+  if (reportedSize > 900000) {
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Файл слишком большой: " + (reportedSize / 1024).toFixed(0) + " КБ. Лимит сейчас 900 КБ. Ничего не сохранено." });
+    return true;
+  }
+
   const meta = await tg(env, "getFile", { file_id: file.file_id });
   if (!meta || !meta.file_path) throw new Error("Telegram не вернул путь к файлу шаблона.");
   const response = await fetch("https://api.telegram.org/file/bot" + env.SOVETTG_BOT_TOKEN + "/" + meta.file_path);
   if (!response.ok) throw new Error("Не удалось скачать шаблон из Telegram.");
   const bytes = new Uint8Array(await response.arrayBuffer());
-  if (!bytes.length || bytes.length > 900000) throw new Error("Размер шаблона превышает допустимый предел.");
+  if (!bytes.length || bytes.length > 900000) {
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Скачанный файл превышает лимит 900 КБ. Ничего не сохранено." });
+    return true;
+  }
+
+  const isPng = bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
+  const isJpeg = bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (!isPng && !isJpeg) {
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Файл получен, но его содержимое не распознано как настоящий PNG или JPEG. Шаблон не сохранён." });
+    return true;
+  }
+
+  const mime = isPng ? "image/png" : "image/jpeg";
   let binary = "";
   for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   const base64 = btoa(binary);
