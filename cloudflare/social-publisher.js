@@ -40,13 +40,13 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
   const safeSubtitle = escapeHtml(subtitle || "Школы №9");
   const isPhoto = Boolean(photoDataUrl);
   const main = isPhoto
-    ? '<div style="position:absolute;left:54px;top:38px;width:1172px;height:548px;display:flex;align-items:center;justify-content:center;background:#fff;border:4px solid #a1001f;border-radius:28px;padding:12px;box-sizing:border-box;box-shadow:0 18px 48px rgba(61,0,13,.18)"><img src="' + photoDataUrl + '" width="1140" height="516" style="width:1140px;height:516px;object-fit:contain;border-radius:16px" /></div>'
-    : '<div style="position:absolute;left:78px;top:112px;width:1124px;height:430px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px;box-sizing:border-box;background:rgba(255,255,255,.88);border:3px solid #a1001f;border-radius:30px;box-shadow:0 18px 48px rgba(61,0,13,.12)"><div style="font-size:22px;font-weight:700;letter-spacing:5px;color:#a1001f">СОВЕТ ПЕРВЫХ · ШКОЛА №9</div><div style="font-size:64px;line-height:1.1;font-weight:800;color:#3d000d;margin-top:28px">' + safeTitle + '</div><div style="font-size:28px;color:#745b65;margin-top:22px">' + safeSubtitle + '</div><div style="width:120px;height:7px;background:#f0c869;margin-top:28px;border-radius:8px"></div></div>';
-  const html = '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background-color:#fffafb;background-image:radial-gradient(ellipse at 0% 0%,rgba(161,0,31,.13),transparent 42%),radial-gradient(ellipse at 100% 100%,rgba(161,0,31,.10),transparent 38%);font-family:Arial,sans-serif">' +
-    '<div style="position:absolute;left:-90px;top:230px;width:260px;height:260px;border-radius:999px;background:rgba(161,0,31,.055)"></div>' +
-    '<div style="position:absolute;right:-100px;top:-100px;width:330px;height:330px;border-radius:999px;background:rgba(240,200,105,.12)"></div>' +
+    ? '<div style="position:absolute;left:54px;top:38px;width:1172px;height:548px;display:flex;align-items:center;justify-content:center;background-color:#fff;border:4px solid #a1001f;border-radius:28px;padding:12px;box-sizing:border-box;box-shadow:0 18px 48px rgba(61,0,13,.18)"><img src="' + photoDataUrl + '" width="1140" height="516" style="width:1140px;height:516px;object-fit:contain;border-radius:16px" /></div>'
+    : '<div style="position:absolute;left:78px;top:112px;width:1124px;height:430px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px;box-sizing:border-box;background-color:rgba(255,255,255,.88);border:3px solid #a1001f;border-radius:30px;box-shadow:0 18px 48px rgba(61,0,13,.12)"><div style="font-size:22px;font-weight:700;letter-spacing:5px;color:#a1001f">СОВЕТ ПЕРВЫХ · ШКОЛА №9</div><div style="font-size:64px;line-height:1.1;font-weight:800;color:#3d000d;margin-top:28px">' + safeTitle + '</div><div style="font-size:28px;color:#745b65;margin-top:22px">' + safeSubtitle + '</div><div style="width:120px;height:7px;background-color:#f0c869;margin-top:28px;border-radius:8px"></div></div>';
+  const html = '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background-color:#fffafb;font-family:Arial,sans-serif">' +
+    '<div style="position:absolute;left:-90px;top:230px;width:260px;height:260px;border-radius:999px;background-color:rgba(161,0,31,.055)"></div>' +
+    '<div style="position:absolute;right:-100px;top:-100px;width:330px;height:330px;border-radius:999px;background-color:rgba(240,200,105,.12)"></div>' +
     main +
-    '<div style="display:flex;position:absolute;left:0;bottom:0;width:100%;height:112px;background:rgba(255,255,255,.97);border-top:3px solid #a1001f;align-items:center;justify-content:space-between;padding:0 58px;box-sizing:border-box">' +
+    '<div style="display:flex;position:absolute;left:0;bottom:0;width:100%;height:112px;background-color:rgba(255,255,255,.97);border-top:3px solid #a1001f;align-items:center;justify-content:space-between;padding:0 58px;box-sizing:border-box">' +
     '<div style="display:flex;align-items:center;gap:18px"><img src="' + councilLogo + '" width="76" height="76" style="width:76px;height:76px;object-fit:contain" /><div style="display:flex;flex-direction:column"><div style="font-size:25px;font-weight:800;color:#3d000d">СОВЕТ ПЕРВЫХ</div><div style="font-size:18px;color:#745b65;margin-top:5px">ШКОЛЫ №9</div></div></div>' +
     '<div style="display:flex;align-items:center;gap:18px"><div style="font-size:16px;font-weight:700;letter-spacing:2px;color:#806b74">' + (isPhoto ? "НАШИ СОБЫТИЯ" : "НОВОСТИ И ИНИЦИАТИВЫ") + '</div><img src="' + schoolCrest + '" width="78" height="78" style="width:78px;height:78px;object-fit:contain" /></div></div></div>';
   const { ImageResponse } = await import("workers-og");
@@ -242,8 +242,8 @@ async function handleSocialUpdate(env, item, adminId) {
     const processingNotice = await tg(env, "sendMessage", {
       chat_id: adminId,
       text: type === "photo"
-        ? "⏳ Фото получил! Начинаю обработку: загружаю оригинал, добавляю фирменное оформление и готовлю предпросмотр. Это может занять немного времени."
-        : "⏳ Текст получил! Начинаю оформление публикации и подготовку предпросмотра. Это может занять немного времени."
+        ? "📥 Фото получил! Уже начал обработку: загружаю оригинал и собираю фирменную карточку. Скоро пришлю предпросмотр."
+        : "📥 Текст получил! Уже начал оформление и подготовку предпросмотра. Скоро пришлю результат."
     });
     const template = await selectedTemplate(env, type);
     const rawCaption = String(msg.caption || text || "").trim();
