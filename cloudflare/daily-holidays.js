@@ -388,9 +388,14 @@ async function processUpdate(env, item, adminId) {
   if (text === "/status" || text === "/status@" + String(env.SOVETTG_BOT_USERNAME || "").toLowerCase()) {
     await tables(env);
     const date = localDate();
+    const queued = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_requested'").first();
     const row = await env.DB.prepare("SELECT status, created_at, holiday_title, message_id FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
     let statusText;
-    if (!row) {
+    if (queued && queued.value === date) {
+      statusText = "⏳ Запрос на подготовку черновика принят и ожидает фонового запуска.\nДата: " + date;
+    } else if (queued && queued.value === "processing:" + date) {
+      statusText = "⏳ Черновик сейчас готовится в фоновой задаче.\nДата: " + date;
+    } else if (!row) {
       statusText = "ℹ️ На сегодня (" + date + ") черновик ещё не запускался.";
     } else {
       const age = Math.max(0, Math.floor(Date.now() / 1000) - Number(row.created_at || 0));
