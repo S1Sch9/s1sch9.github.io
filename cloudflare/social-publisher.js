@@ -200,7 +200,7 @@ async function processQueuedSocialPhotos(env) {
       text: "Готово! Если всё выглядит правильно, подтверди публикацию:",
       reply_markup: publishKeyboard(draftId)
     });
-    await env.DB.prepare("DELETE FROM social_publication_state WHERE key='compose_type'").run();
+    await env.DB.prepare("DELETE FROM social_publication_state WHERE key IN ('compose_type','compose_title')").run();
     await env.DB.prepare("UPDATE social_publication_queue SET status='done' WHERE id=?").bind(next.id).run();
   } catch (error) {
     const detail = String(error && error.message ? error.message : "неизвестная ошибка").slice(0, 220);
@@ -327,12 +327,18 @@ async function handleSocialUpdate(env, item, adminId) {
       return true;
     }
     if (type === "photo") {
+      const savedTitleRow = await env.DB.prepare("SELECT value FROM social_publication_state WHERE key='compose_title'").first();
+      const publicationTitle = String(msg.caption || (savedTitleRow && savedTitleRow.value) || "").trim();
+      if (!publicationTitle) {
+        await tg(env, "sendMessage", { chat_id: adminId, text: "Сначала отправь заголовок отдельным сообщением, затем фотографию. Либо отправь фотографию с подписью." });
+        return true;
+      }
       const notice = await tg(env, "sendMessage", {
         chat_id: adminId,
         text: "📥 Фото получил! Поставил обработку в очередь. Соберу горизонтальную карточку и пришлю предпросмотр отдельным сообщением."
       });
       await env.DB.prepare("INSERT INTO social_publication_queue (payload,status,notice_message_id,created_at,started_at) VALUES (?, 'pending', ?, ?, NULL)")
-        .bind(JSON.stringify({ message: msg }), notice.message_id, Math.floor(Date.now()/1000)).run();
+        .bind(JSON.stringify({ message: msg, title: publicationTitle }), notice.message_id, Math.floor(Date.now()/1000)).run();
       return true;
     }
     let processingNotice = null;
