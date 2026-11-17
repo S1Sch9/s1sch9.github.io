@@ -193,8 +193,10 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const lines = fittedTitle.lines;
   const fontSize = fittedTitle.fontSize;
   const lineHeight = Math.round(fontSize * 1.16);
+  const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
+  const dateFontSize = Math.min(86, Math.floor(430 / robotoBlackWidth(dateText, 1)));
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:778px;top:' + (142 + index * lineHeight) + 'px;width:430px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:778px;top:' + (154 + index * lineHeight) + 'px;width:430px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
 
   // Fully erase the old date and title with a solid patch. The original white circle
@@ -207,7 +209,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const html = '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#1a0b5c">' +
     '<img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px;object-fit:fill"/>' +
     textMask +
-    '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:88px;color:#fff;font-family:Roboto Black,sans-serif;font-size:68px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
+    '<div style="display:flex;position:absolute;left:778px;top:34px;width:430px;height:100px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + dateFontSize + 'px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateText) + '</div>' +
     titleMarkup +
     '<div style="display:flex;position:absolute;left:1080px;top:345px;width:640px;height:640px;background:#fff;border-radius:50%;overflow:hidden">' +
     '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;position:absolute;left:83px;top:64px;width:330px;height:330px;object-fit:contain;border-radius:50%"/>' +
