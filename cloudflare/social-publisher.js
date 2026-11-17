@@ -174,7 +174,7 @@ async function processQueuedSocialPhotos(env) {
     const template = await selectedTemplate(env, "photo");
     const rawCaption = String(msg.caption || "").trim();
     const caption = captionFor("photo", template.id, rawCaption);
-    const title = rawCaption.split(/[.!?\\n]/)[0].slice(0, 58) || "Новости и события";
+    const title = rawCaption.split(/[.!?\n]/)[0].slice(0, 58) || "Новости и события";
     stage = "загрузка оригинала фото";
     const photo = msg.photo[msg.photo.length - 1];
     const dataUrl = await telegramImageData(env, photo.file_id);
@@ -191,7 +191,7 @@ async function processQueuedSocialPhotos(env) {
     await tg(env, "editMessageText", {
       chat_id: adminId,
       message_id: next.notice_message_id,
-      text: "✅ Предпросмотр готов · Фото · шаблон «" + template.name + "».\\n\\nПроверь карточку выше. В канал ничего не отправлено — публикация произойдёт только после твоего подтверждения."
+      text: "✅ Предпросмотр готов · Фото · шаблон «" + template.name + "».\n\nПроверь карточку выше. В канал ничего не отправлено — публикация произойдёт только после твоего подтверждения."
     });
     await tg(env, "sendMessage", {
       chat_id: adminId,
@@ -207,7 +207,7 @@ async function processQueuedSocialPhotos(env) {
       await tg(env, "editMessageText", {
         chat_id: adminId,
         message_id: next.notice_message_id,
-        text: "⚠️ Не удалось подготовить предпросмотр.\\nЭтап: " + stage + ".\\nПричина: " + detail + "\\n\\nВ канал ничего не опубликовано. Формат сохранён — после исправления можно отправить фото ещё раз."
+        text: "⚠️ Не удалось подготовить предпросмотр.\nЭтап: " + stage + ".\nПричина: " + detail + "\n\nВ канал ничего не опубликовано. Формат сохранён — после исправления можно отправить фото ещё раз."
       });
     } catch (notifyError) {
       console.error("Could not update queued social photo status:", notifyError && notifyError.message ? notifyError.message : "unknown error");
@@ -363,7 +363,7 @@ async function handleSocialUpdate(env, item, adminId) {
       await tg(env, "editMessageText", {
         chat_id: adminId,
         message_id: processingNotice.message_id,
-        text: "✅ Предпросмотр готов · " + TYPES[type].title + " · шаблон «" + template.name + "».\\n\\nПроверь публикацию выше. В канал ничего не отправлено — публикация произойдёт только после твоего подтверждения."
+        text: "✅ Предпросмотр готов · " + TYPES[type].title + " · шаблон «" + template.name + "».\n\nПроверь публикацию выше. В канал ничего не отправлено — публикация произойдёт только после твоего подтверждения."
       });
       await tg(env, "sendMessage", {
         chat_id: adminId,
@@ -374,7 +374,7 @@ async function handleSocialUpdate(env, item, adminId) {
       return true;
     } catch (error) {
       const detail = String(error && error.message ? error.message : "неизвестная ошибка").slice(0, 220);
-      const message = "⚠️ Не удалось подготовить предпросмотр.\\nЭтап: " + stage + ".\\nПричина: " + detail + "\\n\\nВ канал ничего не опубликовано. Настройка формата сохранена — можно отправить фото ещё раз после исправления.";
+      const message = "⚠️ Не удалось подготовить предпросмотр.\nЭтап: " + stage + ".\nПричина: " + detail + "\n\nВ канал ничего не опубликовано. Настройка формата сохранена — можно отправить фото ещё раз после исправления.";
       console.error("Social publisher failed at " + stage + ":", detail);
       try {
         if (processingNotice && processingNotice.message_id) {
