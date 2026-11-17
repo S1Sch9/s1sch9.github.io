@@ -479,6 +479,30 @@ async function callback(env, item, adminId) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Недоступно." });
     return;
   }
+  const draftChoice = String(q.data || "").match(/^draft:(today|tomorrow|custom|cancel)$/);
+  if (draftChoice) {
+    const choice = draftChoice[1];
+    if (choice === "custom") {
+      await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES ('awaiting_custom_date', '1') ON CONFLICT(key) DO UPDATE SET value = '1'").run();
+      await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Жду дату." });
+      await tg(env, "sendMessage", {
+        chat_id: adminId,
+        text: "📅 Напиши дату, на которую подготовить публикацию.\n\nПодойдут форматы 25.12.2026 или 2026-12-25. Можно выбрать сегодня или любую будущую дату.",
+        reply_markup: dailyMenuMarkup()
+      });
+      return;
+    }
+    if (choice === "cancel") {
+      await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'awaiting_custom_date'").run();
+      await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Выбор отменён." });
+      await tg(env, "sendMessage", { chat_id: adminId, text: "Хорошо, ничего не запускаю.", reply_markup: dailyMenuMarkup() });
+      return;
+    }
+    const date = choice === "tomorrow" ? shiftDate(localDate(), 1) : localDate();
+    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Запускаю подготовку." });
+    await queueManualDraft(env, adminId, date);
+    return;
+  }
   const match = String(q.data || "").match(/^(publish|skip):(\d{4}-\d{2}-\d{2})$/);
   if (!match) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Неизвестное действие." });
