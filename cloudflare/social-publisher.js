@@ -17,7 +17,7 @@ async function tg(env, method, payload) {
 async function tgMultipart(env, method, form) {
   const response = await fetch(API + env.SOVETTG_BOT_TOKEN + "/" + method, { method: "POST", body: form });
   const data = await response.json();
-  if (!response.ok || !data.ok) throw new Error("Telegram " + method + " failed");
+  if (!response.ok || !data.ok) throw new Error("Telegram " + method + ": " + String(data.description || response.status));
   return data.result;
 }
 function escapeHtml(value) {
