@@ -80,7 +80,7 @@ function shiftDate(date, days) {
 }
 
 function validIsoDate(value) {
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(value || ""))) return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))) return false;
   const [year, month, day] = value.split("-").map(Number);
   const date = new Date(Date.UTC(year, month - 1, day));
   return date.getUTCFullYear() === year &&
@@ -90,12 +90,12 @@ function validIsoDate(value) {
 
 function parseDateInput(value) {
   const input = String(value || "").trim();
-  let match = input.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})$/);
+  let match = input.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if (match) {
     const date = match[1] + "-" + match[2].padStart(2, "0") + "-" + match[3].padStart(2, "0");
     return validIsoDate(date) ? date : null;
   }
-  match = input.match(/^(\\d{1,2})[.\\/-](\\d{1,2})[.\\/-](\\d{4})$/);
+  match = input.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
   if (!match) return null;
   const date = match[3] + "-" + match[2].padStart(2, "0") + "-" + match[1].padStart(2, "0");
   return validIsoDate(date) ? date : null;
