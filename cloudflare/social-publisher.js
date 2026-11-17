@@ -132,7 +132,7 @@ function captionFor(type, templateId, raw) {
 async function sendTypeMenu(env, adminId) {
   await tg(env, "sendMessage", {
     chat_id: adminId,
-    text: "Что готовим для канала? Выбери один из трёх форматов.",
+    text: "Что готовим для канала? Выбери формат.",
     reply_markup: typeKeyboard()
   });
 }
