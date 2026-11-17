@@ -496,6 +496,31 @@ export default {
     if (url.pathname.startsWith("/telegram/daily/") && request.method === "POST") {
       return handleDailyWebhook(request, env, context);
     }
+    // One-time authenticated export of the exact D1 template for visual diagnostics.
+    // The URL token is the SHA-256 digest of the dedicated daily-bot token.
+    const templateExportMatch = url.pathname.match(/^\/internal\/daily-template\/([a-f0-9]{64})$/);
+    if (templateExportMatch && request.method === "GET") {
+      const expected = env.SOVETTG_BOT_TOKEN ? await sha256(env.SOVETTG_BOT_TOKEN) : "";
+      if (!expected || !constantTimeEqual(templateExportMatch[1], expected)) {
+        return new Response("Not found", { status: 404, headers: securityHeaders() });
+      }
+      try {
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_assets (key TEXT PRIMARY KEY, mime_type TEXT NOT NULL, file_name TEXT NOT NULL, content_base64 TEXT NOT NULL, updated_at INTEGER NOT NULL)").run();
+        const asset = await env.DB.prepare("SELECT mime_type, content_base64 FROM daily_holiday_assets WHERE key = 'template'").first();
+        if (!asset || !asset.content_base64 || !["image/png", "image/jpeg"].includes(asset.mime_type)) {
+          return new Response("Template not found", { status: 404, headers: securityHeaders() });
+        }
+        const binary = atob(asset.content_base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return new Response(bytes, {
+          status: 200,
+          headers: { ...securityHeaders(), "Content-Type": asset.mime_type, "Content-Disposition": 'attachment; filename="daily-template-original"' }
+        });
+      } catch {
+        return new Response("Template export failed", { status: 500, headers: securityHeaders() });
+      }
+    }
     const origin = request.headers.get("Origin") || "";
     const headers = securityHeaders();
 
