@@ -196,7 +196,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
   const dateFontSize = Math.min(86, Math.floor(430 / robotoBlackWidth(dateText, 1)));
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:778px;top:' + (154 + index * lineHeight) + 'px;width:430px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:778px;top:' + (150 + index * lineHeight) + 'px;width:430px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
 
   // Fully erase the old date and title with a solid patch. The original white circle
