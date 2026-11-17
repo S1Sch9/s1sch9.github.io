@@ -1918,6 +1918,60 @@ main > section.on .rv{
   }
 }
 </style>
+
+<style id="s1-unified-interface-motion-2026">
+/* Единая мягкая анимация всех всплывающих окон и панелей. */
+.sh .bg{animation:s1OverlayFade .24s ease-out both}
+.sh .pn{
+  animation:s1SheetArrive .38s cubic-bezier(.22,.78,.24,1) both;
+  will-change:transform;
+}
+@keyframes s1OverlayFade{from{opacity:0}to{opacity:1}}
+@keyframes s1SheetArrive{
+  from{opacity:.94;transform:translate3d(0,22px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+/* Содержимое окна проявляется чуть позже самой панели — без каскада лишних эффектов. */
+.sh.on .pn > :not(.grip):not(.sh-close){
+  animation:s1OverlayContent .3s cubic-bezier(.22,.75,.25,1) both;
+}
+@keyframes s1OverlayContent{
+  from{opacity:0;transform:translate3d(0,7px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+/* Поиск и полноэкранная игра используют тот же характер появления. */
+.site-search-panel:not([hidden]){
+  animation:s1SearchArrive .24s cubic-bezier(.22,.75,.25,1) both;
+}
+@keyframes s1SearchArrive{
+  from{opacity:0;transform:translate3d(0,-7px,0) scale(.99)}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+#gm.on{animation:s1OverlayFade .22s ease-out both}
+#gm.on iframe{animation:s1GameArrive .32s cubic-bezier(.22,.75,.25,1) both}
+@keyframes s1GameArrive{
+  from{opacity:.7;transform:scale(.992)}
+  to{opacity:1;transform:scale(1)}
+}
+/* Выключатель «Эффекты и переходы» управляет и новыми, и уже существующими анимациями. */
+body.s1-motion-off main > section.on,
+body.s1-motion-off main > section.on .rv,
+body.s1-motion-off .sh .bg,
+body.s1-motion-off .sh .pn,
+body.s1-motion-off .sh.on .pn > :not(.grip):not(.sh-close),
+body.s1-motion-off .site-search-panel:not([hidden]),
+body.s1-motion-off #gm.on,
+body.s1-motion-off #gm.on iframe{
+  animation:none!important;
+  transform:none!important;
+}
+@media(prefers-reduced-motion:reduce){
+  .sh .bg,.sh .pn,.sh.on .pn > :not(.grip):not(.sh-close),
+  .site-search-panel:not([hidden]),#gm.on,#gm.on iframe{
+    animation:none!important;transform:none!important;
+  }
+}
+</style>
 </head>
 <body>
 <div id="s1-page-loader" class="s1-page-loader" role="status" aria-label="Загрузка сайта">
