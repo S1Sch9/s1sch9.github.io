@@ -7,6 +7,19 @@ const DAILY_CRON = "0 5 * * *";
 const REQUEST_TIMEOUT_MS = 25000;
 const AI_TIMEOUT_MS = 45000;
 
+function dailyMenuMarkup() {
+  return {
+    keyboard: [
+      [{ text: "📝 Создать черновик" }],
+      [{ text: "📊 Проверить статус" }, { text: "🖼 Оригинальный шаблон" }],
+      [{ text: "ℹ️ Помощь" }]
+    ],
+    resize_keyboard: true,
+    is_persistent: true,
+    input_field_placeholder: "Выбери действие"
+  };
+}
+
 async function fetchWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS, label = "Запрос") {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -438,11 +451,11 @@ async function saveTemplateFromTelegram(env, msg, adminId) {
   const extension = /\.(jpe?g|png)$/i.exec(name);
   const reportedSize = Number(file.file_size || 0);
   if (!extension) {
-    await tg(env, "sendMessage", { chat_id: adminId, text: "Не удалось распознать формат. Пришли файл с именем, оканчивающимся на .JPG, .JPEG или .PNG." });
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Не удалось распознать формат. Пришли файл с именем, оканчивающимся на .JPG, .JPEG или .PNG.", reply_markup: dailyMenuMarkup() });
     return true;
   }
   if (reportedSize > 900000) {
-    await tg(env, "sendMessage", { chat_id: adminId, text: "Файл слишком большой: " + (reportedSize / 1024).toFixed(0) + " КБ. Лимит сейчас 900 КБ. Ничего не сохранено." });
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Файл слишком большой: " + (reportedSize / 1024).toFixed(0) + " КБ. Лимит сейчас 900 КБ. Ничего не сохранено.", reply_markup: dailyMenuMarkup() });
     return true;
   }
 
@@ -452,14 +465,14 @@ async function saveTemplateFromTelegram(env, msg, adminId) {
   if (!response.ok) throw new Error("Не удалось скачать шаблон из Telegram.");
   const bytes = new Uint8Array(await response.arrayBuffer());
   if (!bytes.length || bytes.length > 900000) {
-    await tg(env, "sendMessage", { chat_id: adminId, text: "Скачанный файл превышает лимит 900 КБ. Ничего не сохранено." });
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Скачанный файл превышает лимит 900 КБ. Ничего не сохранено.", reply_markup: dailyMenuMarkup() });
     return true;
   }
 
   const isPng = bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
   const isJpeg = bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
   if (!isPng && !isJpeg) {
-    await tg(env, "sendMessage", { chat_id: adminId, text: "Файл получен, но его содержимое не распознано как настоящий PNG или JPEG. Шаблон не сохранён." });
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Файл получен, но его содержимое не распознано как настоящий PNG или JPEG. Шаблон не сохранён.", reply_markup: dailyMenuMarkup() });
     return true;
   }
 
@@ -469,7 +482,7 @@ async function saveTemplateFromTelegram(env, msg, adminId) {
   const base64 = btoa(binary);
   await env.DB.prepare("INSERT INTO daily_holiday_assets (key, mime_type, file_name, content_base64, updated_at) VALUES ('template', ?, ?, ?, ?) ON CONFLICT(key) DO UPDATE SET mime_type=excluded.mime_type, file_name=excluded.file_name, content_base64=excluded.content_base64, updated_at=excluded.updated_at")
     .bind(mime, name, base64, Math.floor(Date.now() / 1000)).run();
-  await tg(env, "sendMessage", { chat_id: adminId, text: "✅ Оригинальный шаблон получен и сохранён без сжатия. Теперь можно собирать публикации на его основе. Сам шаблон не буду перерисовывать." });
+  await tg(env, "sendMessage", { chat_id: adminId, text: "✅ Оригинальный шаблон получен и сохранён без сжатия. Теперь можно собирать публикации на его основе. Сам шаблон не буду перерисовывать.", reply_markup: dailyMenuMarkup() });
   return true;
 }
 
@@ -478,12 +491,18 @@ async function processUpdate(env, item, adminId) {
   const msg = item.message;
   if (!msg || !msg.chat || msg.chat.type !== "private" || String(msg.chat.id) !== adminId || String(msg.from && msg.from.id) !== adminId) return;
   if (msg.document || msg.photo) { await saveTemplateFromTelegram(env, msg, adminId); return; }
-  const text = String(msg.text || "").trim().toLowerCase();
+  const incomingText = String(msg.text || "").trim();
+  const text = ({
+    "📝 создать черновик": "/draft",
+    "📊 проверить статус": "/status",
+    "🖼 оригинальный шаблон": "/template",
+    "ℹ️ помощь": "/help"
+  }[incomingText.toLocaleLowerCase("ru")] || incomingText).toLowerCase();
   if (text === "/template") {
     await tables(env);
     const asset = await env.DB.prepare("SELECT mime_type, file_name, content_base64 FROM daily_holiday_assets WHERE key = 'template'").first();
     if (!asset || !asset.content_base64) {
-      await tg(env, "sendMessage", { chat_id: adminId, text: "Сохранённый шаблон не найден." });
+      await tg(env, "sendMessage", { chat_id: adminId, text: "Сохранённый шаблон не найден.", reply_markup: dailyMenuMarkup() });
       return;
     }
     const binary = atob(asset.content_base64);
@@ -494,7 +513,7 @@ async function processUpdate(env, item, adminId) {
     const response = await fetch(API + env.SOVETTG_BOT_TOKEN + "/sendDocument", { method: "POST", body: form });
     const result = await response.json();
     if (!response.ok || !result.ok) throw new Error("Не удалось отправить сохранённый шаблон из хранилища.");
-    await tg(env, "sendMessage", { chat_id: adminId, text: "Вот точная копия сохранённого оригинала. Отправь этот файл сюда в ChatGPT, чтобы я мог измерить области макета." });
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Вот точная копия сохранённого оригинала. Отправь этот файл сюда в ChatGPT, чтобы я мог точно измерить нужную область макета.", reply_markup: dailyMenuMarkup() });
     return;
   }
   if (text === "/status" || text === "/status@" + String(env.SOVETTG_BOT_USERNAME || "").toLowerCase()) {
@@ -531,7 +550,7 @@ async function processUpdate(env, item, adminId) {
       if (row.holiday_title) statusText += "\nПраздник: " + row.holiday_title;
       if (row.status === "pending" && row.message_id) statusText += "\nКнопки «Опубликовать» и «Отклонить» находятся в сообщении с черновиком.";
     }
-    await tg(env, "sendMessage", { chat_id: adminId, text: statusText });
+    await tg(env, "sendMessage", { chat_id: adminId, text: statusText, reply_markup: dailyMenuMarkup() });
     return;
   }
   if (text === "/draft" || text.startsWith("/draft@")) {
@@ -545,14 +564,16 @@ async function processUpdate(env, item, adminId) {
     await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES ('manual_draft_requested', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(date).run();
     await tg(env, "sendMessage", {
       chat_id: adminId,
-      text: "⏳ Запрос принят. Подготовка запущена в фоновой задаче — она не зависит от времени жизни Telegram webhook. Я пришлю отдельное сообщение, когда черновик будет готов или если возникнет ошибка."
+      text: "⏳ Запрос принят. Подготовка запущена в фоновой задаче — она не зависит от времени жизни Telegram webhook. Я пришлю отдельное сообщение, когда черновик будет готов или если возникнет ошибка.",
+      reply_markup: dailyMenuMarkup()
     });
     return;
   }
   if (text === "/start" || text === "/help") {
     await tg(env, "sendMessage", {
       chat_id: adminId,
-      text: "💙 Это отдельный бот рубрики «Праздник каждый день». Каждый день здесь будет появляться готовый пост с картинкой. В канал он попадёт только после нажатия «Опубликовать».\n\nДля ручной проверки отправь /draft — бот подготовит черновик на сегодня."
+      text: "💙 Это отдельный бот рубрики «Праздник каждый день». Каждый день здесь будет появляться готовый пост с картинкой. В канал он попадёт только после нажатия «Опубликовать».\n\nВыбирай действие на кнопках ниже — команды вводить не нужно. Публикация по-прежнему возможна только после нажатия «Опубликовать» под готовым черновиком.",
+      reply_markup: dailyMenuMarkup()
     });
   }
 }
@@ -659,7 +680,7 @@ export async function runDailyHolidayCron(controller, env) {
           : result && result.stage === "already-processed"
             ? "ℹ️ Сегодняшний черновик уже обработан. Повторная отправка не выполнялась."
             : "⚠️ Не удалось подготовить черновик" + (result && result.stage ? " на этапе «" + result.stage + "»" : "") + ": " + String(result && result.error || "неизвестная ошибка").slice(0, 220) + "\nВ канал ничего не публиковалось.";
-        await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: message });
+        await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: message, reply_markup: dailyMenuMarkup() });
       } catch (error) {
         const detail = String(error && error.message ? error.message : "unknown error").slice(0, 180);
         console.error("Manual daily draft job failed:", detail);
