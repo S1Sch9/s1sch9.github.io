@@ -46,15 +46,7 @@ jobs:
       - name: Run security smoke tests
         working-directory: cloudflare
         run: node security-smoke-test.mjs
-      - name: Deploy Worker
-        working-directory: cloudflare
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          set -euo pipefail
-          npx --yes wrangler@4.160.1 deploy --config wrangler.jsonc
-      - name: Sync separate daily Telegram bot token
+      - name: Deploy Worker with daily bot secret
         working-directory: cloudflare
         env:
           SOVETTG_BOT_TOKEN: ${{ secrets.SOVETTG_BOT_TOKEN }}
@@ -63,7 +55,16 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$SOVETTG_BOT_TOKEN"
-          printf '%s' "$SOVETTG_BOT_TOKEN" | npx --yes wrangler@4.160.1 secret put SOVETTG_BOT_TOKEN --config wrangler.jsonc
+          umask 077
+          secrets_file="$(mktemp)"
+          trap 'rm -f "$secrets_file"' EXIT
+          SECRETS_FILE="$secrets_file" node --input-type=module <<'NODE'
+          import { writeFileSync } from "node:fs";
+          writeFileSync(process.env.SECRETS_FILE, JSON.stringify({
+            SOVETTG_BOT_TOKEN: process.env.SOVETTG_BOT_TOKEN
+          }), { mode: 0o600 });
+          NODE
+          npx --yes wrangler@4.160.1 deploy --config wrangler.jsonc --secrets-file "$secrets_file"
       - name: Configure instant webhook for daily bot
         env:
           SOVETTG_BOT_TOKEN: ${{ secrets.SOVETTG_BOT_TOKEN }}
