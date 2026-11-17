@@ -145,7 +145,7 @@ function holidayIllustration(title) {
 
 async function loadHolidayFont() {
   const fontResponse = await fetchWithTimeout(
-    "https://raw.githubusercontent.com/google/fonts/main/ofl/robotocondensed/RobotoCondensed%5Bwght%5D.ttf",
+    "https://raw.githubusercontent.com/google/fonts/main/apache/roboto/static/RobotoCondensed-Bold.ttf",
     {},
     REQUEST_TIMEOUT_MS,
     "Загрузка шрифта Roboto Condensed"
@@ -162,19 +162,19 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const fontSize = lines.length >= 5 ? 50 : lines.length === 4 ? 55 : 61;
   const lineHeight = Math.round(fontSize * 1.08);
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:780px;top:' + (142 + index * lineHeight) + 'px;width:425px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Condensed,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:780px;top:' + (142 + index * lineHeight) + 'px;width:425px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Condensed,sans-serif;font-size:' + fontSize + 'px;font-weight:700;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
   const svg = '<svg width="1536" height="765" viewBox="0 0 1536 765" style="position:absolute;left:0;top:0"><path d="M770 20 H1220 V345 H1400 A320 320 0 0 0 1080 665 H770 Z" fill="#1a0b5c"/><path d="M1080 665 A320 320 0 0 1 1400 345 H1516 V765 H1080 Z" fill="#fff"/></svg>';
   const html = '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#1b0d5b"><img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px;object-fit:fill"/>' +
     svg +
-    '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:88px;color:#fff;font-family:Roboto Condensed,sans-serif;font-size:60px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
+    '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:88px;color:#fff;font-family:Roboto Condensed,sans-serif;font-size:60px;font-weight:700;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
     titleMarkup +
     '<img src="data:image/jpeg;base64,' + illustrationBase64 + '" style="position:absolute;left:1188px;top:420px;width:330px;height:340px;object-fit:contain;object-position:center bottom"/>' +
     '</div>';
   const rendered = new ImageResponse(html, {
     width: 1536,
     height: 765,
-    fonts: [{ name: "Roboto Condensed", data: fontData, weight: 900, style: "normal" }]
+    fonts: [{ name: "Roboto Condensed", data: fontData, weight: 700, style: "normal" }]
   });
   return new Uint8Array(await rendered.arrayBuffer());
 }
