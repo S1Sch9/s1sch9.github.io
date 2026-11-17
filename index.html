@@ -5057,6 +5057,121 @@ html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-hero{
 }
 </style>
 
+
+<style id="s1-team-profile-layout-recovery-2026">
+/* Снимаем фиксированные высоты, которые накладывали длинные имена друг на друга. */
+#pn:has(.team-profile) .team-profile{
+  box-sizing:border-box!important;width:100%!important;
+  padding:8px 2px 34px!important;
+}
+#pn:has(.team-profile) .team-profile-hero{
+  box-sizing:border-box!important;width:100%!important;
+  padding:24px 20px 24px!important;
+  border-radius:24px!important;
+}
+#pn:has(.team-profile) .team-profile-hero:before{
+  display:none!important;content:none!important;
+}
+#pn:has(.team-profile) .team-profile-head{
+  display:grid!important;
+  grid-template-columns:132px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:20px!important;
+}
+#pn:has(.team-profile) .team-profile-photo{
+  width:132px!important;height:176px!important;
+  align-self:center!important;
+  border-radius:17px!important;
+}
+#pn:has(.team-profile) .team-profile-identity{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  gap:13px!important;
+  min-width:0!important;
+}
+#pn:has(.team-profile) .team-profile-role{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:40px!important;
+  height:auto!important;
+  max-width:100%!important;
+  white-space:normal!important;
+  font-size:12px!important;
+  padding:8px 12px!important;
+}
+#pn:has(.team-profile) .team-profile h3{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  font-size:clamp(24px,6.5vw,30px)!important;
+  line-height:1.19!important;
+  overflow:visible!important;
+  overflow-wrap:break-word!important;
+  word-break:normal!important;
+}
+#pn:has(.team-profile) .team-profile-class{
+  display:flex!important;
+  align-items:center!important;
+  min-height:50px!important;
+  height:auto!important;
+  max-width:100%!important;
+  padding:10px 13px!important;
+  white-space:normal!important;
+  font-size:14px!important;
+  line-height:1.4!important;
+}
+#pn:has(.team-profile) .team-profile-class b{
+  overflow-wrap:anywhere!important;
+}
+#pn:has(.team-profile) .team-profile-about{
+  margin:27px 0 0!important;
+}
+#pn:has(.team-profile) .team-profile-about-label{
+  margin-bottom:12px!important;font-size:12px!important;
+}
+#pn:has(.team-profile) .team-profile-bio{
+  min-height:88px!important;
+  border-radius:15px!important;
+}
+#pn:has(.team-profile) .team-profile-bio p{
+  padding:18px 19px!important;
+  font-size:17px!important;
+  line-height:1.72!important;
+}
+@media(max-width:430px){
+  #pn:has(.team-profile) .team-profile-hero{padding:21px 16px 22px!important}
+  #pn:has(.team-profile) .team-profile-head{
+    grid-template-columns:116px minmax(0,1fr)!important;
+    gap:15px!important;
+  }
+  #pn:has(.team-profile) .team-profile-photo{
+    width:116px!important;height:158px!important;
+  }
+  #pn:has(.team-profile) .team-profile h3{font-size:24px!important}
+  #pn:has(.team-profile) .team-profile-identity{gap:11px!important}
+}
+@media(max-width:360px){
+  #pn:has(.team-profile) .team-profile-hero{padding:18px 13px!important}
+  #pn:has(.team-profile) .team-profile-head{
+    grid-template-columns:102px minmax(0,1fr)!important;gap:12px!important;
+  }
+  #pn:has(.team-profile) .team-profile-photo{
+    width:102px!important;height:144px!important;
+  }
+  #pn:has(.team-profile) .team-profile h3{font-size:22px!important}
+  #pn:has(.team-profile) .team-profile-role{font-size:11px!important;padding:7px 9px!important}
+}
+html[data-s1-theme="dark"] #pn:has(.team-profile) .team-profile-hero{
+  background:linear-gradient(145deg,#282027,#30232b)!important;
+  border-color:#493640!important;
+}
+</style>
+
 </body>
 </html>
 
