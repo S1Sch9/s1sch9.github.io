@@ -1976,14 +1976,28 @@ body.s1-motion-off #gm.on iframe{
 
 
 <style id="s1-burgundy-card-and-loader-corner-fix">
-/* Обрезаем только фирменную бордовую обложку главной по её скруглённому контуру. */
+/* Единое точное отсечение фоновых слоёв по скруглённым контурам крупных панелей. */
 .home-hero{
   overflow:hidden!important;
   border-radius:29px!important;
   clip-path:inset(0 round 29px);
 }
-/* Во время увеличения логотипа на заставке его квадратная подложка
-   не должна выступать за округлённую белую рамку. */
+.hero{
+  overflow:hidden!important;
+  border-radius:30px!important;
+  clip-path:inset(0 round 30px);
+}
+.day-showcase{
+  overflow:hidden!important;
+  border-radius:27px!important;
+  clip-path:inset(0 round 27px);
+}
+#games .game{
+  overflow:hidden!important;
+  border-radius:19px!important;
+  clip-path:inset(0 round 19px);
+}
+/* На заставке масштабируемый логотип не должен показывать квадратные углы. */
 .s1-loader-mark{
   overflow:hidden!important;
   border-radius:28px!important;
