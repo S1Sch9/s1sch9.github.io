@@ -109,7 +109,7 @@ function formatHolidayDate(date) {
 
 async function queueManualDraft(env, adminId, date) {
   await tables(env);
-  if (!validIsoDate(date) || date < localDate()) {
+  if (!validIsoDate(date)) {
     await tg(env, "sendMessage", {
       chat_id: adminId,
       text: "⚠️ Можно выбрать сегодняшнюю или будущую дату. Проверь дату и попробуй ещё раз.",
@@ -332,7 +332,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     return { ok: false, stage: "template", error: "Оригинальный шаблон не найден или повреждён. Черновик не отправлен." };
   }
   const date = requestedDate || localDate();
-  if (!validIsoDate(date) || date < localDate()) return { ok: false, stage: "date", error: "Выбрана некорректная или прошедшая дата." };
+  if (!validIsoDate(date)) return { ok: false, stage: "date", error: "Выбрана некорректная или прошедшая дата." };
   const old = await env.DB.prepare("SELECT status, created_at, chat_id, message_id FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
   if (old && old.status === "publishing") {
     return { ok: false, stage: "already-processed", error: "Публикация на выбранную дату сейчас обрабатывается. Повторный запуск заблокирован." };
@@ -630,14 +630,6 @@ async function processUpdate(env, item, adminId) {
         });
         return;
       }
-      if (selectedDate < localDate()) {
-        await tg(env, "sendMessage", {
-          chat_id: adminId,
-          text: "⚠️ Эта дата уже прошла. Выбери сегодняшнюю или будущую дату.",
-          reply_markup: dailyMenuMarkup()
-        });
-        return;
-      }
       await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'awaiting_custom_date'").run();
       await queueManualDraft(env, adminId, selectedDate);
       return;
@@ -723,7 +715,7 @@ async function processUpdate(env, item, adminId) {
   if (text === "/start" || text === "/help") {
     await tg(env, "sendMessage", {
       chat_id: adminId,
-      text: "💙 Это бот рубрики «Праздник каждый день». Нажми «Создать черновик», выбери сегодня, завтра или укажи любую будущую дату. Я подготовлю текст и картинку по сохранённому шаблону.\n\nВ канал публикация попадёт только после твоего нажатия «Опубликовать» под готовым черновиком.",
+      text: "💙 Это бот рубрики «Праздник каждый день». Нажми «Создать черновик», выбери сегодня, завтра или укажи любую дату. Я подготовлю текст и картинку по сохранённому шаблону.\n\nВ канал публикация попадёт только после твоего нажатия «Опубликовать» под готовым черновиком.",
       reply_markup: dailyMenuMarkup()
     });
   }
