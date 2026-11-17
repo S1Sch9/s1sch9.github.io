@@ -13,7 +13,6 @@ async function tg(env, method, payload) {
   return data.result;
 }
 
-
 async function tgMultipart(env, method, form) {
   const response = await fetch(API + env.SOVETTG_BOT_TOKEN + "/" + method, { method: "POST", body: form });
   const data = await response.json();
@@ -40,15 +39,15 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
   const safeSubtitle = escapeHtml(subtitle || "Школы №9");
   const isPhoto = Boolean(photoDataUrl);
   const main = isPhoto
-    ? '<div style="position:absolute;left:54px;top:38px;width:1172px;height:548px;display:flex;align-items:center;justify-content:center;background-color:#fff;border:4px solid #a1001f;border-radius:28px;padding:12px;box-sizing:border-box;box-shadow:0 18px 48px rgba(61,0,13,.18)"><img src="' + photoDataUrl + '" width="1140" height="516" style="width:1140px;height:516px;object-fit:contain;border-radius:16px" /></div>'
-    : '<div style="position:absolute;left:78px;top:112px;width:1124px;height:430px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px;box-sizing:border-box;background-color:rgba(255,255,255,.88);border:3px solid #a1001f;border-radius:30px;box-shadow:0 18px 48px rgba(61,0,13,.12)"><div style="font-size:22px;font-weight:700;letter-spacing:5px;color:#a1001f">СОВЕТ ПЕРВЫХ · ШКОЛА №9</div><div style="font-size:64px;line-height:1.1;font-weight:800;color:#3d000d;margin-top:28px">' + safeTitle + '</div><div style="font-size:28px;color:#745b65;margin-top:22px">' + safeSubtitle + '</div><div style="width:120px;height:7px;background-color:#f0c869;margin-top:28px;border-radius:8px"></div></div>';
-  const html = '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background-color:#fffafb;font-family:Arial,sans-serif">' +
+    ? '<div style="position:absolute;left:54px;top:38px;width:1172px;height:548px;display: flex;align-items:center;justify-content:center;background-color:#fff;border:4px solid #a1001f;border-radius:28px;padding:12px;box-sizing:border-box;box-shadow:0 18px 48px rgba(61,0,13,.18)"><img src="' + photoDataUrl + '" width="1140" height="516" style="width:1140px;height:516px;object-fit:contain;border-radius:16px" /></div>'
+    : '<div style="position:absolute;left:78px;top:112px;width:1124px;height:430px;display: flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px;box-sizing:border-box;background-color:rgba(255,255,255,.88);border:3px solid #a1001f;border-radius:30px;box-shadow:0 18px 48px rgba(61,0,13,.12)"><div style="font-size:22px;font-weight:700;letter-spacing:5px;color:#a1001f">СОВЕТ ПЕРВЫХ · ШКОЛА №9</div><div style="font-size:64px;line-height:1.1;font-weight:800;color:#3d000d;margin-top:28px"> ' + safeTitle + '</div><div style="font-size:28px;color:#745b65;margin-top:22px">' + safeSubtitle + '</div><div style="width:120px;height:7px;background-color:#f0c869;margin-top:28px;border-radius:8px"></div></div>';
+  const html = '<div style="display: flex;position:relative;width:1280px;height:720px;overflow:hidden;background-color:#fffafb;font-family:Arial,sans-serif">' +
     '<div style="position:absolute;left:-90px;top:230px;width:260px;height:260px;border-radius:999px;background-color:rgba(161,0,31,.055)"></div>' +
     '<div style="position:absolute;right:-100px;top:-100px;width:330px;height:330px;border-radius:999px;background-color:rgba(240,200,105,.12)"></div>' +
     main +
-    '<div style="display:flex;position:absolute;left:0;bottom:0;width:100%;height:112px;background-color:rgba(255,255,255,.97);border-top:3px solid #a1001f;align-items:center;justify-content:space-between;padding:0 58px;box-sizing:border-box">' +
-    '<div style="display:flex;align-items:center;gap:18px"><img src="' + councilLogo + '" width="76" height="76" style="width:76px;height:76px;object-fit:contain" /><div style="display:flex;flex-direction:column"><div style="font-size:25px;font-weight:800;color:#3d000d">СОВЕТ ПЕРВЫХ</div><div style="font-size:18px;color:#745b65;margin-top:5px">ШКОЛЫ №9</div></div></div>' +
-    '<div style="display:flex;align-items:center;gap:18px"><div style="font-size:16px;font-weight:700;letter-spacing:2px;color:#806b74">' + (isPhoto ? "НАШИ СОБЫТИЯ" : "НОВОСТИ И ИНИЦИАТИВЫ") + '</div><img src="' + schoolCrest + '" width="78" height="78" style="width:78px;height:78px;object-fit:contain" /></div></div></div>';
+    '<div style="display: flex;position:absolute;left:0;bottom:0;width:100%;height:112px;background-color:rgba(255,255,255,.97);border-top:3px solid #a1001f;align-items:center;justify-content:space-between;padding:0 58px;box-sizing:border-box">' +
+    '<div style="display: flex;align-items:center;gap:18px"><img src="' + councilLogo + '" width="76" height="76" style="width:76px;height:76px;object-fit:contain" /><div style="display: flex;flex-direction:column"><div style="font-size:25px;font-weight:800;color:#3d000d">СОВЕТ ПЕРВЫХ</div><div style="font-size:18px;color:#745b65;margin-top:5px">ШКОЛЫ №9</div></div></div>' +
+    '<div style="display: flex;align-items:center;gap:18px"><div style="font-size:16px;font-weight:700;letter-spacing:2px;color:#806b74">' + (isPhoto ? "НАШИ СОБЫТИЯ" : "НОВОСТИ И ИНИЦИАТИВЫ") + '</div><img src="' + schoolCrest + '" width="78" height="78" style="width:78px;height:78px;object-fit:contain" /></div></div></div>';
   const { ImageResponse } = await import("workers-og");
   const response = new ImageResponse(html, { width:1280, height:720 });
   return new Uint8Array(await response.arrayBuffer());
