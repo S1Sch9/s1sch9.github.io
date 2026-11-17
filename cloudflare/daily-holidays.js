@@ -184,10 +184,25 @@ async function processUpdate(env, item, adminId) {
   const msg = item.message;
   if (!msg || !msg.chat || msg.chat.type !== "private" || String(msg.chat.id) !== adminId || String(msg.from && msg.from.id) !== adminId) return;
   const text = String(msg.text || "").trim().toLowerCase();
+  if (text === "/draft" || text === "/draft@" + String(env.SOVETTG_BOT_USERNAME || "").toLowerCase()) {
+    await tg(env, "sendMessage", {
+      chat_id: adminId,
+      text: "⏳ Запускаю подготовку сегодняшнего черновика. Это может занять немного времени."
+    });
+    await makeDraft(env);
+    const row = await env.DB.prepare("SELECT status, holiday_title FROM daily_holiday_drafts WHERE date = ?").bind(localDate()).first();
+    let statusText = "Не удалось определить результат. Проверьте попытку чуть позже.";
+    if (row && row.status === "pending") statusText = "✅ Черновик готов и отправлен выше. Проверь текст и картинку — в канал он попадёт только после нажатия «Опубликовать».";
+    else if (row && row.status === "failed") statusText = "⚠️ Не получилось подготовить черновик. Я записал ошибку в журнал Worker; публикации в канал не было.";
+    else if (row && ["published", "skipped"].includes(row.status)) statusText = "На сегодня черновик уже обработан (" + (row.status === "published" ? "опубликован" : "отклонён") + "). Повторно он не отправлялся.";
+    else if (row && row.status === "generating") statusText = "Черновик ещё готовится. Подожди немного.";
+    await tg(env, "sendMessage", { chat_id: adminId, text: statusText });
+    return;
+  }
   if (text === "/start" || text === "/help") {
     await tg(env, "sendMessage", {
       chat_id: adminId,
-      text: "💙 Это отдельный бот рубрики «Праздник каждый день». Каждый день здесь будет появляться готовый пост с картинкой. В канал он попадёт только после нажатия «Опубликовать»."
+      text: "💙 Это отдельный бот рубрики «Праздник каждый день». Каждый день здесь будет появляться готовый пост с картинкой. В канал он попадёт только после нажатия «Опубликовать».\n\nДля ручной проверки отправь /draft — бот подготовит черновик на сегодня."
     });
   }
 }
