@@ -342,13 +342,14 @@ async function telegramWebhook(request, env) {
   if (!chat || chat.type !== "private") return json({ ok: true });
   const chatId = String(chat.id);
   const text = cleanText(msg?.text, 64);
+  const rulesButton = { text: "📖 Положение", web_app: { url: "https://s1sch9.github.io/appeal-app.html?v=rules-only-4" } };
   const keyboard = {
-    keyboard: [[{ text: "✍️ Написать обращение" }]],
+    keyboard: [[{ text: "✍️ Написать обращение" }, rulesButton]],
     resize_keyboard: true,
     is_persistent: true
   };
   const cancelKeyboard = {
-    keyboard: [[{ text: "↩️ Отменить отправку" }]],
+    keyboard: [[{ text: "↩️ Отменить отправку" }, rulesButton]],
     resize_keyboard: true,
     is_persistent: true
   };
@@ -414,6 +415,12 @@ async function telegramWebhook(request, env) {
     await env.DB.prepare("INSERT INTO telegram_appeal_sessions (chat_id, awaiting, updated_at) VALUES (?, 0, ?) ON CONFLICT(chat_id) DO UPDATE SET awaiting=0, updated_at=excluded.updated_at")
       .bind(chatId, Math.floor(Date.now() / 1000)).run();
     await telegramReply(env, chatId, "↩️ Отправка отменена.\n\nЕсли появится идея или вопрос — мы всегда на связи! 💙", keyboard);
+    return json({ ok: true });
+  }
+  if (text === "📖 Положение") {
+    await telegramReply(env, chatId, "📖 Положение и правила пользования доступны по кнопке ниже.", {
+      inline_keyboard: [[{ text: "Открыть положение", web_app: { url: "https://s1sch9.github.io/appeal-app.html?v=rules-only-4" } }]]
+    });
     return json({ ok: true });
   }
   if (command === "/new" || text === "✍️ Написать обращение") {
