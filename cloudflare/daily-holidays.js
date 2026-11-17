@@ -875,7 +875,12 @@ export async function handleDailyWebhook(request, env, context) {
     await tables(env);
     const inserted = await env.DB.prepare("INSERT OR IGNORE INTO daily_holiday_updates (update_id, created_at) VALUES (?, ?)").bind(update.update_id, Math.floor(Date.now() / 1000)).run();
     if (!inserted.meta || !inserted.meta.changes) return;
-    try { await processUpdate(env, update, String(env.TELEGRAM_ADMIN_ID)); }
+    try {
+      await processUpdate(env, update, String(env.TELEGRAM_ADMIN_ID));
+      // Process a newly queued social photo immediately in the same
+      // waitUntil task. The Cron trigger remains as a recovery fallback.
+      await processQueuedSocialPhotos(env);
+    }
     catch (error) {
       const detail = String(error && error.message ? error.message : "unknown error").slice(0, 180);
       console.error("Daily webhook update failed:", detail);
