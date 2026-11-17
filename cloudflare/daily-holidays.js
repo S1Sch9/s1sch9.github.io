@@ -151,8 +151,7 @@ async function makeDraft(env, force = false) {
     stage = "image-ai";
     const picture = await env.AI.run(IMAGE_MODEL, {
       prompt: imagePrompt + ". Square composition, high quality, no text, no letters, no logo, no watermark.",
-      steps: 4,
-      seed: Math.floor(Date.now() / 1000) % 2147483647
+      steps: 4
     });
     if (!picture || typeof picture.image !== "string" || !picture.image.length) {
       throw new Error("Модель изображения вернула пустой результат.");
