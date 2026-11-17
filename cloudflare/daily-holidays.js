@@ -19,6 +19,7 @@ async function tg(env, method, payload) {
 async function tables(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_drafts (date TEXT PRIMARY KEY, chat_id TEXT NOT NULL, message_id INTEGER, status TEXT NOT NULL, holiday_title TEXT NOT NULL DEFAULT '', source_url TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL)").run();
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_updates (update_id INTEGER PRIMARY KEY, created_at INTEGER NOT NULL)").run();
 }
 
 function localDate() {
@@ -251,12 +252,37 @@ async function poll(env) {
   }
 }
 
+export async function dailyWebhookPath(env) {
+  const token = String(env && env.SOVETTG_BOT_TOKEN || "");
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  const key = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+  return "/telegram/daily/" + key;
+}
+
+export async function handleDailyWebhook(request, env, context) {
+  if (!env || !env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.DB) return new Response("Service unavailable", { status: 503 });
+  if (new URL(request.url).pathname !== await dailyWebhookPath(env)) return new Response("Not found", { status: 404 });
+  let update;
+  try { update = await request.json(); } catch { return new Response("Bad request", { status: 400 }); }
+  if (!update || !Number.isSafeInteger(update.update_id)) return new Response("OK");
+  const task = (async () => {
+    await tables(env);
+    const inserted = await env.DB.prepare("INSERT OR IGNORE INTO daily_holiday_updates (update_id, created_at) VALUES (?, ?)").bind(update.update_id, Math.floor(Date.now() / 1000)).run();
+    if (!inserted.meta || !inserted.meta.changes) return;
+    try { await processUpdate(env, update, String(env.TELEGRAM_ADMIN_ID)); }
+    catch (error) {
+      const detail = String(error && error.message ? error.message : "unknown error").slice(0, 180);
+      console.error("Daily webhook update failed:", detail);
+      if (update.message && update.message.chat && String(update.message.chat.id) === String(env.TELEGRAM_ADMIN_ID)) {
+        try { await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Не удалось обработать команду: " + detail }); } catch {}
+      }
+    }
+  })();
+  if (context && typeof context.waitUntil === "function") context.waitUntil(task); else await task;
+  return new Response("OK");
+}
+
 export async function runDailyHolidayCron(controller, env) {
   if (!env || !env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.DB) return;
-  if (controller && controller.cron === DAILY_CRON) {
-    await makeDraft(env);
-    await poll(env);
-  } else if (controller && controller.cron === POLL_CRON) {
-    await poll(env);
-  }
+  if (controller && controller.cron === DAILY_CRON) await makeDraft(env);
 }
