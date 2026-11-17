@@ -91,6 +91,7 @@ async function sendBrandedPhoto(env, chatId, bytes, caption) {
 async function ensureTables(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS social_publication_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS social_publication_drafts (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, source_message_id INTEGER NOT NULL, preview_message_id INTEGER NOT NULL, template_id TEXT NOT NULL, status TEXT NOT NULL, created_at INTEGER NOT NULL)").run();
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS social_publication_queue (id INTEGER PRIMARY KEY AUTOINCREMENT, payload TEXT NOT NULL, status TEXT NOT NULL, notice_message_id INTEGER NOT NULL, created_at INTEGER NOT NULL, started_at INTEGER)").run();
 }
 
 const TYPES = {
@@ -149,6 +150,70 @@ async function sendTypeMenu(env, adminId) {
     text: "Что готовим для канала? Выбери формат.",
     reply_markup: typeKeyboard()
   });
+}
+
+async function processQueuedSocialPhotos(env) {
+  await ensureTables(env);
+  const now = Math.floor(Date.now() / 1000);
+  const stale = await env.DB.prepare("SELECT id, started_at FROM social_publication_queue WHERE status = 'processing'").all();
+  for (const row of stale.results || []) {
+    if (Number(row.started_at || 0) && now - Number(row.started_at) > 240) {
+      await env.DB.prepare("UPDATE social_publication_queue SET status='pending', started_at=NULL WHERE id=? AND status='processing'").bind(row.id).run();
+    }
+  }
+  const next = await env.DB.prepare("SELECT id, payload, notice_message_id FROM social_publication_queue WHERE status='pending' ORDER BY id LIMIT 1").first();
+  if (!next) return;
+  const lock = await env.DB.prepare("UPDATE social_publication_queue SET status='processing', started_at=? WHERE id=? AND status='pending'").bind(now, next.id).run();
+  if (!lock.meta || !lock.meta.changes) return;
+  let stage = "чтение задания из очереди";
+  const adminId = String(env.TELEGRAM_ADMIN_ID);
+  try {
+    const payload = JSON.parse(next.payload);
+    const msg = payload.message;
+    if (!msg || !Array.isArray(msg.photo) || !msg.photo.length) throw new Error("В очереди не найдено исходное фото.");
+    const template = await selectedTemplate(env, "photo");
+    const rawCaption = String(msg.caption || "").trim();
+    const caption = captionFor("photo", template.id, rawCaption);
+    const title = rawCaption.split(/[.!?\\n]/)[0].slice(0, 58) || "Новости и события";
+    stage = "загрузка оригинала фото";
+    const photo = msg.photo[msg.photo.length - 1];
+    const dataUrl = await telegramImageData(env, photo.file_id);
+    stage = "сборка горизонтальной карточки";
+    const card = await renderBrandCard({ type:"photo", title, subtitle:rawCaption || "События и инициативы Совета", photoDataUrl:dataUrl });
+    stage = "отправка предпросмотра";
+    const preview = await sendBrandedPhoto(env, adminId, card, caption);
+    stage = "сохранение черновика";
+    const inserted = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?)")
+      .bind("photo", msg.message_id, preview.message_id, template.id, "pending", now).run();
+    const draftId = inserted.meta && inserted.meta.last_row_id;
+    if (!draftId) throw new Error("Не удалось сохранить черновик в базе данных.");
+    stage = "обновление статуса";
+    await tg(env, "editMessageText", {
+      chat_id: adminId,
+      message_id: next.notice_message_id,
+      text: "✅ Предпросмотр готов · Фото · шаблон «" + template.name + "».\\n\\nПроверь карточку выше. В канал ничего не отправлено — публикация произойдёт только после твоего подтверждения."
+    });
+    await tg(env, "sendMessage", {
+      chat_id: adminId,
+      text: "Готово! Если всё выглядит правильно, подтверди публикацию:",
+      reply_markup: publishKeyboard(draftId)
+    });
+    await env.DB.prepare("DELETE FROM social_publication_state WHERE key='compose_type'").run();
+    await env.DB.prepare("UPDATE social_publication_queue SET status='done' WHERE id=?").bind(next.id).run();
+  } catch (error) {
+    const detail = String(error && error.message ? error.message : "неизвестная ошибка").slice(0, 220);
+    console.error("Social photo queue failed at " + stage + ":", detail);
+    try {
+      await tg(env, "editMessageText", {
+        chat_id: adminId,
+        message_id: next.notice_message_id,
+        text: "⚠️ Не удалось подготовить предпросмотр.\\nЭтап: " + stage + ".\\nПричина: " + detail + "\\n\\nВ канал ничего не опубликовано. Формат сохранён — после исправления можно отправить фото ещё раз."
+      });
+    } catch (notifyError) {
+      console.error("Could not update queued social photo status:", notifyError && notifyError.message ? notifyError.message : "unknown error");
+    }
+    await env.DB.prepare("UPDATE social_publication_queue SET status='failed' WHERE id=?").bind(next.id).run();
+  }
 }
 
 async function handleSocialUpdate(env, item, adminId) {
@@ -254,6 +319,15 @@ async function handleSocialUpdate(env, item, adminId) {
       await tg(env, "sendMessage", { chat_id: adminId, text: "Для формата «Фото» пришли фотографию или альбом." });
       return true;
     }
+    if (type === "photo") {
+      const notice = await tg(env, "sendMessage", {
+        chat_id: adminId,
+        text: "📥 Фото получил! Поставил обработку в очередь. Соберу горизонтальную карточку и пришлю предпросмотр отдельным сообщением."
+      });
+      await env.DB.prepare("INSERT INTO social_publication_queue (payload,status,notice_message_id,created_at,started_at) VALUES (?, 'pending', ?, ?, NULL)")
+        .bind(JSON.stringify({ message: msg }), notice.message_id, Math.floor(Date.now()/1000)).run();
+      return true;
+    }
     let processingNotice = null;
     let stage = "приём сообщения";
     try {
@@ -317,4 +391,4 @@ async function handleSocialUpdate(env, item, adminId) {
   return false;
 }
 
-export { handleSocialUpdate };
+export { handleSocialUpdate, processQueuedSocialPhotos };
