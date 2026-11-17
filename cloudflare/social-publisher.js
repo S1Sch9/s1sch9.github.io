@@ -9,7 +9,7 @@ async function tg(env, method, payload) {
     body: JSON.stringify(payload || {})
   });
   const data = await response.json();
-  if (!response.ok || !data.ok) throw new Error("Telegram " + method + " failed");
+  if (!response.ok || !data.ok) throw new Error("Telegram " + method + ": " + String(data.description || response.status));
   return data.result;
 }
 
@@ -73,8 +73,7 @@ async function sendBrandedPhoto(env, chatId, bytes, caption) {
 
 async function ensureTables(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS social_publication_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
-  await env.DB.prepare("CREATE TABLE IF NOT EXISTS social_publication_drafts (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, source_message_id INTEGER NOT NULL, preview_message_id INTEGER NOT NULL, preview_video_message_id INTEGER, template_id TEXT NOT NULL, status TEXT NOT NULL, created_at INTEGER NOT NULL)").run();
-  try { await env.DB.prepare("ALTER TABLE social_publication_drafts ADD COLUMN preview_video_message_id INTEGER").run(); } catch {}
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS social_publication_drafts (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, source_message_id INTEGER NOT NULL, preview_message_id INTEGER NOT NULL, template_id TEXT NOT NULL, status TEXT NOT NULL, created_at INTEGER NOT NULL)").run();
 }
 
 const TYPES = {
