@@ -289,11 +289,17 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   // is redrawn immediately afterwards, so no part of the template outside this field changes.
   const textMask = '<div style="display:flex;position:absolute;left:776px;top:20px;width:447px;height:480px;background:#1a0b5c"></div>';
 
+  // Close only the narrow purple gap between the upper-right frame and the poster's outer white margin.
+  // The original 1536x765 render has a ~5-6 px gap here; this strip extends the existing white frame
+  // without touching the crest, the "ВАЖЕН КАЖДЫЙ" lettering, or any other template element.
+  const topRightFrameFix = '<div style="display:flex;position:absolute;left:1510px;top:24px;width:6px;height:144px;background:#fff"></div>';
+
   // The original illustration sits inside a white circle centered at (1400, 665),
   // radius 320. A circular white-backed image exactly replaces that corner artwork
   // while keeping the circle silhouette and everything outside it intact.
   const html = '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#1a0b5c">' +
     '<img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px;object-fit:fill"/>' +
+    topRightFrameFix +
     textMask +
     '<div style="display:flex;position:absolute;left:778px;top:34px;width:430px;height:100px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + dateFontSize + 'px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateText) + '</div>' +
     titleMarkup +
