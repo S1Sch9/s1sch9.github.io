@@ -471,10 +471,12 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       REQUEST_TIMEOUT_MS,
       "Сборка изображения"
     );
-    const keyboard = { inline_keyboard: [[
-      { text: "✅ Опубликовать", callback_data: "publish:" + date },
-      { text: "✖️ Отклонить", callback_data: "skip:" + date }
-    ]] };
+    const keyboard = { inline_keyboard: [
+      [{ text: "✅ Опубликовать сейчас", callback_data: "publish:" + date }],
+      [{ text: "🕒 Выложить позже", callback_data: "schedule:" + date }],
+      [{ text: "🔄 Переделать картинку", callback_data: "redoimage:" + date }],
+      [{ text: "✖️ Отклонить", callback_data: "skip:" + date }]
+    ] };
     const form = new FormData();
     form.append("chat_id", String(env.TELEGRAM_ADMIN_ID));
     form.append("photo", new Blob([bytes], { type: "image/png" }), "holiday-" + date + ".png");
@@ -530,13 +532,13 @@ async function callback(env, item, adminId) {
     await queueManualDraft(env, adminId, date);
     return;
   }
-  const match = String(q.data || "").match(/^(publish|skip):(\d{4}-\d{2}-\d{2})$/);
+  const match = String(q.data || "").match(/^(publish|skip|schedule|redoimage):(\d{4}-\d{2}-\d{2})$/);
   if (!match) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Неизвестное действие." });
     return;
   }
   const action = match[1], date = match[2];
-  const row = await env.DB.prepare("SELECT chat_id, message_id, status, published_at FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
+  const row = await env.DB.prepare("SELECT chat_id, message_id, status, published_at, holiday_title FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
   if (!row || row.status !== "pending" || String(row.chat_id) !== adminId || !row.message_id) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Черновик уже обработан." });
     return;
@@ -545,23 +547,49 @@ async function callback(env, item, adminId) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "На эту дату публикация уже была размещена. Новый черновик создан, но повторно публиковать его нельзя.", show_alert: true });
     return;
   }
+  if (action === "schedule") {
+    await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES ('awaiting_publish_time', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(date).run();
+    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Настраиваем время публикации." });
+    await tg(env, "sendMessage", { chat_id: adminId, text: "🕒 На какое время по Москве запланировать публикацию на " + formatHolidayDate(date) + "?\n\nНапиши время в формате ЧЧ:ММ, например 08:30 или 19:15.\n\nМожно написать «отмена».", reply_markup: dailyMenuMarkup() });
+    return;
+  }
+  if (action === "redoimage") {
+    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Создаю новую картинку. Текст и шаблон не меняю." });
+    try {
+      const template = await env.DB.prepare("SELECT mime_type, content_base64 FROM daily_holiday_assets WHERE key = 'template'").first();
+      if (!template || !template.content_base64) throw new Error("Оригинальный шаблон не найден.");
+      const title = String(row.holiday_title || "Праздник");
+      const prompt = "Create a fresh small standalone friendly flat 2D hand-drawn cartoon illustration for the lower-right white circle of a Russian school holiday poster. Warm school storybook style, rounded shapes, confident dark-purple outlines, solid cheerful colors, minimal soft shading. Holiday subject: " + title + ". Make a different visual interpretation. One compact centered fully visible subject, pure white background, generous white margins. No text, letters, numbers, logos, watermarks, poster layout, gradients, photorealism or 3D.";
+      const result = await withTimeout(env.AI.run(IMAGE_MODEL, { prompt: prompt.slice(0, 1800), steps: 4 }), AI_TIMEOUT_MS, "Генерация новой иллюстрации");
+      if (!result || typeof result.image !== "string" || result.image.length < 4000) throw new Error("Модель не вернула готовую иллюстрацию.");
+      const imageBase64 = result.image.replace(/\s/g, "");
+      if (!imageBase64.startsWith("/9j/")) throw new Error("Иллюстрация пришла не в JPEG-формате.");
+      const dateLabel = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "numeric", month: "long" }).format(new Date(date + "T12:00:00+03:00"));
+      const bytes = await withTimeout(renderHolidayTemplate(template, dateLabel, title, imageBase64), REQUEST_TIMEOUT_MS, "Сборка изображения");
+      const form = new FormData();
+      form.append("chat_id", adminId);
+      form.append("message_id", String(row.message_id));
+      form.append("media", JSON.stringify({ type: "photo", media: "attach://photo", caption: String(q.message.caption || ""), parse_mode: "HTML" }));
+      form.append("photo", new Blob([bytes], { type: "image/png" }), "holiday-" + date + "-new.png");
+      form.append("reply_markup", JSON.stringify({ inline_keyboard: [
+        [{ text: "✅ Опубликовать сейчас", callback_data: "publish:" + date }],
+        [{ text: "🕒 Выложить позже", callback_data: "schedule:" + date }],
+        [{ text: "🔄 Переделать картинку", callback_data: "redoimage:" + date }],
+        [{ text: "✖️ Отклонить", callback_data: "skip:" + date }]
+      ] }));
+      const response = await fetchWithTimeout(API + env.SOVETTG_BOT_TOKEN + "/editMessageMedia", { method: "POST", body: form }, REQUEST_TIMEOUT_MS, "Замена изображения в черновике");
+      const edited = await response.json();
+      if (!response.ok || !edited.ok) throw new Error("Telegram не смог заменить изображение: " + String(edited.description || response.status).slice(0, 150));
+      await tg(env, "sendMessage", { chat_id: adminId, text: "✅ Готово! Картинка заменена. Текст и исходный шаблон оставлены без изменений.", reply_markup: dailyMenuMarkup() });
+    } catch (error) {
+      await tg(env, "sendMessage", { chat_id: adminId, text: "⚠️ Не получилось переделать картинку: " + String(error && error.message || "неизвестная ошибка").slice(0, 200) + "\nСтарый черновик и его изображение сохранены.", reply_markup: dailyMenuMarkup() });
+    }
+    return;
+  }
   if (action === "skip") {
     await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'skipped' WHERE date = ? AND status = 'pending'").bind(date).run();
     await tg(env, "editMessageReplyMarkup", { chat_id: adminId, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } });
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Отклонено. В канал ничего не отправлено." });
-    return;
-  }
-  const today = localDate();
-  if (date > today) {
-    const scheduledAt = moscowTimestamp(date, 6, 0);
-    const scheduled = await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'scheduled', scheduled_publish_at = ? WHERE date = ? AND status = 'pending'").bind(scheduledAt, date).run();
-    if (!scheduled.meta || !scheduled.meta.changes) {
-      await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Не удалось сохранить расписание. Попробуй ещё раз.", show_alert: true });
-      return;
-    }
-    try { await tg(env, "editMessageReplyMarkup", { chat_id: adminId, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } }); } catch {}
-    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Одобрено! Публикация запланирована на 06:00." });
-    await tg(env, "sendMessage", { chat_id: adminId, text: "✅ Черновик одобрен!\n\n📅 Дата публикации: " + formatHolidayDate(date) + "\n🕕 Время: 06:00 по Москве.\n\nБот автоматически опубликует именно этот текст и изображение. До назначенного времени в канал ничего не отправляется.", reply_markup: dailyMenuMarkup() });
     return;
   }
   const lock = await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'publishing' WHERE date = ? AND status = 'pending'").bind(date).run();
@@ -638,6 +666,42 @@ async function processUpdate(env, item, adminId) {
     "🖼 оригинальный шаблон": "/template",
     "ℹ️ помощь": "/help"
   }[normalizedIncoming] || incomingText).toLowerCase();
+
+  const waitingForPublishTime = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'awaiting_publish_time'").first();
+  if (waitingForPublishTime && /^\d{4}-\d{2}-\d{2}$/.test(waitingForPublishTime.value || "")) {
+    const scheduleDate = waitingForPublishTime.value;
+    if (normalizedIncoming === "отмена" || normalizedIncoming === "↩️ отмена" || text === "/cancel") {
+      await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'awaiting_publish_time'").run();
+      await tg(env, "sendMessage", { chat_id: adminId, text: "Настройка отложенной публикации отменена. Черновик остался без изменений.", reply_markup: dailyMenuMarkup() });
+      return;
+    }
+    const tm = incomingText.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+    if (!tm) {
+      await tg(env, "sendMessage", { chat_id: adminId, text: "⚠️ Не распознал время. Напиши ЧЧ:ММ, например 08:30, или «отмена».", reply_markup: dailyMenuMarkup() });
+      return;
+    }
+    const publishAt = moscowTimestamp(scheduleDate, Number(tm[1]), Number(tm[2]));
+    if (publishAt <= Math.floor(Date.now() / 1000) + 30) {
+      await tg(env, "sendMessage", { chat_id: adminId, text: "⚠️ Это время уже прошло. Укажи будущее время по Москве.", reply_markup: dailyMenuMarkup() });
+      return;
+    }
+    const draftRow = await env.DB.prepare("SELECT message_id, status FROM daily_holiday_drafts WHERE date = ? AND chat_id = ?").bind(scheduleDate, adminId).first();
+    if (!draftRow || draftRow.status !== "pending" || !draftRow.message_id) {
+      await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'awaiting_publish_time'").run();
+      await tg(env, "sendMessage", { chat_id: adminId, text: "⚠️ Этот черновик уже обработан или не найден.", reply_markup: dailyMenuMarkup() });
+      return;
+    }
+    const saved = await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'scheduled', scheduled_publish_at = ? WHERE date = ? AND status = 'pending'").bind(publishAt, scheduleDate).run();
+    if (!saved.meta || !saved.meta.changes) {
+      await tg(env, "sendMessage", { chat_id: adminId, text: "⚠️ Не удалось сохранить расписание. Попробуй ещё раз.", reply_markup: dailyMenuMarkup() });
+      return;
+    }
+    await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'awaiting_publish_time'").run();
+    try { await tg(env, "editMessageReplyMarkup", { chat_id: adminId, message_id: draftRow.message_id, reply_markup: { inline_keyboard: [] } }); } catch {}
+    const label = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(publishAt * 1000));
+    await tg(env, "sendMessage", { chat_id: adminId, text: "✅ Отложенная публикация настроена!\n\n📅 Дата: " + formatHolidayDate(scheduleDate) + "\n🕒 Время: " + label + " по Москве.\n\nБот автоматически опубликует именно этот текст и изображение.", reply_markup: dailyMenuMarkup() });
+    return;
+  }
 
   const waitingForDate = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'awaiting_custom_date'").first();
   if (waitingForDate && waitingForDate.value === "1") {
