@@ -38,7 +38,7 @@ function escapeHtml(value) {
 }
 async function assetDataUrl(url) {
   const response = await fetchWithTimeout(url, {}, "Загрузка фирменного изображения");
-  if (!response.ok) throw new Error("Не удалось загрузить оригинальный логотип или герб школы.");
+  if (!response.ok) throw new Error("Не удалось загрузить фирменный логотип Совета или графику «Важен каждый!».");
   const mime = response.headers.get("content-type") || "image/png";
   const bytes = new Uint8Array(await response.arrayBuffer());
   let binary = "";
@@ -100,8 +100,7 @@ const TYPES = {
 
 const TEMPLATES = {
   post: [
-    { id: "clean", name: "Чистый", description: "Заголовок и аккуратные абзацы" },
-    { id: "editorial", name: "Редакционный", description: "Выразительный заголовок и короткая подпись" }
+    { id: "clean", name: "Текстовая публикация", description: "Обычный текст без графической карточки" }
   ],
   photo: [
     { id: "gallery", name: "Фото Совета", description: "Горизонтальная карточка с логотипом и надписью «Важен каждый!»" }
@@ -271,10 +270,8 @@ async function handleSocialUpdate(env, item, adminId) {
       let preview;
       const title = rawCaption.split(/[.!?\n]/)[0].slice(0, 58) || "Новости и события";
       if (type === "post") {
-        stage = "сборка карточки";
-        const card = await renderBrandCard({ type, title, subtitle:"Новости и события школьного Совета" });
-        stage = "отправка предпросмотра";
-        preview = await sendBrandedPhoto(env, adminId, card, caption);
+        stage = "отправка текстового предпросмотра";
+        preview = await tg(env, "sendMessage", { chat_id: adminId, text: caption });
       } else if (type === "photo") {
         stage = "загрузка оригинала фото";
         const photo = msg.photo[msg.photo.length - 1];
