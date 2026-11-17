@@ -501,11 +501,17 @@ async function processUpdate(env, item, adminId) {
     await tables(env);
     const date = localDate();
     const queued = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_requested'").first();
+    const queuedValue = String(queued && queued.value || "");
     const row = await env.DB.prepare("SELECT status, created_at, holiday_title, message_id FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
+    const processingMatch = queuedValue.match(/^processing:(\d{4}-\d{2}-\d{2})(?::(\d+))?$/);
+    const processingStartedAt = processingMatch ? Number(processingMatch[2] || row && row.created_at || 0) : 0;
+    const processingAge = processingStartedAt ? Math.max(0, Math.floor(Date.now() / 1000) - processingStartedAt) : 0;
     let statusText;
-    if (queued && queued.value === date) {
+    if (queuedValue === date) {
       statusText = "⏳ Запрос на подготовку черновика принят и ожидает фонового запуска.\nДата: " + date;
-    } else if (queued && queued.value === "processing:" + date) {
+    } else if (processingMatch && processingMatch[1] === date && processingAge > 240) {
+      statusText = "⚠️ Фоновая задача, похоже, зависла. Бот должен восстановить её автоматически.\nДата: " + date + "\nПоследний запуск: " + Math.floor(processingAge / 60) + " мин. назад.";
+    } else if (processingMatch && processingMatch[1] === date) {
       statusText = "⏳ Черновик сейчас готовится в фоновой задаче.\nДата: " + date;
     } else if (!row) {
       statusText = "ℹ️ На сегодня (" + date + ") черновик ещё не запускался.";
@@ -514,7 +520,7 @@ async function processUpdate(env, item, adminId) {
       const minutes = Math.floor(age / 60);
       const elapsed = minutes ? minutes + " мин. назад" : age + " сек. назад";
       const states = {
-        generating: "⏳ Черновик сейчас готовится.",
+        generating: age > 240 ? "⚠️ Подготовка черновика зависла." : "⏳ Черновик сейчас готовится.",
         pending: "✅ Черновик отправлен тебе и ожидает решения. В канал ничего не публиковалось.",
         skipped: "✖️ Черновик отклонён. В канал ничего не публиковалось.",
         published: "📣 Черновик уже опубликован в канале.",
@@ -524,7 +530,6 @@ async function processUpdate(env, item, adminId) {
       statusText = (states[row.status] || "ℹ️ Статус: " + row.status) + "\nДата: " + date + "\nПоследнее изменение: " + elapsed;
       if (row.holiday_title) statusText += "\nПраздник: " + row.holiday_title;
       if (row.status === "pending" && row.message_id) statusText += "\nКнопки «Опубликовать» и «Отклонить» находятся в сообщении с черновиком.";
-      if (row.status === "generating" && age > 120) statusText += "\n⚠️ Подготовка длится необычно долго. Не запускай повторно, пока не проверим состояние.";
     }
     await tg(env, "sendMessage", { chat_id: adminId, text: statusText });
     return;
@@ -614,10 +619,37 @@ export async function runDailyHolidayCron(controller, env) {
   // Manual requests run from the scheduled Worker invocation, not from
   // webhook waitUntil (whose lifetime is too short for image generation).
   const queued = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_requested'").first();
-  if (queued && queued.value && /^\d{4}-\d{2}-\d{2}$/.test(queued.value)) {
-    const date = queued.value;
-    const lock = await env.DB.prepare("UPDATE daily_holiday_state SET value = ? WHERE key = 'manual_draft_requested' AND value = ?")
-      .bind("processing:" + date, date).run();
+  let queueValue = String(queued && queued.value || "");
+  let requestedDate = /^\d{4}-\d{2}-\d{2}$/.test(queueValue) ? queueValue : "";
+  const processingMatch = queueValue.match(/^processing:(\d{4}-\d{2}-\d{2})(?::(\d+))?$/);
+
+  // Recover a queue lock left behind by an interrupted Worker execution.
+  if (processingMatch) {
+    const stuckDate = processingMatch[1];
+    const oldDraft = await env.DB.prepare("SELECT status, created_at FROM daily_holiday_drafts WHERE date = ?").bind(stuckDate).first();
+    const startedAt = Number(processingMatch[2] || oldDraft && oldDraft.created_at || 0);
+    const age = startedAt ? Math.max(0, Math.floor(Date.now() / 1000) - startedAt) : 0;
+    if (age > 240) {
+      if (oldDraft && oldDraft.status === "pending") {
+        await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_requested' AND value = ?").bind(queueValue).run();
+        await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "✅ Черновик уже был сформирован и отправлен. Проверь предыдущее сообщение с кнопками — повторная генерация не запускалась." });
+      } else if (oldDraft && ["failed", "skipped", "published", "publishing"].includes(oldDraft.status)) {
+        await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_requested' AND value = ?").bind(queueValue).run();
+        if (oldDraft.status === "failed") await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Предыдущая фоновая попытка завершилась ошибкой. Зависшая отметка очищена; после проверки можно отправить /draft ещё раз." });
+      } else {
+        const recovered = await env.DB.prepare("UPDATE daily_holiday_state SET value = ? WHERE key = 'manual_draft_requested' AND value = ?").bind(stuckDate, queueValue).run();
+        if (recovered.meta && recovered.meta.changes) {
+          queueValue = stuckDate;
+          requestedDate = stuckDate;
+          console.warn("Recovered stale manual daily draft lock for " + stuckDate);
+        }
+      }
+    }
+  }
+
+  if (requestedDate && queueValue === requestedDate) {
+    const processingValue = "processing:" + requestedDate + ":" + Math.floor(Date.now() / 1000);
+    const lock = await env.DB.prepare("UPDATE daily_holiday_state SET value = ? WHERE key = 'manual_draft_requested' AND value = ?").bind(processingValue, requestedDate).run();
     if (lock.meta && lock.meta.changes) {
       let result;
       try {
@@ -635,8 +667,7 @@ export async function runDailyHolidayCron(controller, env) {
           await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Фоновая подготовка черновика завершилась ошибкой: " + detail + "\nВ канал ничего не публиковалось." });
         } catch {}
       } finally {
-        await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_requested' AND value = ?")
-          .bind("processing:" + date).run();
+        await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_requested' AND value = ?").bind(processingValue).run();
       }
     }
   }
