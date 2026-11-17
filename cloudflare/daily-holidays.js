@@ -97,6 +97,11 @@ async function makeDraft(env, force = false) {
     return { ok: false, stage: "configuration", error: "Не настроены обязательные параметры Worker." };
   }
   await tables(env);
+  const template = await env.DB.prepare("SELECT mime_type, content_base64 FROM daily_holiday_assets WHERE key = 'template'").first();
+  if (!template || !template.content_base64 || !["image/png", "image/jpeg"].includes(template.mime_type)) {
+    return { ok: false, stage: "template", error: "Оригинальный шаблон не найден или повреждён. Черновик не отправлен." };
+  }
+  return { ok: false, stage: "template-render", error: "Оригинальный шаблон сохранён, но точная сборка даты, названия и угловой иллюстрации ещё не подключена. Чтобы не нарушать шаблон, черновик не отправлен." };
   const date = localDate();
   const old = await env.DB.prepare("SELECT status, created_at FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
   if (old && ["pending", "publishing", "published", "skipped"].includes(old.status)) {
