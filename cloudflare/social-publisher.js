@@ -19,7 +19,7 @@ async function ensureTables(env) {
 
 const TYPES = {
   post: { title: "Пост", prompt: "Отправь текст публикации одним сообщением." },
-  photo: { title: "Фото", prompt: "Отправь одно фото или альбом. Подпись можно добавить к фото." },
+  photo: { title: "Фото", prompt: "Отправь одно фото. Подпись можно добавить к нему." },
   video: { title: "Видео", prompt: "Отправь видео. Подпись можно добавить к нему." }
 };
 
@@ -184,7 +184,7 @@ async function handleSocialUpdate(env, item, adminId) {
       await tg(env, "sendMessage", { chat_id: adminId, text: "Для формата «Пост» пришли текстовое сообщение." });
       return true;
     }
-    if (type === "photo" && !msg.photo && !msg.document) {
+    if (type === "photo" && !msg.photo && !(msg.document && String(msg.document.mime_type || "").startsWith("image/"))) {
       await tg(env, "sendMessage", { chat_id: adminId, text: "Для формата «Фото» пришли фотографию или альбом." });
       return true;
     }
