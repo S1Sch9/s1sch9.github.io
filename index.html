@@ -4771,6 +4771,33 @@ a,a *,button,button *,[role="button"],img{-webkit-user-select:none!important;use
 <script id="s1-disable-context-menus">document.addEventListener('contextmenu',function(e){e.preventDefault();},true);</script>
 
 
+
+<style id="s1-news-detail-dock-width-final">
+/* Исправление ширины нижней панели: класс news-detail-panel находится на #pn. */
+#pn.news-detail-panel>.news-detail-dock{
+  box-sizing:border-box!important;
+  width:calc(100% + 44px)!important;
+  max-width:none!important;
+  margin:0 -22px!important;
+  flex:0 0 auto!important;
+  align-self:stretch!important;
+  padding-left:22px!important;
+  padding-right:22px!important;
+}
+#pn.news-detail-panel>.news-detail-content{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+}
+@media(max-width:420px){
+  #pn.news-detail-panel>.news-detail-dock{
+    width:calc(100% + 44px)!important;
+    margin-left:-22px!important;
+    margin-right:-22px!important;
+  }
+}
+</style>
+
 </body>
 </html>
 
