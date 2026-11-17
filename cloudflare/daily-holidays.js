@@ -659,7 +659,7 @@ async function processUpdate(env, item, adminId) {
     const response = await fetch(API + env.SOVETTG_BOT_TOKEN + "/sendDocument", { method: "POST", body: form });
     const result = await response.json();
     if (!response.ok || !result.ok) throw new Error("Не удалось отправить сохранённый шаблон из хранилища.");
-    await tg(env, "sendMessage", { chat_id: adminId, text: "Вот точная копия сохранённого оригинала. Отправь этот файл сюда в ChatGPT, чтобы я мог точно измерить нужную область макета.", reply_markup: dailyMenuMarkup() });
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Это точная копия оригинального шаблона из хранилища бота. Он остаётся неизменным и используется при подготовке публикаций.", reply_markup: dailyMenuMarkup() });
     return;
   }
   if (text === "/status" || text === "/status@" + String(env.SOVETTG_BOT_USERNAME || "").toLowerCase()) {
@@ -708,7 +708,7 @@ async function processUpdate(env, item, adminId) {
   if (text === "/start" || text === "/help") {
     await tg(env, "sendMessage", {
       chat_id: adminId,
-      text: "💙 Это отдельный бот рубрики «Праздник каждый день». Каждый день здесь будет появляться готовый пост с картинкой. В канал он попадёт только после нажатия «Опубликовать».\n\nВыбирай действие на кнопках ниже — команды вводить не нужно. Публикация по-прежнему возможна только после нажатия «Опубликовать» под готовым черновиком.",
+      text: "💙 Это бот рубрики «Праздник каждый день». Нажми «Создать черновик», выбери сегодня, завтра или укажи любую будущую дату. Я подготовлю текст и картинку по сохранённому шаблону.\n\nВ канал публикация попадёт только после твоего нажатия «Опубликовать» под готовым черновиком.",
       reply_markup: dailyMenuMarkup()
     });
   }
