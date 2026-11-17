@@ -2750,8 +2750,16 @@ function openSiteSettings(){
     <div class="s1-switch-row"><span class="s1-switch-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19V5m7 14V9m7 10V3"/></svg></span><span class="s1-switch-copy"><b>Эффекты и переходы</b><small data-s1-motion-status>Включены</small></span><button class="s1-switch" type="button" role="switch" aria-checked="true" aria-label="Анимация интерфейса" data-s1-motion-toggle onclick="s1SetMotion(!S1_PREFS.motion)"><span></span></button></div>
    </div>
    <div class="s1-settings-footer"><button type="button" class="s1-reset-button" onclick="s1ResetPrefs()">Сбросить настройки</button></div>
+   <div aria-label="Build identifier" style="display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:8px;color:var(--mut);font:500 10px Onest,system-ui,sans-serif;letter-spacing:.08em;opacity:.62"><span>build</span><span aria-hidden="true">·</span><b data-s1-build-number style="font-weight:700;font-variant-numeric:tabular-nums">086</b></div>
   </div>`);
- $("#pn").classList.add("more-panel","s1-settings-panel");s1RenderSettings();
+ $("#pn").classList.add("more-panel","s1-settings-panel");s1RenderSettings();s1LoadBuildNumber();
+}
+function s1LoadBuildNumber(){
+ const el=$("#pn [data-s1-build-number]");if(!el)return;
+ fetch("./site-version.json?ts="+Date.now(),{cache:"no-store"})
+  .then(r=>{if(!r.ok)throw new Error("version unavailable");return r.json();})
+  .then(v=>{const n=Number(v&&v.build);if(el.isConnected&&Number.isFinite(n)&&n>=0)el.textContent=String(Math.floor(n)).padStart(3,"0");})
+  .catch(()=>{});
 }
 function s1RenderSettings(){
  const p=$("#pn");if(!p||!p.classList.contains("s1-settings-panel"))return;
