@@ -2222,7 +2222,7 @@ function openSh(h){
     document.body.style.position="fixed";document.body.style.top=(-s1SheetScrollY)+"px";document.body.style.left="0";document.body.style.right="0";document.body.style.width="100%";document.body.style.overflow="hidden";
   }
   $("#pn").classList.remove("more-panel","news-detail-panel","news-comments-panel");if(h.includes("news-detail-content"))$("#pn").classList.add("news-detail-panel");const hasOwnClose=h.includes("more-menu-heading")||h.includes("news-comments-modal");$("#pn").innerHTML='<div class="grip"></div>'+(hasOwnClose?"":'<button class="sh-close" type="button" onclick="closeSh()" aria-label="Закрыть окно">×</button>')+h;
-  const rulesCue=$("#appealRulesScrollCue");if(rulesCue)$("#sh").appendChild(rulesCue);
+  const rulesCue=$("#appealRulesScrollCue");if(rulesCue)document.body.appendChild(rulesCue);
   updateS1VisualHeight();$("#sh").classList.add("on");s1ApplyTextScale($("#pn"));
 }
 function closeSh(){
