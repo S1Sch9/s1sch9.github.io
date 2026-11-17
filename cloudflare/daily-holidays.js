@@ -122,12 +122,12 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle) {
   const fontSize = lines.length >= 5 ? 53 : lines.length === 4 ? 59 : 66;
   const lineHeight = Math.round(fontSize * 1.08);
   const titleMarkup = lines.map((line, index) =>
-    '<div style="position:absolute;left:780px;top:' + (142 + index * lineHeight) + 'px;width:420px;height:' + lineHeight + 'px;color:#fff;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:780px;top:' + (142 + index * lineHeight) + 'px;width:420px;height:' + lineHeight + 'px;color:#fff;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap">' + escapeHtml(line) + '</div>'
   ).join("");
   const svg = '<svg width="1536" height="765" viewBox="0 0 1536 765" style="position:absolute;left:0;top:0"><path d="M770 20 H1220 V345 H1400 A320 320 0 0 0 1080 665 H770 Z" fill="#1b0d5b"/><path d="M1080 665 A320 320 0 0 1 1400 345 H1516 V765 H1080 Z" fill="#fff"/>' + '<g transform="translate(1230 465) scale(0.9)">' + holidayIllustration(holidayTitle) + '</g></svg>';
-  const html = '<div style="position:relative;width:1536px;height:765px;overflow:hidden;background:#1b0d5b"><img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px"/>' +
+  const html = '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#1b0d5b"><img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px"/>' +
     svg +
-    '<div style="position:absolute;left:780px;top:35px;width:425px;height:90px;color:#fff;font-family:Arial,sans-serif;font-size:62px;font-weight:900;line-height:1;white-space:nowrap">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
+    '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:90px;color:#fff;font-family:Arial,sans-serif;font-size:62px;font-weight:900;line-height:1;white-space:nowrap">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
     titleMarkup +
     '</div>';
   const rendered = new ImageResponse(html, { width: 1536, height: 765 });
