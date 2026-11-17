@@ -152,12 +152,12 @@ async function loadHolidayFont() {
   );
   if (!cssResponse.ok) throw new Error("Не удалось загрузить шрифт Roboto Condensed.");
   const css = await cssResponse.text();
-  const blocks = [...css.matchAll(/@font-face\\s*\\{([^}]+)\\}/g)].map(match => match[1]);
-  const cyrillicBlock = blocks.find(block => /unicode-range:[^}]*U\\+0400/i.test(block)) ||
-    blocks.find(block => /unicode-range:[^}]*U\\+04/i.test(block));
+  const blocks = [...css.matchAll(/@font-face\s*\{([^}]+)\}/g)].map(match => match[1]);
+  const cyrillicBlock = blocks.find(block => /unicode-range:[^}]*U\+0400/i.test(block)) ||
+    blocks.find(block => /unicode-range:[^}]*U\+04/i.test(block));
   const fontBlock = cyrillicBlock || blocks[0] || "";
-  const fontUrl = fontBlock.match(/url\\((https:\\/\\/[^)]+)\\)\\s*format\\(['"](?:truetype|opentype)['"]\\)/i) ||
-    fontBlock.match(/url\\((https:\\/\\/[^)]+)\\)/i);
+  const fontUrl = fontBlock.match(/url\((https:\/\/[^)]+)\)\s*format\(['"](?:truetype|opentype)['"]\)/i) ||
+    fontBlock.match(/url\((https:\/\/[^)]+)\)/i);
   if (!fontUrl) throw new Error("Не найден файл кириллического шрифта Roboto Condensed.");
   const fontResponse = await fetchWithTimeout(fontUrl[1], {}, REQUEST_TIMEOUT_MS, "Загрузка файла шрифта");
   if (!fontResponse.ok) throw new Error("Файл шрифта недоступен.");
