@@ -1993,7 +1993,7 @@ body::before{filter:blur(16px)!important;opacity:.56!important}
   <p class="resource-caption rv">Ресурсы Совета</p>
   <a class="row link rv" id="tg" href="#"><i style="background:#2aa3e0"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21.5 3.5 18.2 20c-.25 1.17-.9 1.46-1.82.91l-5.03-3.7-2.43 2.34c-.27.27-.5.5-1.02.5l.36-5.12 9.32-8.42c.4-.36-.09-.56-.62-.2L5.44 13.5.49 11.95c-1.08-.34-1.1-1.08.23-1.58L20.1 2.9c.9-.33 1.69.22 1.4.6Z" fill="white"/></svg></i>Telegram-канал Совета</a>
   <a class="row link rv" id="mx" href="#"><i style="background:#fff;padding:0"><img src="https://max.ru/s/img/big-logo.png" alt="Логотип MAX" loading="lazy"></i>MAX-канал Совета</a>
-  <a class="row link rv" href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener"><i style="background:#f6e4e8;padding:0;overflow:hidden"><img src="appeal-icon.png?v=20261113-1" alt="Логотип бота для приёма обращений" loading="lazy"></i>Бот для обращений в Telegram</a>
+  <a class="row link rv" href="https://t.me/S1Sch9Obrbot" target="_blank" rel="noopener"><i style="background:#2aa3e0"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21.5 3.5 18.2 20c-.25 1.17-.9 1.46-1.82.91l-5.03-3.7-2.43 2.34c-.27.27-.5.5-1.02.5l.36-5.12 9.32-8.42c.4-.36-.09-.56-.62-.2L5.44 13.5.49 11.95c-1.08-.34-1.1-1.08.23-1.58L20.1 2.9c.9-.33 1.69.22 1.4.6Z" fill="white"/></svg></i>Бот для обращений в Telegram</a>
   <p class="resource-caption resource-secondary rv">Другие школьные ресурсы</p>
   <a class="row link rv school" href="https://edu.tatar.ru/nsav/page2298.htm" target="_blank" rel="noopener"><i><img src="gerb.png" alt="Герб школы №9" loading="lazy"></i>Официальный сайт школы</a>
   <a class="row link rv" href="https://max.ru/id1657021136_gos" target="_blank" rel="noopener"><i style="background:#fff;padding:0"><img src="https://max.ru/s/img/big-logo.png" alt="Логотип MAX" loading="lazy"></i>MAX-канал школы</a>
@@ -2328,6 +2328,30 @@ function s1SetTheme(v){S1_PREFS.theme=v==="dark"?"dark":"light";s1SavePrefs();s1
 function s1SetMotion(v){S1_PREFS.motion=!!v;s1SavePrefs();s1RenderSettings();}
 function s1SetTextSize(v){S1_PREFS.textSize=v==="large"?"large":"normal";s1SavePrefs();s1RenderSettings();}
 function s1ResetPrefs(){S1_PREFS={...S1_DEFAULT_PREFS};s1SavePrefs();s1RenderSettings();}
+(function installThemeSwipe(){
+ let start=null,locked=false;
+ const ignored='input,textarea,select,button,a,[contenteditable="true"],.sh,nav,.day-showcase,.calendar-details,.news-comments-list,.news-comments-compose';
+ document.addEventListener("touchstart",e=>{
+  if(e.touches.length!==1||e.target.closest(ignored)) {start=null;return;}
+  const t=e.touches[0];start={x:t.clientX,y:t.clientY};locked=false;
+ },{passive:true});
+ document.addEventListener("touchmove",e=>{
+  if(!start||e.touches.length!==1)return;
+  const t=e.touches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;
+  if(Math.abs(dy)>14&&Math.abs(dy)>Math.abs(dx)) {start=null;return;}
+  if(Math.abs(dx)>18&&Math.abs(dx)>Math.abs(dy)*1.35)locked=true;
+ },{passive:true});
+ document.addEventListener("touchend",e=>{
+  if(!start||!locked)return;
+  const t=e.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;
+  if(Math.abs(dx)>=90&&Math.abs(dx)>Math.abs(dy)*1.5){
+   const next=dx<0?"dark":"light";
+   if(next!==S1_PREFS.theme){s1SetTheme(next);if(navigator.vibrate)try{navigator.vibrate(12)}catch{}}
+  }
+  start=null;locked=false;
+ },{passive:true});
+ document.addEventListener("touchcancel",()=>{start=null;locked=false},{passive:true});
+})();
 
 function openMoreMenu(){
   openSh(`
@@ -2387,6 +2411,17 @@ $("#openAppealRules").addEventListener("click", () => {
     </div>`;
 
   openSh(rulesHTML);
+  const rulesPanel = $("#pn"), rulesBody = rulesPanel.querySelector(".appeal-rules-body");
+  if (rulesBody) {
+    const cue = document.createElement("button");
+    cue.type = "button"; cue.id = "appealRulesScrollCue"; cue.className = "appeal-rules-scroll-cue";
+    cue.setAttribute("aria-label", "Перейти к кнопке принятия положения"); cue.textContent = "↓";
+    rulesPanel.appendChild(cue);
+    const updateCue = () => cue.classList.toggle("is-hidden", rulesBody.scrollHeight - rulesBody.scrollTop - rulesBody.clientHeight < 28);
+    rulesBody.addEventListener("scroll", updateCue, {passive:true});
+    cue.addEventListener("click", () => rulesBody.scrollTo({top:rulesBody.scrollHeight,behavior:"smooth"}));
+    requestAnimationFrame(updateCue);
+  }
   const acceptButton = $("#acceptAppealRules");
   if (!acceptButton) return;
   acceptButton.addEventListener("click", () => {
@@ -2540,6 +2575,7 @@ const NEWS_SOCIAL_OBSERVER = "IntersectionObserver" in window
 function newsCommentName(){return (localStorage.getItem("s1sch9_comment_name")||"Аноним").trim().slice(0,32)||"Аноним"}
 let newsDetailReturnHtml=null;
 function closeNewsComments(){
+  document.querySelectorAll("#pn [data-comment-reply-form], #pn .news-comment-reply-form").forEach(form=>form.remove());
   if(!newsDetailReturnHtml){closeSh();return;}
   const html=newsDetailReturnHtml;newsDetailReturnHtml=null;
   openSh(html);
@@ -4446,6 +4482,13 @@ html[data-s1-theme="dark"] .sh .pn.s1-settings-panel .s1-settings-heading{border
  .sh .pn.s1-settings-panel{padding-left:19px!important;padding-right:19px!important}
  .sh .pn.s1-settings-panel .s1-settings-heading-copy h3{font-size:26px!important}
 }
+</style>
+<style id="appeal-rules-scroll-cue-style">
+.appeal-rules-scroll-cue{position:fixed;right:22px;bottom:calc(28px + env(safe-area-inset-bottom));z-index:30;width:48px;height:48px;padding:0;border:1px solid var(--line);border-radius:50%;background:rgba(255,255,255,.97);color:var(--red);font:800 27px/1 Onest,system-ui;box-shadow:0 6px 20px rgba(61,0,13,.2);animation:appealCueBounce .55s ease-in-out 3;transition:opacity .2s,visibility .2s}
+.appeal-rules-scroll-cue.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+@keyframes appealCueBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+html[data-s1-theme="dark"] .appeal-rules-scroll-cue{background:#30252d;color:#ffb5c4;border-color:#5a4650}
+@media(prefers-reduced-motion:reduce){.appeal-rules-scroll-cue{animation:none}}
 </style>
 <script>
 (function(){
