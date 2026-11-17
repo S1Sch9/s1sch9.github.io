@@ -145,12 +145,12 @@ function holidayIllustration(title) {
 
 async function loadHolidayFont() {
   const fontResponse = await fetchWithTimeout(
-    "https://raw.githubusercontent.com/google/fonts/main/apache/roboto/static/RobotoCondensed-Bold.ttf",
+    "https://raw.githubusercontent.com/google/fonts/main/apache/roboto/RobotoCondensed-Bold.ttf",
     {},
     REQUEST_TIMEOUT_MS,
     "Загрузка шрифта Roboto Condensed"
   );
-  if (!fontResponse.ok) throw new Error("Не удалось загрузить шрифт Roboto Condensed.");
+  if (!fontResponse.ok) throw new Error("Не удалось загрузить шрифт Roboto Condensed (HTTP " + fontResponse.status + ").");
   const fontData = await fontResponse.arrayBuffer();
   if (fontData.byteLength < 10000) throw new Error("Файл шрифта Roboto Condensed повреждён.");
   return fontData;
@@ -226,13 +226,14 @@ async function makeDraft(env, force = false) {
       timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric", weekday: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
     const prompt = [
-      "Ты редактор школьного сообщества «Совет Первых школы № 9».",
-      "Дата: " + dateLabel + ". Выбери один позитивный, интересный и уместный для школьников праздник из списка.",
+      "Ты — автор ТОЛЬКО основной информационной части ежедневной рубрики школьного сообщества «Совет Первых школы № 9».",
+      "Дата публикации: " + dateLabel + ". Выбери один позитивный, интересный и уместный для школьников праздник из списка.",
       "Не выбирай политику, войну, трагедии, медицину или спорные темы. Предпочитай образование, культуру, науку, творчество и добрые поводы.",
-      "Не придумывай факты и даты: опирайся только на описания. Напиши живой русский пост примерно 450–700 знаков, с уместными эмодзи, без канцелярита.",
-      "Верни строго JSON: selected_index (индекс выбранного события с нуля), post (текст поста), image_prompt (подробный промпт на английском).",
+      "Строго: не пиши приветствие, название рубрики, дату, название праздника, пожелание, подпись, ссылки, хэштеги и источники. Эти элементы добавит программа по неизменному шаблону.",
+      "Создай только body: 2 коротких содержательных абзаца на русском (примерно 350–500 знаков суммарно). Первый — история/происхождение или значение праздника; второй — как его отмечают или интересный факт. Не выдумывай факты, используй только сведения из описания. Не добавляй заголовки и эмодзи.",
+      "Верни строго JSON с полями: selected_index (индекс события с нуля), body (только два абзаца основного текста), image_prompt (подробный промпт на английском для тематической иллюстрации).",
       "Для маленькой иллюстрации в правом нижнем углу: выразительная праздничная редакционная иллюстрация в стиле ручного рисунка, на чистом белом фоне; без текста, букв, логотипов и водяных знаков.",
-      "Список: " + JSON.stringify(list)
+      "Список событий: " + JSON.stringify(list)
     ].join("\n");
     stage = "text-ai";
     const answer = await withTimeout(env.AI.run(TEXT_MODEL, {
@@ -255,9 +256,22 @@ async function makeDraft(env, force = false) {
     const index = Number(draft.selected_index);
     if (!Number.isInteger(index) || index < 0 || index >= list.length) throw new Error("Invalid selected holiday");
     const chosen = list[index];
-    const post = Array.from(String(draft.post || "").trim()).slice(0, 800).join("");
+    const body = String(draft.body || "").replace(/\r/g, "").split(/\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\n\n");
     const imagePrompt = String(draft.image_prompt || "").slice(0, 1700);
-    if (post.length < 80 || imagePrompt.length < 30) throw new Error("Incomplete AI draft");
+    if (body.length < 180 || imagePrompt.length < 30) throw new Error("Основной текст праздника неполный. Черновик не отправлен.");
+    const dateForPost = new Intl.DateTimeFormat("ru-RU", {
+      timeZone: "Europe/Moscow", day: "numeric", month: "long"
+    }).format(new Date(date + "T12:00:00+03:00"));
+    const post = [
+      "<b>Доброе утро! ☀️</b>",
+      "<b>Наша ежедневная рубрика «Праздник каждый день»!</b>",
+      "<b>" + escapeHtml(dateForPost) + "</b>",
+      "<b>" + escapeHtml(chosen.title) + "</b>",
+      escapeHtml(body).replace(/\n\n/g, "</b>\n\n<b>"),
+      "<b>Желаем вам отличного дня! 😊</b>",
+      '<b>👉 <a href="https://s1sch9.github.io/">С1Шк9.Сайт</a> | <a href="https://t.me/dvizhenieschool9">TGK</a> | <a href="https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI">MAX</a></b>'
+    ].join("\n\n");
+    if (post.replace(/<[^>]+>/g, "").length > 1024) throw new Error("Текст по утверждённому шаблону превышает лимит Telegram. Черновик не отправлен.");
 
     stage = "image-ai";
     const illustrationPrompt = [
@@ -292,7 +306,8 @@ async function makeDraft(env, force = false) {
     const form = new FormData();
     form.append("chat_id", String(env.TELEGRAM_ADMIN_ID));
     form.append("photo", new Blob([bytes], { type: "image/png" }), "holiday-" + date + ".png");
-    form.append("caption", (post + "\n\nИсточник календаря: " + chosen.url).slice(0, 1024));
+    form.append("caption", post);
+    form.append("parse_mode", "HTML");
     form.append("reply_markup", JSON.stringify(keyboard));
     stage = "telegram-sendPhoto";
     const sentResponse = await fetchWithTimeout(API + env.SOVETTG_BOT_TOKEN + "/sendPhoto", { method: "POST", body: form }, REQUEST_TIMEOUT_MS, "Отправка черновика в Telegram");
