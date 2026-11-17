@@ -60,7 +60,7 @@ jobs:
           trap 'rm -f "$secrets_file"' EXIT
           SECRETS_FILE="$secrets_file" node --input-type=module <<'NODE'
           import { writeFileSync } from "node:fs";
-          const token = String(process.env.SOVETTG_BOT_TOKEN || "").replace(/\\s/g, "");
+          const token = String(process.env.SOVETTG_BOT_TOKEN || "").replace(/\s/g, "");
           if (!token) throw new Error("Daily bot token is empty after normalization");
           writeFileSync(process.env.SECRETS_FILE, JSON.stringify({
             SOVETTG_BOT_TOKEN: token
