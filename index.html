@@ -2084,6 +2084,38 @@ main > section.on .rv{
 /* Раскрытые панели должны находиться выше sticky-шапки сайта. */
 .sh{z-index:1000!important}
 </style>
+
+<style id="s1-news-detail-comment-count-alignment">
+/* Число комментариев в нижней панели открытой новости держим ровно в одной строке с подписью. */
+.news-detail-dock .news-comments-jump{
+  display:flex!important;
+  flex-flow:row nowrap!important;
+  align-items:center!important;
+  justify-content:center!important;
+  white-space:nowrap!important;
+  gap:8px!important;
+}
+.news-detail-dock .news-comments-jump .news-comments-label{
+  display:inline-block!important;
+  flex:0 1 auto!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+  line-height:1!important;
+}
+.news-detail-dock .news-comments-jump .news-dock-count{
+  display:inline-flex!important;
+  flex:0 0 auto!important;
+  align-items:center!important;
+  justify-content:center!important;
+  align-self:center!important;
+  margin:0!important;
+  padding:0 6px!important;
+  line-height:20px!important;
+  vertical-align:middle!important;
+  transform:none!important;
+}
+</style>
+
 </head>
 <body>
 <div id="s1-page-loader" class="s1-page-loader" role="status" aria-label="Загрузка сайта">
