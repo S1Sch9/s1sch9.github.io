@@ -349,7 +349,7 @@ async function telegramWebhook(request, env) {
     is_persistent: true
   };
   const cancelKeyboard = {
-    keyboard: [[{ text: "↩️ Отменить отправку" }, rulesButton]],
+    keyboard: [[{ text: "↩️ Отменить отправку" }]],
     resize_keyboard: true,
     is_persistent: true
   };
