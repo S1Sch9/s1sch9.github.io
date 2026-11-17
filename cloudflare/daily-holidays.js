@@ -1,3 +1,5 @@
+import { ImageResponse } from "workers-og";
+
 const API = "https://api.telegram.org/bot";
 const CHANNEL = "@dvizhenieschool9";
 const TEXT_MODEL = "@cf/google/gemma-4-26b-a4b-it";
@@ -92,6 +94,51 @@ function parseObject(value) {
   return JSON.parse(s.slice(a, b + 1));
 }
 
+
+function wrapHolidayTitle(value, maxChars = 13) {
+  const words = String(value || "").toLocaleUpperCase("ru").replace(/\s+/g, " ").trim().split(" ");
+  const lines = [];
+  let line = "";
+  for (const word of words) {
+    const next = line ? line + " " + word : word;
+    if (line && next.length > maxChars) { lines.push(line); line = word; }
+    else line = next;
+  }
+  if (line) lines.push(line);
+  return lines.slice(0, 5);
+}
+
+function holidayIllustration(title) {
+  const t = String(title || "").toLocaleLowerCase("ru");
+  if (/космос|космонавт|астрон/.test(t)) return '<g stroke="#21105f" stroke-width="9" stroke-linejoin="round"><path d="M132 28 C92 70 90 145 132 188 C174 145 172 70 132 28Z" fill="#ffcf55"/><path d="M132 45 L132 180" stroke="#fff"/><path d="M94 122 L56 157 L108 165 M170 122 L208 157 L156 165" fill="#ef6b59"/><circle cx="132" cy="100" r="22" fill="#65b9d4"/><path d="M110 180 L90 218 L132 202 L174 218 L154 180" fill="#ef6b59"/></g>';
+  if (/наук|математ|физик|хим|изобрет/.test(t)) return '<g stroke="#21105f" stroke-width="9" fill="none"><ellipse cx="132" cy="128" rx="96" ry="42"/><ellipse cx="132" cy="128" rx="96" ry="42" transform="rotate(60 132 128)"/><ellipse cx="132" cy="128" rx="96" ry="42" transform="rotate(120 132 128)"/><circle cx="132" cy="128" r="18" fill="#ffcf55"/><circle cx="48" cy="128" r="12" fill="#ef6b59"/><circle cx="178" cy="45" r="12" fill="#65b9d4"/></g>';
+  if (/музык|песн|композ|танц/.test(t)) return '<g stroke="#21105f" stroke-width="9" stroke-linejoin="round"><path d="M112 42 V160 C92 145 54 154 50 180 C46 215 104 221 112 187 V88 L208 65 V145 C188 130 150 140 146 166 C142 201 200 207 208 173 V34Z" fill="#ef6b59"/><path d="M112 88 L208 65" stroke="#fff" stroke-width="7"/></g>';
+  if (/эколог|природ|лес|земл|вод|живот|птиц|растен/.test(t)) return '<g stroke="#21105f" stroke-width="9" stroke-linejoin="round"><path d="M132 218 C36 160 54 58 210 36 C214 142 176 196 132 218Z" fill="#75bd82"/><path d="M132 218 C128 154 146 100 194 55" fill="none" stroke="#fff" stroke-width="8"/><path d="M130 160 L90 120 M151 126 L184 111" fill="none" stroke="#fff" stroke-width="7"/></g>';
+  if (/книг|чтен|писател|поэз|литератур|школ|учител/.test(t)) return '<g stroke="#21105f" stroke-width="9" stroke-linejoin="round"><path d="M28 60 Q82 38 132 72 V210 Q82 176 28 194Z" fill="#65b9d4"/><path d="M236 60 Q182 38 132 72 V210 Q182 176 236 194Z" fill="#ef6b59"/><path d="M132 72 V210" fill="none" stroke="#fff"/><path d="M52 92 Q84 82 106 98 M52 124 Q84 114 106 130 M158 98 Q184 82 212 92 M158 130 Q184 114 212 124" fill="none" stroke="#fff" stroke-width="7"/></g>';
+  return '<g stroke="#21105f" stroke-width="9" stroke-linejoin="round"><path d="M44 100 L132 48 L220 100 V212 H44Z" fill="#65b9d4"/><path d="M44 100 L132 154 L220 100" fill="#ef6b59"/><path d="M132 48 V154" fill="none" stroke="#fff"/><path d="M132 20 L145 45 L173 49 L153 69 L158 98 L132 84 L106 98 L111 69 L91 49 L119 45Z" fill="#ffcf55"/></g>';
+}
+
+async function renderHolidayTemplate(template, dateLabel, holidayTitle) {
+  const lines = wrapHolidayTitle(holidayTitle);
+  const fontSize = lines.length >= 5 ? 53 : lines.length === 4 ? 59 : 66;
+  const lineHeight = Math.round(fontSize * 1.08);
+  const titleMarkup = lines.map((line, index) =>
+    '<div style="position:absolute;left:780px;top:' + (142 + index * lineHeight) + 'px;width:420px;height:' + lineHeight + 'px;color:#fff;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap">' + escapeHtml(line) + '</div>'
+  ).join("");
+  const svg = '<svg width="1536" height="765" viewBox="0 0 1536 765" style="position:absolute;left:0;top:0"><path d="M770 20 H1220 V345 A320 320 0 0 0 1080 665 H770 Z" fill="#1b0d5b"/><path d="M1080 665 A320 320 0 0 1 1400 345 H1516 V765 H1080 Z" fill="#fff"/>' + holidayIllustration(holidayTitle) + '</svg>';
+  const html = '<div style="position:relative;width:1536px;height:765px;overflow:hidden;background:#1b0d5b"><img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px"/>' +
+    svg +
+    '<div style="position:absolute;left:780px;top:35px;width:425px;height:90px;color:#fff;font-family:Arial,sans-serif;font-size:62px;font-weight:900;line-height:1;white-space:nowrap">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
+    titleMarkup +
+    '</div>';
+  const rendered = new ImageResponse(html, { width: 1536, height: 765 });
+  return new Uint8Array(await rendered.arrayBuffer());
+}
+
+function escapeHtml(value) {
+  return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 async function makeDraft(env, force = false) {
   if (!env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.AI || !env.DB) {
     return { ok: false, stage: "configuration", error: "Не настроены обязательные параметры Worker." };
@@ -101,7 +148,6 @@ async function makeDraft(env, force = false) {
   if (!template || !template.content_base64 || !["image/png", "image/jpeg"].includes(template.mime_type)) {
     return { ok: false, stage: "template", error: "Оригинальный шаблон не найден или повреждён. Черновик не отправлен." };
   }
-  return { ok: false, stage: "template-render", error: "Оригинальный шаблон сохранён, но точная сборка даты, названия и угловой иллюстрации ещё не подключена. Чтобы не нарушать шаблон, черновик не отправлен." };
   const date = localDate();
   const old = await env.DB.prepare("SELECT status, created_at FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
   if (old && ["pending", "publishing", "published", "skipped"].includes(old.status)) {
@@ -154,22 +200,18 @@ async function makeDraft(env, force = false) {
     const imagePrompt = String(draft.image_prompt || "").slice(0, 1700);
     if (post.length < 80 || imagePrompt.length < 30) throw new Error("Incomplete AI draft");
 
-    stage = "image-ai";
-    const picture = await env.AI.run(IMAGE_MODEL, {
-      prompt: imagePrompt + ". Square composition, high quality, no text, no letters, no logo, no watermark.",
-      steps: 4
-    });
-    if (!picture || typeof picture.image !== "string" || !picture.image.length) {
-      throw new Error("Модель изображения вернула пустой результат.");
-    }
-    const bytes = Uint8Array.from(atob(picture.image), c => c.charCodeAt(0));
+    stage = "template-render";
+    const dateForImage = new Intl.DateTimeFormat("ru-RU", {
+      timeZone: "Europe/Moscow", day: "numeric", month: "long"
+    }).format(new Date(date + "T12:00:00+03:00"));
+    const bytes = await renderHolidayTemplate(template, dateForImage, chosen.title);
     const keyboard = { inline_keyboard: [[
       { text: "✅ Опубликовать", callback_data: "publish:" + date },
       { text: "✖️ Отклонить", callback_data: "skip:" + date }
     ]] };
     const form = new FormData();
     form.append("chat_id", String(env.TELEGRAM_ADMIN_ID));
-    form.append("photo", new Blob([bytes], { type: "image/jpeg" }), "holiday-" + date + ".jpg");
+    form.append("photo", new Blob([bytes], { type: "image/png" }), "holiday-" + date + ".png");
     form.append("caption", (post + "\n\nИсточник календаря: " + chosen.url).slice(0, 1024));
     form.append("reply_markup", JSON.stringify(keyboard));
     stage = "telegram-sendPhoto";
