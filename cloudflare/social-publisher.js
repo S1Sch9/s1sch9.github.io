@@ -82,10 +82,6 @@ const TEMPLATES = {
     { id: "gallery", name: "Фотодневник", description: "Лаконичная подпись к кадрам" },
     { id: "report", name: "Репортаж", description: "Акцент на событии и его участниках" }
   ],
-  video: [
-    { id: "wide", name: "Кинолента", description: "Короткая подпись к горизонтальному видео" },
-    { id: "recap", name: "Момент", description: "Акцент на главном моменте" }
-  ]
 };
 
 function typeKeyboard() {
@@ -121,9 +117,7 @@ function captionFor(type, templateId, raw) {
     if (templateId === "editorial") return "◆  СОВЕТ ПЕРВЫХ · ШКОЛА №9\n\n" + text + "\n\n" + footer;
     return text + "\n\n" + footer;
   }
-  const prefix = type === "video"
-    ? (templateId === "recap" ? "▶  МОМЕНТЫ СОБЫТИЯ" : "▶  СОВЕТ ПЕРВЫХ · ВИДЕО")
-    : (templateId === "report" ? "●  СОБЫТИЯ СОВЕТА" : "●  ФОТОДНЕВНИК");
+  const prefix = templateId === "report" ? "●  СОБЫТИЯ СОВЕТА" : "●  ФОТОДНЕВНИК";
   return [prefix, text, footer].filter(Boolean).join("\n\n").slice(0, 1024);
 }
 
@@ -150,7 +144,7 @@ async function handleSocialUpdate(env, item, adminId) {
       await sendTypeMenu(env, adminId);
       return true;
     }
-    const typeMatch = data.match(/^social:type:(post|photo|video)$/);
+    const typeMatch = data.match(/^social:type:(post|photo)$/);
     if (typeMatch) {
       const type = typeMatch[1];
       const templateMode = await env.DB.prepare("SELECT value FROM social_publication_state WHERE key='template_mode'").first();
@@ -165,7 +159,7 @@ async function handleSocialUpdate(env, item, adminId) {
       await tg(env, "sendMessage", { chat_id: adminId, text: TYPES[type].prompt + "\n\nТекущий шаблон будет применён автоматически. Чтобы поменять его, нажми «🎨 Шаблоны публикаций» в меню." });
       return true;
     }
-    const templateMatch = data.match(/^social:template:(post|photo|video):([a-z]+)$/);
+    const templateMatch = data.match(/^social:template:(post|photo):([a-z]+)$/);
     if (templateMatch) {
       const [, type, id] = templateMatch;
       const template = TEMPLATES[type].find(x => x.id === id);
@@ -229,7 +223,7 @@ async function handleSocialUpdate(env, item, adminId) {
     return true;
   }
 
-  if (msg.document || msg.photo || msg.video || text) {
+  if (msg.photo || text) {
     const state = await env.DB.prepare("SELECT value FROM social_publication_state WHERE key='compose_type'").first();
     const type = String(state && state.value || "");
     if (!TYPES[type]) return false;
@@ -237,12 +231,8 @@ async function handleSocialUpdate(env, item, adminId) {
       await tg(env, "sendMessage", { chat_id: adminId, text: "Для формата «Пост» пришли текстовое сообщение." });
       return true;
     }
-    if (type === "photo" && !msg.photo && !(msg.document && String(msg.document.mime_type || "").startsWith("image/"))) {
+    if (type === "photo" && !msg.photo) {
       await tg(env, "sendMessage", { chat_id: adminId, text: "Для формата «Фото» пришли фотографию или альбом." });
-      return true;
-    }
-    if (type === "video" && !msg.video) {
-      await tg(env, "sendMessage", { chat_id: adminId, text: "Для формата «Видео» пришли видеофайл." });
       return true;
     }
     const template = await selectedTemplate(env, type);
@@ -250,7 +240,7 @@ async function handleSocialUpdate(env, item, adminId) {
     const caption = captionFor(type, template.id, rawCaption);
     let preview;
     let videoPreviewId = null;
-    const title = rawCaption.split(/[.!?\\n]/)[0].slice(0, 58) || (type === "video" ? "События Совета" : "Новости и события");
+    const title = rawCaption.split(/[.!?\\n]/)[0].slice(0, 58) || "Новости и события";
     if (type === "post") {
       const card = await renderBrandCard({ type, title, subtitle:"Новости и события школьного Совета" });
       preview = await sendBrandedPhoto(env, adminId, card, caption);
@@ -259,11 +249,6 @@ async function handleSocialUpdate(env, item, adminId) {
       const dataUrl = await telegramImageData(env, photo.file_id);
       const card = await renderBrandCard({ type, title, subtitle:rawCaption || "События и инициативы Совета", photoDataUrl:dataUrl });
       preview = await sendBrandedPhoto(env, adminId, card, caption);
-    } else {
-      const cover = await renderBrandCard({ type, title, subtitle:rawCaption || "Смотрите видео" });
-      preview = await sendBrandedPhoto(env, adminId, cover, "");
-      const videoMessage = await tg(env, "sendVideo", { chat_id:adminId, video:msg.video.file_id, caption:caption.slice(0,1024) });
-      videoPreviewId = videoMessage.message_id;
     }
     const id = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,preview_video_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?,?)")
       .bind(type, msg.message_id, preview.message_id, videoPreviewId, template.id, "pending", Math.floor(Date.now()/1000)).run();
