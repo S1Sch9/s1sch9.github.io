@@ -292,7 +292,18 @@ async function loadHolidayFont() {
   if (fontData.byteLength < 100000) throw new Error("Файл шрифта Roboto Black повреждён или неполный.");
   return fontData;
 }
+async function holidayBrandAsset(url) {
+  const response = await fetchWithTimeout(url, {}, REQUEST_TIMEOUT_MS, "Загрузка фирменного логотипа");
+  if (!response.ok) throw new Error("Не удалось загрузить оригинальный логотип Совета.");
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (!bytes.length || bytes.length > 500000) throw new Error("Файл логотипа повреждён или слишком большой.");
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return "data:" + (response.headers.get("content-type") || "image/png") + ";base64," + btoa(binary);
+}
+
 async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationBase64) {
+  const councilLogo = await holidayBrandAsset("https://s1sch9.github.io/logo-soveta-pervykh.png");
   const { ImageResponse } = await import("workers-og");
   const fontData = await loadHolidayFont();
   const fittedTitle = fitHolidayTitle(holidayTitle);
@@ -320,6 +331,8 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const html = '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#1a0b5c">' +
     '<img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px;object-fit:fill"/>' +
     topRightFrameFix +
+    // Replace the former school emblem with the Council's only official logo.
+    '<div style="display:flex;position:absolute;left:1332px;top:24px;width:166px;height:144px;align-items:center;justify-content:center;background:#fff;border-radius:18px;overflow:hidden"><img src="' + councilLogo + '" style="display:flex;width:156px;height:134px;object-fit:contain" /></div>' +
     textMask +
     '<div style="display:flex;position:absolute;left:778px;top:34px;width:430px;height:100px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + dateFontSize + 'px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateText) + '</div>' +
     titleMarkup +
