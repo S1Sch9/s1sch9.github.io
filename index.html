@@ -2417,9 +2417,9 @@ $("#openAppealRules").addEventListener("click", () => {
     cue.type = "button"; cue.id = "appealRulesScrollCue"; cue.className = "appeal-rules-scroll-cue";
     cue.setAttribute("aria-label", "Перейти к кнопке принятия положения"); cue.textContent = "↓";
     rulesPanel.appendChild(cue);
-    const updateCue = () => cue.classList.toggle("is-hidden", rulesBody.scrollHeight - rulesBody.scrollTop - rulesBody.clientHeight < 28);
-    rulesBody.addEventListener("scroll", updateCue, {passive:true});
-    cue.addEventListener("click", () => rulesBody.scrollTo({top:rulesBody.scrollHeight,behavior:"smooth"}));
+    const updateCue = () => cue.classList.toggle("is-hidden", rulesPanel.scrollHeight - rulesPanel.scrollTop - rulesPanel.clientHeight < 28);
+    rulesPanel.addEventListener("scroll", updateCue, {passive:true});
+    cue.addEventListener("click", () => rulesPanel.scrollTo({top:rulesPanel.scrollHeight,behavior:"smooth"}));
     requestAnimationFrame(updateCue);
   }
   const acceptButton = $("#acceptAppealRules");
