@@ -407,8 +407,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     const post = [
       "Доброе утро! ☀️",
       "Наша ежедневная рубрика «Праздник каждый день»!",
-      dateForPost,
-      chosen.title,
+      dateForPost + "\n" + chosen.title,
       body,
       "Желаем вам отличного дня! 😊",
       footerPlain
@@ -417,8 +416,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     const postHtml = [
       escapeHtml("Доброе утро! ☀️"),
       escapeHtml("Наша ежедневная рубрика «Праздник каждый день»!"),
-      escapeHtml(dateForPost),
-      escapeHtml(chosen.title),
+      escapeHtml(dateForPost + "\n" + chosen.title),
       escapeHtml(body),
       escapeHtml("Желаем вам отличного дня! 😊"),
       '👉 <a href="https://s1sch9.github.io/">С1Шк9.Сайт</a> | <a href="https://t.me/dvizhenieschool9">TGK</a> | <a href="https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI">MAX</a>'
