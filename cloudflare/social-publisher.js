@@ -103,9 +103,16 @@ async function handleSocialUpdate(env, item, adminId) {
     const typeMatch = data.match(/^social:type:(post|photo|video)$/);
     if (typeMatch) {
       const type = typeMatch[1];
+      const templateMode = await env.DB.prepare("SELECT value FROM social_publication_state WHERE key='template_mode'").first();
+      if (templateMode && templateMode.value === "1") {
+        await env.DB.prepare("DELETE FROM social_publication_state WHERE key='template_mode'").run();
+        await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Выбери оформление." });
+        await tg(env, "sendMessage", { chat_id: adminId, text: "Варианты оформления для формата «" + TYPES[type].title + "»:", reply_markup: templateKeyboard(type) });
+        return true;
+      }
       await env.DB.prepare("INSERT INTO social_publication_state (key,value) VALUES ('compose_type',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(type).run();
       await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Формат выбран." });
-      await tg(env, "sendMessage", { chat_id: adminId, text: TYPES[type].prompt + "\n\nТекущий шаблон будет применён автоматически. Чтобы поменять его, нажми «Шаблоны публикаций» в меню." });
+      await tg(env, "sendMessage", { chat_id: adminId, text: TYPES[type].prompt + "\n\nТекущий шаблон будет применён автоматически. Чтобы поменять его, нажми «🎨 Шаблоны публикаций» в меню." });
       return true;
     }
     const templateMatch = data.match(/^social:template:(post|photo|video):([a-z]+)$/);
@@ -164,17 +171,9 @@ async function handleSocialUpdate(env, item, adminId) {
     return true;
   }
   if (normalized === "🎨 шаблоны публикаций" || normalized === "/templates") {
+    await env.DB.prepare("INSERT INTO social_publication_state (key,value) VALUES ('template_mode','1') ON CONFLICT(key) DO UPDATE SET value='1'").run();
     await tg(env, "sendMessage", { chat_id: adminId, text: "Выбери формат, для которого хочешь изменить сохранённый шаблон:", reply_markup: typeKeyboard() });
-    const note = await tg(env, "sendMessage", { chat_id: adminId, text: "После выбора формата покажу доступные варианты." });
     return true;
-  }
-
-  if (text.startsWith("social-template:")) {
-    const type = text.slice("social-template:".length);
-    if (TEMPLATES[type]) {
-      await tg(env, "sendMessage", { chat_id: adminId, text: "Выбери вариант для формата «" + TYPES[type].title + "»:", reply_markup: templateKeyboard(type) });
-      return true;
-    }
   }
 
   if (msg.document || msg.photo || msg.video || text) {
