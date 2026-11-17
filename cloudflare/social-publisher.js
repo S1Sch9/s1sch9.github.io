@@ -201,9 +201,6 @@ async function handleSocialUpdate(env, item, adminId) {
       }
       try {
         await tg(env, "copyMessage", { chat_id: CHANNEL, from_chat_id: adminId, message_id: draft.preview_message_id });
-        if (draft.preview_video_message_id) {
-          await tg(env, "copyMessage", { chat_id: CHANNEL, from_chat_id: adminId, message_id: draft.preview_video_message_id });
-        }
         await env.DB.prepare("UPDATE social_publication_drafts SET status='published' WHERE id=?").bind(Number(id)).run();
         await tg(env, "editMessageReplyMarkup", { chat_id: adminId, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } });
         await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Опубликовано в канале!" });
@@ -247,7 +244,6 @@ async function handleSocialUpdate(env, item, adminId) {
     const rawCaption = String(msg.caption || text || "").trim();
     const caption = captionFor(type, template.id, rawCaption);
     let preview;
-    let videoPreviewId = null;
     const title = rawCaption.split(/[.!?\\n]/)[0].slice(0, 58) || "Новости и события";
     if (type === "post") {
       const card = await renderBrandCard({ type, title, subtitle:"Новости и события школьного Совета" });
@@ -258,8 +254,8 @@ async function handleSocialUpdate(env, item, adminId) {
       const card = await renderBrandCard({ type, title, subtitle:rawCaption || "События и инициативы Совета", photoDataUrl:dataUrl });
       preview = await sendBrandedPhoto(env, adminId, card, caption);
     }
-    const id = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,preview_video_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?,?)")
-      .bind(type, msg.message_id, preview.message_id, videoPreviewId, template.id, "pending", Math.floor(Date.now()/1000)).run();
+    const id = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?)")
+      .bind(type, msg.message_id, preview.message_id, template.id, "pending", Math.floor(Date.now()/1000)).run();
     const draftId = id.meta && id.meta.last_row_id;
     await tg(env, "sendMessage", {
       chat_id: adminId,
