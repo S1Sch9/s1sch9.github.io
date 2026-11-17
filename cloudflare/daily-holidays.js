@@ -590,12 +590,60 @@ async function processUpdate(env, item, adminId) {
   if (!msg || !msg.chat || msg.chat.type !== "private" || String(msg.chat.id) !== adminId || String(msg.from && msg.from.id) !== adminId) return;
   if (msg.document || msg.photo) { await saveTemplateFromTelegram(env, msg, adminId); return; }
   const incomingText = String(msg.text || "").trim();
+  const normalizedIncoming = incomingText.toLocaleLowerCase("ru");
   const text = ({
-    "📝 создать черновик": "/draft",
     "📊 проверить статус": "/status",
     "🖼 оригинальный шаблон": "/template",
     "ℹ️ помощь": "/help"
-  }[incomingText.toLocaleLowerCase("ru")] || incomingText).toLowerCase();
+  }[normalizedIncoming] || incomingText).toLowerCase();
+
+  const waitingForDate = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'awaiting_custom_date'").first();
+  if (waitingForDate && waitingForDate.value === "1") {
+    const isMenuAction = ["📝 создать черновик", "📊 проверить статус", "🖼 оригинальный шаблон", "ℹ️ помощь"].includes(normalizedIncoming);
+    if (text === "/cancel" || normalizedIncoming === "отмена" || normalizedIncoming === "↩️ отмена") {
+      await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'awaiting_custom_date'").run();
+      await tg(env, "sendMessage", { chat_id: adminId, text: "Выбор даты отменён.", reply_markup: dailyMenuMarkup() });
+      return;
+    }
+    if (!isMenuAction && !text.startsWith("/")) {
+      const selectedDate = parseDateInput(incomingText);
+      if (!selectedDate) {
+        await tg(env, "sendMessage", {
+          chat_id: adminId,
+          text: "⚠️ Не распознал дату. Напиши её, например, 25.12.2026 или 2026-12-25.",
+          reply_markup: dailyMenuMarkup()
+        });
+        return;
+      }
+      if (selectedDate < localDate()) {
+        await tg(env, "sendMessage", {
+          chat_id: adminId,
+          text: "⚠️ Эта дата уже прошла. Выбери сегодняшнюю или будущую дату.",
+          reply_markup: dailyMenuMarkup()
+        });
+        return;
+      }
+      await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'awaiting_custom_date'").run();
+      await queueManualDraft(env, adminId, selectedDate);
+      return;
+    }
+    await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'awaiting_custom_date'").run();
+  }
+
+  if (text === "📝 создать черновик") {
+    await tg(env, "sendMessage", {
+      chat_id: adminId,
+      text: "На какую дату подготовить публикацию?",
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "Сегодня", callback_data: "draft:today" }, { text: "Завтра", callback_data: "draft:tomorrow" }],
+          [{ text: "📅 Указать другую дату", callback_data: "draft:custom" }],
+          [{ text: "↩️ Отмена", callback_data: "draft:cancel" }]
+        ]
+      }
+    });
+    return;
+  }
   if (text === "/template") {
     await tables(env);
     const asset = await env.DB.prepare("SELECT mime_type, file_name, content_base64 FROM daily_holiday_assets WHERE key = 'template'").first();
@@ -619,19 +667,21 @@ async function processUpdate(env, item, adminId) {
     const date = localDate();
     const queued = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_requested'").first();
     const queuedValue = String(queued && queued.value || "");
-    const row = await env.DB.prepare("SELECT status, created_at, holiday_title, message_id FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
+    const queuedDate = validIsoDate(queuedValue) ? queuedValue : "";
     const processingMatch = queuedValue.match(/^processing:(\d{4}-\d{2}-\d{2})(?::(\d+))?$/);
+    const statusDate = queuedDate || (processingMatch ? processingMatch[1] : date);
+    const row = await env.DB.prepare("SELECT status, created_at, holiday_title, message_id FROM daily_holiday_drafts WHERE date = ?").bind(statusDate).first();
     const processingStartedAt = processingMatch ? Number(processingMatch[2] || row && row.created_at || 0) : 0;
     const processingAge = processingStartedAt ? Math.max(0, Math.floor(Date.now() / 1000) - processingStartedAt) : 0;
     let statusText;
-    if (queuedValue === date) {
-      statusText = "⏳ Запрос на подготовку черновика принят и ожидает фонового запуска.\nДата: " + date;
-    } else if (processingMatch && processingMatch[1] === date && processingAge > 240) {
-      statusText = "⚠️ Фоновая задача, похоже, зависла. Бот должен восстановить её автоматически.\nДата: " + date + "\nПоследний запуск: " + Math.floor(processingAge / 60) + " мин. назад.";
-    } else if (processingMatch && processingMatch[1] === date) {
-      statusText = "⏳ Черновик сейчас готовится в фоновой задаче.\nДата: " + date;
+    if (queuedDate) {
+      statusText = "⏳ Запрос на подготовку черновика принят и ожидает фонового запуска.\nДата: " + statusDate;
+    } else if (processingMatch && processingAge > 240) {
+      statusText = "⚠️ Фоновая задача, похоже, зависла. Бот должен восстановить её автоматически.\nДата: " + statusDate + "\nПоследний запуск: " + Math.floor(processingAge / 60) + " мин. назад.";
+    } else if (processingMatch) {
+      statusText = "⏳ Черновик сейчас готовится в фоновой задаче.\nДата: " + statusDate;
     } else if (!row) {
-      statusText = "ℹ️ На сегодня (" + date + ") черновик ещё не запускался.";
+      statusText = "ℹ️ На " + formatHolidayDate(statusDate) + " черновик ещё не запускался.";
     } else {
       const age = Math.max(0, Math.floor(Date.now() / 1000) - Number(row.created_at || 0));
       const minutes = Math.floor(age / 60);
@@ -644,7 +694,7 @@ async function processUpdate(env, item, adminId) {
         publishing: "⏳ Идёт публикация в канал.",
         failed: "⚠️ Последняя попытка завершилась ошибкой. Можно будет повторить после проверки."
       };
-      statusText = (states[row.status] || "ℹ️ Статус: " + row.status) + "\nДата: " + date + "\nПоследнее изменение: " + elapsed;
+      statusText = (states[row.status] || "ℹ️ Статус: " + row.status) + "\nДата: " + statusDate + "\nПоследнее изменение: " + elapsed;
       if (row.holiday_title) statusText += "\nПраздник: " + row.holiday_title;
       if (row.status === "pending" && row.message_id) statusText += "\nКнопки «Опубликовать» и «Отклонить» находятся в сообщении с черновиком.";
     }
@@ -652,19 +702,7 @@ async function processUpdate(env, item, adminId) {
     return;
   }
   if (text === "/draft" || text.startsWith("/draft@")) {
-    await tables(env);
-    const date = localDate();
-    const current = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_requested'").first();
-    if (current && current.value) {
-      await tg(env, "sendMessage", { chat_id: adminId, text: "⏳ Запрос на подготовку уже стоит в очереди. Повторно запускать не нужно." });
-      return;
-    }
-    await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES ('manual_draft_requested', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(date).run();
-    await tg(env, "sendMessage", {
-      chat_id: adminId,
-      text: "⏳ Запрос принят. Подготовка запущена в фоновой задаче — она не зависит от времени жизни Telegram webhook. Я пришлю отдельное сообщение, когда черновик будет готов или если возникнет ошибка.",
-      reply_markup: dailyMenuMarkup()
-    });
+    await queueManualDraft(env, adminId, localDate());
     return;
   }
   if (text === "/start" || text === "/help") {
