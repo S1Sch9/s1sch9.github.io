@@ -20,6 +20,7 @@ async function tables(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_drafts (date TEXT PRIMARY KEY, chat_id TEXT NOT NULL, message_id INTEGER, status TEXT NOT NULL, holiday_title TEXT NOT NULL DEFAULT '', source_url TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL)").run();
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_updates (update_id INTEGER PRIMARY KEY, created_at INTEGER NOT NULL)").run();
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_assets (key TEXT PRIMARY KEY, mime_type TEXT NOT NULL, file_name TEXT NOT NULL, content_base64 TEXT NOT NULL, updated_at INTEGER NOT NULL)").run();
 }
 
 function localDate() {
@@ -226,10 +227,37 @@ async function callback(env, item, adminId) {
   await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Опубликовано в канале!" });
 }
 
+async function saveTemplateFromTelegram(env, msg, adminId) {
+  const doc = msg.document;
+  const photo = Array.isArray(msg.photo) && msg.photo.length ? msg.photo[msg.photo.length - 1] : null;
+  const file = doc || photo;
+  if (!file) return false;
+  const name = String(doc && doc.file_name || "telegram-template.jpg");
+  const mime = String(doc && doc.mime_type || "image/jpeg").toLowerCase();
+  if (!(mime === "image/jpeg" || mime === "image/png" || /\\.(jpe?g|png)$/i.test(name)) || Number(file.file_size || 0) > 900000) {
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Пришли исходный шаблон как файл JPG или PNG размером до 900 КБ. Лучше отправить именно как документ, без сжатия." });
+    return true;
+  }
+  const meta = await tg(env, "getFile", { file_id: file.file_id });
+  if (!meta || !meta.file_path) throw new Error("Telegram не вернул путь к файлу шаблона.");
+  const response = await fetch("https://api.telegram.org/file/bot" + env.SOVETTG_BOT_TOKEN + "/" + meta.file_path);
+  if (!response.ok) throw new Error("Не удалось скачать шаблон из Telegram.");
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (!bytes.length || bytes.length > 900000) throw new Error("Размер шаблона превышает допустимый предел.");
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  const base64 = btoa(binary);
+  await env.DB.prepare("INSERT INTO daily_holiday_assets (key, mime_type, file_name, content_base64, updated_at) VALUES ('template', ?, ?, ?, ?) ON CONFLICT(key) DO UPDATE SET mime_type=excluded.mime_type, file_name=excluded.file_name, content_base64=excluded.content_base64, updated_at=excluded.updated_at")
+    .bind(mime, name, base64, Math.floor(Date.now() / 1000)).run();
+  await tg(env, "sendMessage", { chat_id: adminId, text: "✅ Оригинальный шаблон получен и сохранён без сжатия. Теперь можно собирать публикации на его основе. Сам шаблон не буду перерисовывать." });
+  return true;
+}
+
 async function processUpdate(env, item, adminId) {
   if (item.callback_query) return callback(env, item, adminId);
   const msg = item.message;
   if (!msg || !msg.chat || msg.chat.type !== "private" || String(msg.chat.id) !== adminId || String(msg.from && msg.from.id) !== adminId) return;
+  if (msg.document || msg.photo) { await saveTemplateFromTelegram(env, msg, adminId); return; }
   const text = String(msg.text || "").trim().toLowerCase();
   if (text === "/draft" || text === "/draft@" + String(env.SOVETTG_BOT_USERNAME || "").toLowerCase()) {
     await tg(env, "sendMessage", {
