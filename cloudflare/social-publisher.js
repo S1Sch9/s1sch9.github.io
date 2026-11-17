@@ -97,7 +97,7 @@ async function ensureTables(env) {
 
 const TYPES = {
   post: { title: "Пост", prompt: "Отправь текст публикации одним сообщением." },
-  photo: { title: "Фото", prompt: "Отправь одно фото. Подпись можно добавить к нему." },
+  photo: { title: "Фото", prompt: "Сначала отправь заголовок отдельным сообщением, затем фотографию. Можно и наоборот: отправь фото сразу с подписью — она станет заголовком." },
 };
 
 const TEMPLATES = {
@@ -173,9 +173,10 @@ async function processQueuedSocialPhotos(env) {
     const msg = payload.message;
     if (!msg || !Array.isArray(msg.photo) || !msg.photo.length) throw new Error("В очереди не найдено исходное фото.");
     const template = await selectedTemplate(env, "photo");
-    const rawCaption = String(msg.caption || "").trim();
+    const rawCaption = String(msg.caption || payload.title || "").trim();
+    if (!rawCaption) throw new Error("Не найден заголовок публикации. Отправь заголовок, затем фотографию, либо добавь заголовок к фото как подпись.");
+    const title = rawCaption;
     const caption = captionFor("photo", template.id, rawCaption);
-    const title = rawCaption.split(/[.!?\n]/)[0].slice(0, 58) || "Новости и события";
     stage = "загрузка оригинала фото";
     const photo = msg.photo[msg.photo.length - 1];
     const dataUrl = await telegramImageData(env, photo.file_id);
