@@ -58,7 +58,8 @@ async function tg(env, method, payload) {
 
 async function tables(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
-  await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_drafts (date TEXT PRIMARY KEY, chat_id TEXT NOT NULL, message_id INTEGER, status TEXT NOT NULL, holiday_title TEXT NOT NULL DEFAULT '', source_url TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL)").run();
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_drafts (date TEXT PRIMARY KEY, chat_id TEXT NOT NULL, message_id INTEGER, status TEXT NOT NULL, holiday_title TEXT NOT NULL DEFAULT '', source_url TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, published_at INTEGER)").run();
+  try { await env.DB.prepare("ALTER TABLE daily_holiday_drafts ADD COLUMN published_at INTEGER").run(); } catch {}
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_updates (update_id INTEGER PRIMARY KEY, created_at INTEGER NOT NULL)").run();
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_assets (key TEXT PRIMARY KEY, mime_type TEXT NOT NULL, file_name TEXT NOT NULL, content_base64 TEXT NOT NULL, updated_at INTEGER NOT NULL)").run();
 }
@@ -118,7 +119,7 @@ async function queueManualDraft(env, adminId, date) {
     return { ok: false, reason: "invalid-date" };
   }
   const existing = await env.DB.prepare("SELECT status FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
-  if (existing && ["published", "publishing"].includes(existing.status)) {
+  if (existing && existing.status === "publishing") {
     await tg(env, "sendMessage", {
       chat_id: adminId,
       text: "ℹ️ На " + formatHolidayDate(date) + " публикация уже размещена или сейчас публикуется. Повторная генерация не запущена.",
@@ -330,10 +331,8 @@ async function makeDraft(env, force = false, requestedDate = null) {
   const date = requestedDate || localDate();
   if (!validIsoDate(date) || date < localDate()) return { ok: false, stage: "date", error: "Выбрана некорректная или прошедшая дата." };
   const old = await env.DB.prepare("SELECT status, created_at, chat_id, message_id FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
-  if (old && ["publishing", "published"].includes(old.status)) {
-    return { ok: false, stage: "already-processed", error: old.status === "published"
-      ? "Публикация на выбранную дату уже размещена в канале. Повторная публикация заблокирована."
-      : "Публикация на выбранную дату сейчас обрабатывается. Повторный запуск заблокирован." };
+  if (old && old.status === "publishing") {
+    return { ok: false, stage: "already-processed", error: "Публикация на выбранную дату сейчас обрабатывается. Повторный запуск заблокирован." };
   }
   if (!force && old && ["pending", "skipped"].includes(old.status)) {
     return { ok: false, stage: "already-processed", error: "Черновик на выбранную дату уже создан или отклонён. Для повторной подготовки выбери эту дату в меню ещё раз." };
@@ -515,9 +514,13 @@ async function callback(env, item, adminId) {
     return;
   }
   const action = match[1], date = match[2];
-  const row = await env.DB.prepare("SELECT chat_id, message_id, status FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
+  const row = await env.DB.prepare("SELECT chat_id, message_id, status, published_at FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
   if (!row || row.status !== "pending" || String(row.chat_id) !== adminId || !row.message_id) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Черновик уже обработан." });
+    return;
+  }
+  if (action === "publish" && row.published_at) {
+    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "На эту дату публикация уже была размещена. Новый черновик создан, но повторно публиковать его нельзя.", show_alert: true });
     return;
   }
   if (action === "skip") {
@@ -533,7 +536,7 @@ async function callback(env, item, adminId) {
   }
   try {
     await tg(env, "copyMessage", { chat_id: CHANNEL, from_chat_id: adminId, message_id: row.message_id });
-    await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'published' WHERE date = ?").bind(date).run();
+    await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'published', published_at = COALESCE(published_at, ?) WHERE date = ?").bind(Math.floor(Date.now() / 1000), date).run();
   } catch (error) {
     await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'pending' WHERE date = ? AND status = 'publishing'").bind(date).run();
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Ошибка публикации. Черновик сохранён." });
