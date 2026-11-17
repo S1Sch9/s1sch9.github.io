@@ -136,11 +136,15 @@ async function queueManualDraft(env, adminId, date) {
     });
     return { ok: false, reason: "busy" };
   }
-  await tg(env, "sendMessage", {
+  const statusMessage = await tg(env, "sendMessage", {
     chat_id: adminId,
-    text: "⏳ Запрос принят. Готовлю черновик на " + formatHolidayDate(date) + ". Когда он будет готов, пришлю его сюда. В канал он попадёт только после твоего нажатия «Опубликовать».",
+    text: "⏳ Запрос принят. Готовлю черновик на " + formatHolidayDate(date) + ".\n\n📅 Сейчас начну подготовку — буду показывать этапы здесь. В канал пост попадёт только после твоего нажатия «Опубликовать».",
     reply_markup: dailyMenuMarkup()
   });
+  if (statusMessage && statusMessage.message_id) {
+    await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES ('manual_draft_status_message_id', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
+      .bind(String(statusMessage.message_id)).run();
+  }
   return { ok: true, date };
 }
 
@@ -304,7 +308,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
     '<div style="display:flex;position:absolute;left:778px;top:34px;width:430px;height:100px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + dateFontSize + 'px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateText) + '</div>' +
     titleMarkup +
     '<div style="display:flex;position:absolute;left:1080px;top:345px;width:640px;height:640px;background:#fff;border-radius:50%;overflow:hidden">' +
-    '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;position:absolute;left:53px;top:34px;width:390px;height:390px;object-fit:contain;border-radius:50%"/>' +
+    '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;position:absolute;left:33px;top:14px;width:430px;height:430px;object-fit:contain;border-radius:50%"/>' +
     '</div>' +
     '</div>';
   const rendered = new ImageResponse(html, {
@@ -318,7 +322,7 @@ function escapeHtml(value) {
   return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-async function makeDraft(env, force = false, requestedDate = null) {
+async function makeDraft(env, force = false, requestedDate = null, onProgress = null) {
   if (!env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.AI || !env.DB) {
     return { ok: false, stage: "configuration", error: "Не настроены обязательные параметры Worker." };
   }
@@ -351,6 +355,7 @@ async function makeDraft(env, force = false, requestedDate = null) {
     return { ok: false, stage: "cooldown", error: "Недавно уже была попытка. Для ручной проверки используй /draft." };
   }
   let stage = "calendar";
+  if (onProgress) await onProgress(stage);
   await env.DB.prepare("INSERT INTO daily_holiday_drafts (date, chat_id, status, created_at) VALUES (?, ?, 'generating', ?) ON CONFLICT(date) DO UPDATE SET chat_id=excluded.chat_id, message_id=NULL, status='generating', created_at=excluded.created_at")
     .bind(date, String(env.TELEGRAM_ADMIN_ID), Math.floor(Date.now() / 1000)).run();
 
@@ -371,6 +376,7 @@ async function makeDraft(env, force = false, requestedDate = null) {
       "Список событий: " + JSON.stringify(list)
     ].join("\n");
     stage = "text-ai";
+    if (onProgress) await onProgress(stage);
     const answer = await withTimeout(env.AI.run(TEXT_MODEL, {
       messages: [
         { role: "system", content: "Пиши грамотно, не выдумывай факты. Ответ — только JSON." },
@@ -419,6 +425,7 @@ async function makeDraft(env, force = false, requestedDate = null) {
     ].join("\n\n");
 
     stage = "image-ai";
+    if (onProgress) await onProgress(stage);
     const illustrationPrompt = [
       "Create one small standalone illustration for the lower-right white circle of a Russian school holiday poster.",
       "LOCKED ART STYLE: friendly flat 2D hand-drawn cartoon, like a warm illustrated school storybook: simple rounded shapes, clean confident dark-purple outlines, solid cheerful color fills, minimal soft shading, slightly playful proportions and expressive friendly details.",
@@ -441,6 +448,7 @@ async function makeDraft(env, force = false, requestedDate = null) {
     }
 
     stage = "template-render";
+    if (onProgress) await onProgress(stage);
     const dateForImage = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
@@ -460,6 +468,7 @@ async function makeDraft(env, force = false, requestedDate = null) {
     form.append("parse_mode", "HTML");
     form.append("reply_markup", JSON.stringify(keyboard));
     stage = "telegram-sendPhoto";
+    if (onProgress) await onProgress(stage);
     const sentResponse = await fetchWithTimeout(API + env.SOVETTG_BOT_TOKEN + "/sendPhoto", { method: "POST", body: form }, REQUEST_TIMEOUT_MS, "Отправка черновика в Telegram");
     const sent = await sentResponse.json();
     if (!sentResponse.ok || !sent.ok || !sent.result || !sent.result.message_id) {
@@ -817,22 +826,51 @@ export async function runDailyHolidayCron(controller, env) {
     const lock = await env.DB.prepare("UPDATE daily_holiday_state SET value = ? WHERE key = 'manual_draft_requested' AND value = ?").bind(processingValue, requestedDate).run();
     if (lock.meta && lock.meta.changes) {
       let result;
+      const statusRow = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_status_message_id'").first();
+      const statusMessageId = Number(statusRow && statusRow.value || 0);
+      const progressText = {
+        calendar: "📅 Ищу праздники и проверяю календарь…",
+        "text-ai": "✍️ Выбираю подходящий праздник и готовлю текст…",
+        "image-ai": "🎨 Создаю тематическую иллюстрацию…",
+        "template-render": "🖼 Собираю изображение по твоему оригинальному шаблону…",
+        "telegram-sendPhoto": "📨 Отправляю готовый черновик…"
+      };
+      const updateStatus = async (message) => {
+        if (!statusMessageId) return false;
+        try {
+          await tg(env, "editMessageText", {
+            chat_id: String(env.TELEGRAM_ADMIN_ID),
+            message_id: statusMessageId,
+            text: message
+          });
+          return true;
+        } catch (error) {
+          console.warn("Could not update daily draft progress message:", error && error.message ? error.message : "unknown error");
+          return false;
+        }
+      };
       try {
-        result = await makeDraft(env, true, requestedDate);
-        let message = result && result.ok
+        result = await makeDraft(env, true, requestedDate, async stage => {
+          await updateStatus(progressText[stage] || "⏳ Готовлю черновик…");
+        });
+        const message = result && result.ok
           ? "✅ Черновик готов и отправлен выше. Проверь текст и картинку — в канал он попадёт только после нажатия «Опубликовать»."
           : result && result.stage === "already-processed"
             ? "ℹ️ Черновик на выбранную дату уже обработан. Повторная отправка не выполнялась."
             : "⚠️ Не удалось подготовить черновик" + (result && result.stage ? " на этапе «" + result.stage + "»" : "") + ": " + String(result && result.error || "неизвестная ошибка").slice(0, 220) + "\nВ канал ничего не публиковалось.";
-        await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: message, reply_markup: dailyMenuMarkup() });
+        if (!await updateStatus(message)) {
+          await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: message, reply_markup: dailyMenuMarkup() });
+        }
       } catch (error) {
         const detail = String(error && error.message ? error.message : "unknown error").slice(0, 180);
         console.error("Manual daily draft job failed:", detail);
-        try {
-          await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Фоновая подготовка черновика завершилась ошибкой: " + detail + "\nВ канал ничего не публиковалось." });
-        } catch {}
+        const message = "⚠️ Фоновая подготовка черновика завершилась ошибкой: " + detail + "\nВ канал ничего не публиковалось.";
+        if (!await updateStatus(message)) {
+          try { await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: message }); } catch {}
+        }
       } finally {
         await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_requested' AND value = ?").bind(processingValue).run();
+        await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_status_message_id'").run();
       }
     }
   }
