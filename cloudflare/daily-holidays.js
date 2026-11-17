@@ -56,9 +56,32 @@ async function candidatesFor(date) {
 }
 
 function modelText(result) {
+  const extract = value => {
+    if (typeof value === "string") return value;
+    if (Array.isArray(value)) return value.map(item => {
+      if (typeof item === "string") return item;
+      if (item && typeof item.text === "string") return item.text;
+      if (item && typeof item.content === "string") return item.content;
+      return "";
+    }).filter(Boolean).join("\\n");
+    return "";
+  };
   if (typeof result === "string") return result;
-  return (result && result.response) ||
-    (result && result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.content) || "";
+  if (!result || typeof result !== "object") return "";
+  const direct = extract(result.response) || extract(result.output_text) || extract(result.text) || extract(result.content);
+  if (direct) return direct;
+  const choice = result.choices && result.choices[0];
+  if (choice) {
+    const fromMessage = extract(choice.message && choice.message.content);
+    if (fromMessage) return fromMessage;
+    const fromChoice = extract(choice.text);
+    if (fromChoice) return fromChoice;
+  }
+  for (const item of (Array.isArray(result.output) ? result.output : [])) {
+    const value = extract(item && item.content);
+    if (value) return value;
+  }
+  return "";
 }
 
 function parseObject(value) {
@@ -106,11 +129,18 @@ async function makeDraft(env, force = false) {
         { role: "system", content: "Пиши грамотно, не выдумывай факты. Ответ — только JSON." },
         { role: "user", content: prompt }
       ],
-      max_completion_tokens: 1000,
-      temperature: 0.65,
+      max_completion_tokens: 1200,
+      temperature: 0.4,
+      chat_template_kwargs: { enable_thinking: false },
       response_format: { type: "json_object" }
     });
-    const draft = parseObject(modelText(answer));
+    const generatedText = modelText(answer);
+    if (!generatedText.trim()) {
+      const shape = answer && typeof answer === "object" ? Object.keys(answer).join(", ") : typeof answer;
+      const modelError = answer && (answer.error || answer.message || answer.details);
+      throw new Error("Модель вернула пустой текст. Поля ответа: " + (shape || "нет") + (modelError ? "; " + String(modelError).slice(0, 120) : ""));
+    }
+    const draft = parseObject(generatedText);
     const index = Number(draft.selected_index);
     if (!Number.isInteger(index) || index < 0 || index >= list.length) throw new Error("Invalid selected holiday");
     const chosen = list[index];
