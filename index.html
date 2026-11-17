@@ -1876,7 +1876,7 @@ body.s1-motion-off *{transition:none!important}
 }
 .s1-page-loader{position:fixed;inset:0;z-index:200000;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 45%,#fff 0%,#fff 58%,#fcf9fa 100%);opacity:1;visibility:visible;transition:opacity .58s cubic-bezier(.22,.75,.25,1),visibility .58s}
 .s1-loader-content{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:s1-loader-arrive .78s cubic-bezier(.16,1,.3,1) both}
-.s1-loader-mark{position:relative;width:clamp(104px,28vw,132px);height:clamp(104px,28vw,132px);display:grid;place-items:center;animation:s1-loader-float 2.8s ease-in-out infinite}
+.s1-loader-mark{position:relative;width:clamp(104px,28vw,132px);height:clamp(104px,28vw,132px);display:grid;place-items:center;overflow:hidden;border-radius:28px;background:#fff;animation:s1-loader-float 2.8s ease-in-out infinite}
 .s1-loader-mark img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 8px 15px rgba(91,24,43,.10));animation:s1-loader-logo-in .85s cubic-bezier(.16,1,.3,1) both}
 .s1-loader-progress{position:relative;width:112px;height:3px;margin-top:28px;overflow:hidden;border-radius:9px;background:#eee7e9}
 .s1-loader-progress span{display:block;width:38%;height:100%;border-radius:9px;background:linear-gradient(90deg,#8c1836,#c49a5c,#8c1836);background-size:200% 100%;animation:s1-loader-progress 1.35s ease-in-out infinite}
