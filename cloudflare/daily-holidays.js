@@ -234,7 +234,7 @@ async function saveTemplateFromTelegram(env, msg, adminId) {
   if (!file) return false;
 
   const name = String(doc && doc.file_name || "telegram-template.jpg");
-  const extension = /\\.(jpe?g|png)$/i.exec(name);
+  const extension = /\.(jpe?g|png)$/i.exec(name);
   const reportedSize = Number(file.file_size || 0);
   if (!extension) {
     await tg(env, "sendMessage", { chat_id: adminId, text: "Не удалось распознать формат. Пришли файл с именем, оканчивающимся на .JPG, .JPEG или .PNG." });
