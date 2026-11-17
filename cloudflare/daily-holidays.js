@@ -283,6 +283,24 @@ async function processUpdate(env, item, adminId) {
   if (!msg || !msg.chat || msg.chat.type !== "private" || String(msg.chat.id) !== adminId || String(msg.from && msg.from.id) !== adminId) return;
   if (msg.document || msg.photo) { await saveTemplateFromTelegram(env, msg, adminId); return; }
   const text = String(msg.text || "").trim().toLowerCase();
+  if (text === "/template") {
+    await tables(env);
+    const asset = await env.DB.prepare("SELECT mime_type, file_name, content_base64 FROM daily_holiday_assets WHERE key = 'template'").first();
+    if (!asset || !asset.content_base64) {
+      await tg(env, "sendMessage", { chat_id: adminId, text: "Сохранённый шаблон не найден." });
+      return;
+    }
+    const binary = atob(asset.content_base64);
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+    const form = new FormData();
+    form.append("chat_id", adminId);
+    form.append("document", new Blob([bytes], { type: asset.mime_type }), asset.file_name || "IMG_4517.PNG");
+    const response = await fetch(API + env.SOVETTG_BOT_TOKEN + "/sendDocument", { method: "POST", body: form });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error("Не удалось отправить сохранённый шаблон из хранилища.");
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Вот точная копия сохранённого оригинала. Отправь этот файл сюда в ChatGPT, чтобы я мог измерить области макета." });
+    return;
+  }
   if (text === "/draft" || text === "/draft@" + String(env.SOVETTG_BOT_USERNAME || "").toLowerCase()) {
     await tg(env, "sendMessage", {
       chat_id: adminId,
