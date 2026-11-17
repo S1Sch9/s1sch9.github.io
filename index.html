@@ -2143,6 +2143,119 @@ main > section.on .rv{
 }
 </style>
 
+
+<style id="s1-news-detail-dock-final-fix">
+/* Нижняя панель открытой новости: ровно по ширине окна, без обрезания. */
+#pn .news-detail-panel .news-detail-dock{
+  position:relative!important;
+  inset:auto!important;
+  flex:0 0 auto!important;
+  display:flex!important;
+  flex-flow:row nowrap!important;
+  align-items:center!important;
+  justify-content:stretch!important;
+  gap:9px!important;
+  box-sizing:border-box!important;
+  width:calc(100% + 44px)!important;
+  max-width:none!important;
+  margin:0 -22px!important;
+  padding:12px 22px calc(12px + env(safe-area-inset-bottom))!important;
+  border-top:1px solid #eee5e7!important;
+  background:#fff!important;
+  box-shadow:0 -5px 16px rgba(61,0,13,.045)!important;
+}
+#pn .news-detail-panel .news-detail-dock>.news-like{
+  flex:0 0 88px!important;
+  width:88px!important;
+  min-width:0!important;
+  max-width:88px!important;
+  min-height:48px!important;
+  height:48px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  padding:0 9px!important;
+  border-radius:15px!important;
+  white-space:nowrap!important;
+  font-size:13px!important;
+}
+#pn .news-detail-panel .news-detail-dock>.news-comments-jump{
+  flex:1 1 0!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  min-height:48px!important;
+  height:48px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-flow:row nowrap!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  padding:0 10px!important;
+  border-radius:15px!important;
+  white-space:nowrap!important;
+  font-size:12px!important;
+  overflow:visible!important;
+}
+#pn .news-detail-panel .news-detail-dock .news-dock-icon{
+  flex:0 0 19px!important;
+  width:19px!important;
+  height:19px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1!important;
+}
+#pn .news-detail-panel .news-detail-dock .news-dock-icon svg{
+  display:block!important;
+  width:19px!important;
+  height:19px!important;
+}
+#pn .news-detail-panel .news-detail-dock .news-comments-label{
+  display:inline-block!important;
+  flex:0 1 auto!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+  line-height:1.2!important;
+  overflow:visible!important;
+}
+#pn .news-detail-panel .news-detail-dock .news-dock-count{
+  flex:0 0 19px!important;
+  width:19px!important;
+  min-width:19px!important;
+  height:19px!important;
+  margin:0!important;
+  padding:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  line-height:19px!important;
+  transform:none!important;
+}
+@media(max-width:360px){
+  #pn .news-detail-panel .news-detail-dock{
+    gap:7px!important;
+    padding-left:15px!important;
+    padding-right:15px!important;
+  }
+  #pn .news-detail-panel .news-detail-dock>.news-like{
+    flex-basis:78px!important;
+    width:78px!important;
+    max-width:78px!important;
+    padding:0 7px!important;
+  }
+  #pn .news-detail-panel .news-detail-dock>.news-comments-jump{
+    gap:5px!important;
+    padding:0 7px!important;
+    font-size:11px!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div id="s1-page-loader" class="s1-page-loader" role="status" aria-label="Загрузка сайта">
