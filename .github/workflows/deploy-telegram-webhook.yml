@@ -60,8 +60,10 @@ jobs:
           trap 'rm -f "$secrets_file"' EXIT
           SECRETS_FILE="$secrets_file" node --input-type=module <<'NODE'
           import { writeFileSync } from "node:fs";
+          const token = String(process.env.SOVETTG_BOT_TOKEN || "").replace(/\\s/g, "");
+          if (!token) throw new Error("Daily bot token is empty after normalization");
           writeFileSync(process.env.SECRETS_FILE, JSON.stringify({
-            SOVETTG_BOT_TOKEN: process.env.SOVETTG_BOT_TOKEN
+            SOVETTG_BOT_TOKEN: token
           }), { mode: 0o600 });
           NODE
           npx --yes wrangler@4.160.1 deploy --config wrangler.jsonc --secrets-file "$secrets_file"
@@ -85,5 +87,17 @@ jobs:
           const response = await fetch(endpoint, { method: "POST", body });
           const result = await response.json();
           if (!response.ok || !result.ok) throw new Error("Telegram setWebhook failed: " + (result.description || response.status));
-          console.log("Daily bot webhook configured:", result.result.url);
+          const infoResponse = await fetch("https://api.telegram.org/bot" + token + "/getWebhookInfo");
+          const info = await infoResponse.json();
+          if (!infoResponse.ok || !info.ok) throw new Error("Telegram getWebhookInfo failed: " + (info.description || infoResponse.status));
+          const expectedPath = "/telegram/daily/" + path.split("/").pop();
+          if (!info.result.url || new URL(info.result.url).pathname !== expectedPath) {
+            throw new Error("Telegram webhook URL does not match the deployed Worker route.");
+          }
+          console.log("Daily bot webhook verified:", JSON.stringify({
+            configured: Boolean(info.result.url),
+            pending_update_count: info.result.pending_update_count || 0,
+            last_error_date: info.result.last_error_date || null,
+            last_error_message: info.result.last_error_message || null
+          }));
           NODE
