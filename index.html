@@ -2085,34 +2085,61 @@ main > section.on .rv{
 .sh{z-index:1000!important}
 </style>
 
-<style id="s1-news-detail-comment-count-alignment">
-/* Число комментариев в нижней панели открытой новости держим ровно в одной строке с подписью. */
-.news-detail-dock .news-comments-jump{
+
+
+
+<style id="s1-news-detail-dock-layout-repair">
+/* Нижняя панель открытой новости: две ровные кнопки в одной строке. */
+.news-detail-dock{
+  display:flex!important;
+  flex-flow:row nowrap!important;
+  align-items:center!important;
+  gap:9px!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+}
+.news-detail-dock>.news-like{
+  flex:0 0 auto!important;
+  min-width:76px!important;
+  white-space:nowrap!important;
+}
+.news-detail-dock>.news-comments-jump{
+  flex:1 1 0!important;
+  min-width:0!important;
   display:flex!important;
   flex-flow:row nowrap!important;
   align-items:center!important;
   justify-content:center!important;
+  gap:7px!important;
   white-space:nowrap!important;
-  gap:8px!important;
 }
-.news-detail-dock .news-comments-jump .news-comments-label{
+.news-detail-dock .news-comments-label{
   display:inline-block!important;
   flex:0 1 auto!important;
   min-width:0!important;
   white-space:nowrap!important;
-  line-height:1!important;
+  line-height:1.15!important;
 }
-.news-detail-dock .news-comments-jump .news-dock-count{
+.news-detail-dock .news-dock-count{
   display:inline-flex!important;
-  flex:0 0 auto!important;
+  flex:0 0 20px!important;
   align-items:center!important;
   justify-content:center!important;
   align-self:center!important;
+  box-sizing:border-box!important;
+  width:20px!important;
+  min-width:20px!important;
+  height:20px!important;
   margin:0!important;
-  padding:0 6px!important;
+  padding:0!important;
   line-height:20px!important;
   vertical-align:middle!important;
   transform:none!important;
+}
+@media(max-width:360px){
+  .news-detail-dock{gap:7px!important;padding-left:12px!important;padding-right:12px!important}
+  .news-detail-dock>.news-like{min-width:68px!important;padding-left:10px!important;padding-right:10px!important}
+  .news-detail-dock>.news-comments-jump{gap:5px!important;padding-left:8px!important;padding-right:8px!important;font-size:10px!important}
 }
 </style>
 
