@@ -1996,11 +1996,44 @@ body.s1-motion-off #gm.on iframe{
   box-shadow:0 16px 42px rgba(61,0,13,.12),0 4px 14px rgba(61,0,13,.055)!important;
 }
 </style>
+
+<style id="s1-loader-shadow-scroll-docking-2026">
+/* Тень вынесена на неподвижную обёртку: WebKit не должен превращать её в квадрат при анимации логотипа. */
+.s1-loader-shadow{
+ position:relative;width:clamp(104px,28vw,132px);height:clamp(104px,28vw,132px);
+ border-radius:28px;background:#fff;
+ box-shadow:0 16px 42px rgba(61,0,13,.12),0 4px 14px rgba(61,0,13,.055);
+}
+.s1-loader-mark{
+ width:100%;height:100%;background:transparent!important;
+ box-shadow:none!important;border-radius:28px;overflow:visible;
+}
+.s1-loader-mark img{border-radius:28px}
+.s1-loader-shadow .s1-loader-mark{animation:s1-loader-float 2.8s ease-in-out infinite}
+.s1-loader-shadow .s1-loader-mark img{animation:s1-loader-logo-in .85s cubic-bezier(.16,1,.3,1) both}
+@media(prefers-reduced-motion:reduce){.s1-loader-shadow .s1-loader-mark{animation:none!important}}
+/* Верхняя плашка становится полноценной непрозрачной границей прокрутки. */
+.bar{
+ position:sticky!important;top:0!important;z-index:100!important;isolation:isolate;
+ background:var(--bg)!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+ box-shadow:0 8px 18px rgba(61,0,13,.055);
+}
+.site-search-panel{z-index:101!important}
+/* Карточки мягко притягиваются к нижней навигации и раскрываются обратно. */
+main > section.on .rv{
+ transform-origin:50% 55%;
+ will-change:translate,scale,opacity;
+}
+@media(prefers-reduced-motion:reduce){
+ main > section.on .rv{will-change:auto!important}
+}
+</style>
 </head>
 <body>
 <div id="s1-page-loader" class="s1-page-loader" role="status" aria-label="Загрузка сайта">
  <div class="s1-loader-content">
-  <div class="s1-loader-mark"><img src="official-logo.svg?v=20261114-final" alt="Совет Первых школы №9"></div>
+  <div class="s1-loader-shadow"><div class="s1-loader-mark"><img src="official-logo.svg?v=20261114-final" alt="Совет Первых школы №9"></div></div>
   <div class="s1-loader-progress" aria-hidden="true"><span></span></div>
  </div>
 </div>
@@ -4499,6 +4532,48 @@ a,a *,button,button *,[role="button"],img{-webkit-user-select:none!important;use
 </style>
 
 <script id="s1-disable-context-menus">document.addEventListener('contextmenu',function(e){e.preventDefault();},true);</script>
+
+<script id="s1-scroll-dock-motion-2026">
+(function(){
+ const nav=document.querySelector('body > nav');
+ if(!nav)return;
+ const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(reduced)return;
+ let raf=0,items=[];
+ function collect(){
+  items=Array.from(document.querySelectorAll('main > section.on .rv'));
+  update();
+ }
+ function update(){
+  raf=0;
+  if(document.body.classList.contains('s1-motion-off')){
+   items.forEach(el=>{el.style.translate='';el.style.scale='';el.style.opacity='';});
+   return;
+  }
+  const nr=nav.getBoundingClientRect(),navTop=nr.top,navCenter=nr.left+nr.width/2;
+  items.forEach(el=>{
+   const r=el.getBoundingClientRect();
+   const p=Math.max(0,Math.min(1,(r.bottom-(navTop-112))/112));
+   if(p<.015){el.style.translate='';el.style.scale='';el.style.opacity='';return;}
+   const dx=(navCenter-(r.left+r.width/2))*.075*p;
+   el.style.translate=dx.toFixed(1)+'px '+(15*p).toFixed(1)+'px';
+   el.style.scale=(1-.065*p).toFixed(3);
+   el.style.opacity=(1-.24*p).toFixed(3);
+  });
+ }
+ function request(){if(!raf)raf=requestAnimationFrame(update);}
+ window.addEventListener('scroll',request,{passive:true});
+ window.addEventListener('resize',request,{passive:true});
+ document.addEventListener('click',e=>{
+  if(e.target.closest('nav a,nav button'))setTimeout(collect,80);
+ },true);
+ const observer=new MutationObserver(collect);
+ document.querySelectorAll('main > section').forEach(s=>observer.observe(s,{attributes:true,attributeFilter:['class']}));
+ const motionObserver=new MutationObserver(request);
+ motionObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
+ collect();
+})();
+</script>
 </body>
 </html>
 
