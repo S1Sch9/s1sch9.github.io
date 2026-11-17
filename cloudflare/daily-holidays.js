@@ -301,7 +301,7 @@ async function makeDraft(env, force = false) {
       "<b>Наша ежедневная рубрика «Праздник каждый день»!</b>",
       "<b>" + escapeHtml(dateForPost) + "</b>",
       "<b>" + escapeHtml(chosen.title) + "</b>",
-      escapeHtml(body).replace(/\n\n/g, "</b>\n\n<b>"),
+      escapeHtml(body),
       "<b>Желаем вам отличного дня! 😊</b>",
       '<b>👉 <a href="https://s1sch9.github.io/">С1Шк9.Сайт</a> | <a href="https://t.me/dvizhenieschool9">TGK</a> | <a href="https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI">MAX</a></b>'
     ].join("\n\n");
