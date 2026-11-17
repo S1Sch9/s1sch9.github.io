@@ -54,37 +54,6 @@ jobs:
         run: |
           set -euo pipefail
           npx --yes wrangler@4.160.1 deploy --config wrangler.jsonc
-      - name: Export saved template for visual inspection
-        working-directory: cloudflare
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          set -euo pipefail
-          npx --yes wrangler@4.160.1 d1 execute s1sch9-appeals --remote --command "SELECT mime_type, file_name, content_base64 FROM daily_holiday_assets WHERE key = 'template';" --json > /tmp/template-query.json
-          node --input-type=module <<'NODE'
-          import fs from "node:fs";
-          const data = JSON.parse(fs.readFileSync("/tmp/template-query.json", "utf8"));
-          let row;
-          const visit = (value) => {
-            if (!value || typeof value !== "object" || row) return;
-            if (typeof value.content_base64 === "string" && value.mime_type) { row = value; return; }
-            for (const child of Object.values(value)) visit(child);
-          };
-          visit(data);
-          if (!row) throw new Error("Saved template row was not found in D1 query output");
-          const ext = row.mime_type === "image/png" ? "png" : row.mime_type === "image/jpeg" ? "jpg" : null;
-          if (!ext) throw new Error("Unexpected template MIME type: " + row.mime_type);
-          fs.mkdirSync("/tmp/template-export", { recursive: true });
-          fs.writeFileSync("/tmp/template-export/original-template." + ext, Buffer.from(row.content_base64, "base64"));
-          console.log("Exported saved original template; bytes:", fs.statSync("/tmp/template-export/original-template." + ext).size);
-          NODE
-      - name: Upload original template inspection artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: original-template-inspection
-          path: /tmp/template-export/*
-          retention-days: 1
       - name: Sync separate daily Telegram bot token
         working-directory: cloudflare
         env:
