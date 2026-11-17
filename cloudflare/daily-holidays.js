@@ -210,7 +210,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
     '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:88px;color:#fff;font-family:Roboto Black,sans-serif;font-size:68px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
     titleMarkup +
     '<div style="display:flex;position:absolute;left:1080px;top:345px;width:640px;height:640px;background:#fff;border-radius:50%;overflow:hidden">' +
-    '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:640px;height:640px;object-fit:contain;border-radius:50%"/>' +
+    '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;position:absolute;left:44px;top:44px;width:552px;height:552px;object-fit:contain;border-radius:50%"/>' +
     '</div>' +
     '</div>';
   const rendered = new ImageResponse(html, {
@@ -273,7 +273,7 @@ async function makeDraft(env, force = false) {
       "Не выбирай политику, войну, трагедии, медицину или спорные темы. Предпочитай образование, культуру, науку, творчество и добрые поводы.",
       "Строго: не пиши приветствие, название рубрики, дату, название праздника, пожелание, подпись, ссылки, хэштеги и источники. Эти элементы добавит программа по неизменному шаблону.",
       "Создай только body: 2 коротких содержательных абзаца на русском (примерно 350–500 знаков суммарно). Первый — история/происхождение или значение праздника; второй — как его отмечают или интересный факт. Не выдумывай факты, используй только сведения из описания. Не добавляй заголовки и эмодзи.",
-      "Верни строго JSON с полями: selected_index (индекс события с нуля), body (только два абзаца основного текста), image_prompt (подробный промпт на английском для тематической иллюстрации).",
+      "Верни строго JSON с полями: selected_index (индекс события с нуля), body (только два абзаца основного текста), image_prompt (короткое описание только предмета/персонажа/действия иллюстрации на английском; не описывай стиль, технику, фон, освещение или реализм).",
       "Для маленькой иллюстрации в правом нижнем углу: выразительная праздничная редакционная иллюстрация в стиле ручного рисунка, на чистом белом фоне; без текста, букв, логотипов и водяных знаков.",
       "Список событий: " + JSON.stringify(list)
     ].join("\n");
@@ -299,7 +299,7 @@ async function makeDraft(env, force = false) {
     if (!Number.isInteger(index) || index < 0 || index >= list.length) throw new Error("Invalid selected holiday");
     const chosen = list[index];
     const body = String(draft.body || "").replace(/\r/g, "").split(/\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\n\n");
-    const imagePrompt = String(draft.image_prompt || "").slice(0, 1700);
+    const imagePrompt = String(draft.image_prompt || "").slice(0, 700);
     if (body.length < 180 || imagePrompt.length < 30) throw new Error("Основной текст праздника неполный. Черновик не отправлен.");
     const dateForPost = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
@@ -327,12 +327,13 @@ async function makeDraft(env, force = false) {
 
     stage = "image-ai";
     const illustrationPrompt = [
-      imagePrompt,
-      "Create one small standalone corner illustration for a Russian school holiday poster.",
-      "Style: warm, polished hand-drawn editorial cartoon with gentle watercolor texture, clean confident outlines and friendly expressive characters.",
-      "Background must be pure solid white (#FFFFFF), evenly lit, with no frame, no shadow outside the subject.",
-      "No text, no letters, no numbers, no logos, no watermark, no poster layout.",
-      "Show only the holiday-related subject, centered, with clear silhouette and enough white margin around it."
+      "Create one small standalone illustration for the lower-right white circle of a Russian school holiday poster.",
+      "LOCKED ART STYLE: friendly flat 2D hand-drawn cartoon, like a warm illustrated school storybook: simple rounded shapes, clean confident dark-purple outlines, solid cheerful color fills, minimal soft shading, slightly playful proportions and expressive friendly details.",
+      "It must look unmistakably DRAWN and ILLUSTRATED, not like a photograph. Keep the same simple cartoon visual language for every holiday so the series looks consistent.",
+      "Holiday subject: " + imagePrompt,
+      "COMPOSITION: one compact centered subject, fully visible, with generous pure-white empty margin on every side. Keep all important parts well away from the image edges; nothing may touch or cross the edge.",
+      "BACKGROUND: perfectly clean solid white (#FFFFFF), no frame, no border, no cast shadow outside the subject.",
+      "STRICTLY AVOID: photorealism, realistic photography, 3D render, realistic skin or material textures, cinematic lighting, gradients, glossy effects, watercolor realism, text, letters, numbers, logos, watermarks, poster layout."
     ].join(" ").slice(0, 2048);
     const illustrationResult = await withTimeout(env.AI.run(IMAGE_MODEL, {
       prompt: illustrationPrompt,
