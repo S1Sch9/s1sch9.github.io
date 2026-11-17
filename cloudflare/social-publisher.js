@@ -48,7 +48,8 @@ async function assetDataUrl(url) {
 
 async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
   // Единственный фирменный знак проекта — оригинальный логотип Совета.
-  const councilLogo = await assetDataUrl(BRAND + "/logo-soveta-pervykh.png");
+  const councilLogo = await assetDataUrl(BRAND + "/official-logo.svg?v=20261114-final");
+  const schoolCrest = await assetDataUrl(BRAND + "/gerb.png");
   const importantMark = await assetDataUrl(BRAND + "/vazhen.png");
   const safeTitle = escapeHtml(title || "СОВЕТ ПЕРВЫХ");
   const safeSubtitle = escapeHtml(subtitle || "Школы №9");
@@ -64,7 +65,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
     '<div style="display:flex;position:absolute;right:-100px;top:-100px;width:330px;height:330px;border-radius:999px;background-color:rgba(240,200,105,.12)"></div>' +
     photoHeading + main +
     '<div style="display:flex;position:absolute;left:0;bottom:0;width:100%;height:104px;background-color:rgba(255,255,255,.97);border-top:3px solid #a1001f;align-items:center;justify-content:flex-start;padding:0 58px;box-sizing:border-box">' +
-    '<div style="display:flex;width:100%;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:18px"><img src="' + councilLogo + '" width="76" height="76" style="width:76px;height:76px;object-fit:contain" /><div style="display:flex;flex-direction:column"><div style="display:flex;font-size:25px;font-weight:800;color:#3d000d">СОВЕТ ПЕРВЫХ</div><div style="display:flex;font-size:18px;color:#745b65;margin-top:5px">ШКОЛЫ №9</div></div></div><img src="' + importantMark + '" width="210" height="76" style="width:210px;height:76px;object-fit:contain;object-position:right center" /></div></div></div>';
+    '<div style="display:flex;width:100%;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:18px"><img src="' + councilLogo + '" width="68" height="68" style="width:68px;height:68px;object-fit:contain" /><img src="' + schoolCrest + '" width="68" height="68" style="width:68px;height:68px;object-fit:contain" /><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;font-size:22px;font-weight:800;color:#3d000d">СОВЕТ ПЕРВЫХ</div><div style="display:flex;font-size:22px;font-weight:800;color:#3d000d">ШКОЛЫ №9</div></div></div><img src="' + importantMark + '" width="210" height="76" style="width:210px;height:76px;object-fit:contain;object-position:right center" /></div></div></div>';
   const { ImageResponse } = await import("workers-og");
   const response = new ImageResponse(html, { width:1280, height:720 });
   return new Uint8Array(await response.arrayBuffer());
