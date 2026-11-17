@@ -2330,35 +2330,37 @@ function s1SetTextSize(v){S1_PREFS.textSize=v==="large"?"large":"normal";s1SaveP
 function s1ResetPrefs(){S1_PREFS={...S1_DEFAULT_PREFS};s1SavePrefs();s1RenderSettings();}
 (function installThemeSwipe(){
  let start=null,locked=false;
- const ignored='input,textarea,select,button,a,[contenteditable="true"],.sh,nav,.day-showcase,.calendar-details,.news-comments-list,.news-comments-compose,[data-no-theme-swipe]';
+ const ignored='input,textarea,select,button,a,[contenteditable="true"],nav,.day-showcase,.calendar-details,.news-comments-list,.news-comments-compose,.home-shortcuts-viewport,[data-no-theme-swipe]';
  const isIgnored=target=>target instanceof Element&&!!target.closest(ignored);
- document.addEventListener("touchstart",e=>{
+ const begin=e=>{
   if(e.touches.length!==1||isIgnored(e.target)){start=null;locked=false;return;}
-  const t=e.touches[0];
-  start={id:t.identifier,x:t.clientX,y:t.clientY};
-  locked=false;
- },{passive:true});
- document.addEventListener("touchmove",e=>{
+  const t=e.touches[0];start={id:t.identifier,x:t.clientX,y:t.clientY};locked=false;
+ };
+ const move=e=>{
   if(!start||e.touches.length!==1)return;
   const t=Array.from(e.touches).find(x=>x.identifier===start.id);if(!t)return;
   const dx=t.clientX-start.x,dy=t.clientY-start.y;
-  if(Math.abs(dy)>14&&Math.abs(dy)>Math.abs(dx)){start=null;locked=false;return;}
-  if(Math.abs(dx)>18&&Math.abs(dx)>Math.abs(dy)*1.25)locked=true;
+  if(Math.abs(dy)>18&&Math.abs(dy)>Math.abs(dx)){start=null;locked=false;return;}
+  if(Math.abs(dx)>14&&Math.abs(dx)>Math.abs(dy)*1.2)locked=true;
   if(locked&&e.cancelable)e.preventDefault();
- },{passive:false});
- document.addEventListener("touchend",e=>{
+ };
+ const finish=e=>{
   if(!start)return;
   const t=Array.from(e.changedTouches).find(x=>x.identifier===start.id);
   if(t&&locked){
    const dx=t.clientX-start.x,dy=t.clientY-start.y;
-   if(Math.abs(dx)>=70&&Math.abs(dx)>Math.abs(dy)*1.45){
+   if(Math.abs(dx)>=60&&Math.abs(dx)>Math.abs(dy)*1.35){
     const next=dx<0?"dark":"light";
-    if(next!==S1_PREFS.theme){s1SetTheme(next);if(navigator.vibrate)try{navigator.vibrate(12)}catch{}}
+    if(next!==S1_PREFS.theme)s1SetTheme(next);
    }
   }
   start=null;locked=false;
- },{passive:true});
- document.addEventListener("touchcancel",()=>{start=null;locked=false},{passive:true});
+ };
+ const cancel=()=>{start=null;locked=false;};
+ window.addEventListener("touchstart",begin,{passive:true,capture:true});
+ window.addEventListener("touchmove",move,{passive:false,capture:true});
+ window.addEventListener("touchend",finish,{passive:true,capture:true});
+ window.addEventListener("touchcancel",cancel,{passive:true,capture:true});
 })();
 
 function openMoreMenu(){
@@ -2424,7 +2426,7 @@ $("#openAppealRules").addEventListener("click", () => {
     const cue = document.createElement("button");
     cue.type = "button"; cue.id = "appealRulesScrollCue"; cue.className = "appeal-rules-scroll-cue";
     cue.setAttribute("aria-label", "Перейти к кнопке принятия положения"); cue.textContent = "↓";
-    rulesPanel.appendChild(cue);
+    document.documentElement.appendChild(cue);
     const updateCue = () => cue.classList.toggle("is-hidden", rulesPanel.scrollHeight - rulesPanel.scrollTop - rulesPanel.clientHeight < 28);
     rulesPanel.addEventListener("scroll", updateCue, {passive:true});
     cue.addEventListener("click", () => rulesPanel.scrollTo({top:rulesPanel.scrollHeight,behavior:"smooth"}));
