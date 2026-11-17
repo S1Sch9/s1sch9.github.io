@@ -197,9 +197,9 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
     '<div style="display:flex;position:absolute;left:778px;top:' + (142 + index * lineHeight) + 'px;width:430px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
 
-  // Repaint only the right text field. The path follows the existing white circle,
-  // leaving the original left artwork, divider, crest and top-right label untouched.
-  const textMask = '<svg width="1536" height="765" viewBox="0 0 1536 765" style="position:absolute;left:0;top:0"><path d="M776 20 H1220 V345 H1400 A320 320 0 0 0 1080 665 H776 Z" fill="#1a0b5c"/></svg>';
+  // Fully erase the old date and title with a solid patch. The original white circle
+  // is redrawn immediately afterwards, so no part of the template outside this field changes.
+  const textMask = '<div style="display:flex;position:absolute;left:776px;top:20px;width:447px;height:480px;background:#1a0b5c"></div>';
 
   // The original illustration sits inside a white circle centered at (1400, 665),
   // radius 320. A circular white-backed image exactly replaces that corner artwork
@@ -210,7 +210,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
     '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:88px;color:#fff;font-family:Roboto Black,sans-serif;font-size:68px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
     titleMarkup +
     '<div style="display:flex;position:absolute;left:1080px;top:345px;width:640px;height:640px;background:#fff;border-radius:50%;overflow:hidden">' +
-    '<img src="data:image/png;base64,' + illustrationBase64 + '" style="display:flex;width:640px;height:640px;object-fit:contain;border-radius:50%"/>' +
+    '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:640px;height:640px;object-fit:contain;border-radius:50%"/>' +
     '</div>' +
     '</div>';
   const rendered = new ImageResponse(html, {
@@ -341,13 +341,17 @@ async function makeDraft(env, force = false) {
     if (!illustrationResult || typeof illustrationResult.image !== "string" || illustrationResult.image.length < 4000) {
       throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
     }
+    const illustrationBase64 = illustrationResult.image.replace(/\\s/g, "");
+    if (!illustrationBase64.startsWith("/9j/")) {
+      throw new Error("Иллюстрация пришла не в ожидаемом JPEG-формате. Черновик не отправлен.");
+    }
 
     stage = "template-render";
     const dateForImage = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
     const bytes = await withTimeout(
-      renderHolidayTemplate(template, dateForImage, chosen.title, illustrationResult.image),
+      renderHolidayTemplate(template, dateForImage, chosen.title, illustrationBase64),
       REQUEST_TIMEOUT_MS,
       "Сборка изображения"
     );
