@@ -1,5 +1,3 @@
-import { ImageResponse } from "workers-og";
-
 const API = "https://api.telegram.org/bot";
 const BRAND = "https://s1sch9.github.io";
 const CHANNEL = "@dvizhenieschool9";
@@ -41,6 +39,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
     '<div style="display:flex;position:absolute;left:0;bottom:0;width:100%;height:120px;background:#fff;border-top:3px solid #a1001f;align-items:center;justify-content:space-between;padding:0 54px;box-sizing:border-box">' +
     '<div style="display:flex;align-items:center;gap:18px"><img src="' + councilLogo + '" style="width:76px;height:76px;object-fit:contain" /><div style="display:flex;flex-direction:column"><div style="font-size:24px;font-weight:800;color:#3d000d">СОВЕТ ПЕРВЫХ</div><div style="font-size:18px;color:#745b65">ШКОЛЫ №9</div></div></div>' +
     '<div style="display:flex;align-items:center;gap:16px"><div style="font-size:16px;color:#806b74">' + (type === "video" ? "ВИДЕО" : type === "photo" ? "ФОТОРЕПОРТАЖ" : "НОВОСТИ") + '</div><img src="' + schoolCrest + '" style="width:78px;height:78px;object-fit:contain" /></div></div></div>';
+  const { ImageResponse } = await import("workers-og");
   const response = new ImageResponse(html, { width:1280, height:720 });
   return new Uint8Array(await response.arrayBuffer());
 }
