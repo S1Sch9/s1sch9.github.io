@@ -292,7 +292,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   // Close only the narrow purple gap between the upper-right frame and the poster's outer white margin.
   // The original 1536x765 render has a ~5-6 px gap here; this strip extends the existing white frame
   // without touching the crest, the "ВАЖЕН КАЖДЫЙ" lettering, or any other template element.
-  const topRightFrameFix = '<div style="display:flex;position:absolute;left:1510px;top:24px;width:6px;height:144px;background:#fff"></div>';
+  const topRightFrameFix = '<div style="display:flex;position:absolute;left:1510px;top:18px;width:6px;height:150px;background:#fff"></div>';
 
   // The original illustration sits inside a white circle centered at (1400, 665),
   // radius 320. A circular white-backed image exactly replaces that corner artwork
