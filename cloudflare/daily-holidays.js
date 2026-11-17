@@ -912,6 +912,17 @@ export async function runDailyHolidayCron(controller, env) {
 
   const moscowTime = moscowTimeParts();
   if (moscowTime.hour === String(DAILY_DRAFT_HOUR).padStart(2, "0") && moscowTime.minute === "00") {
-    await makeDraft(env, false, shiftDate(localDate(), 1));
+    const automaticDraft = await makeDraft(env, false, shiftDate(localDate(), 1));
+    if (!automaticDraft.ok && !["already-processed", "cooldown"].includes(automaticDraft.stage)) {
+      const detail = String(automaticDraft.error || "Неизвестная ошибка").slice(0, 220);
+      try {
+        await tg(env, "sendMessage", {
+          chat_id: String(env.TELEGRAM_ADMIN_ID),
+          text: "⚠️ Не удалось автоматически подготовить черновик «Праздник каждый день» на завтра.\nЭтап: " + String(automaticDraft.stage || "unknown") + "\nПричина: " + detail + "\nВ канал ничего не публиковалось."
+        });
+      } catch (notifyError) {
+        console.error("Could not notify admin about automatic daily draft failure:", notifyError && notifyError.message ? notifyError.message : "unknown error");
+      }
+    }
   }
 }
