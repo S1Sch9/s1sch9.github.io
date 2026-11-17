@@ -1974,6 +1974,27 @@ body.s1-motion-off #gm.on iframe{
 </style>
 
 
+
+<style id="s1-burgundy-card-and-loader-corner-fix">
+/* Обрезаем только фирменную бордовую обложку главной по её скруглённому контуру. */
+.home-hero{
+  overflow:hidden!important;
+  border-radius:29px!important;
+  clip-path:inset(0 round 29px);
+}
+/* Во время увеличения логотипа на заставке его квадратная подложка
+   не должна выступать за округлённую белую рамку. */
+.s1-loader-mark{
+  overflow:hidden!important;
+  border-radius:28px!important;
+  clip-path:inset(0 round 28px);
+}
+.s1-loader-mark img{
+  display:block;
+  width:100%;height:100%;
+  border-radius:28px!important;
+}
+</style>
 </head>
 <body>
 <div id="s1-page-loader" class="s1-page-loader" role="status" aria-label="Загрузка сайта">
