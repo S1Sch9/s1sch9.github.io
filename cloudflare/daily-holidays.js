@@ -148,9 +148,25 @@ async function makeDraft(env, force = false) {
     return { ok: false, stage: "template", error: "Оригинальный шаблон не найден или повреждён. Черновик не отправлен." };
   }
   const date = localDate();
-  const old = await env.DB.prepare("SELECT status, created_at FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
-  if (old && ["pending", "publishing", "published", "skipped"].includes(old.status)) {
-    return { ok: false, stage: "already-processed", error: "Черновик на сегодня уже обработан." };
+  const old = await env.DB.prepare("SELECT status, created_at, chat_id, message_id FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
+  if (old && ["publishing", "published"].includes(old.status)) {
+    return { ok: false, stage: "already-processed", error: old.status === "published"
+      ? "Сегодняшняя публикация уже размещена в канале. Повторная публикация заблокирована."
+      : "Сегодняшняя публикация сейчас обрабатывается. Повторный запуск заблокирован." };
+  }
+  if (!force && old && ["pending", "skipped"].includes(old.status)) {
+    return { ok: false, stage: "already-processed", error: "Черновик на сегодня уже создан или отклонён. Для повторной подготовки используй /draft." };
+  }
+  if (force && old && old.status === "pending" && old.message_id) {
+    try {
+      await tg(env, "editMessageReplyMarkup", {
+        chat_id: String(old.chat_id || env.TELEGRAM_ADMIN_ID),
+        message_id: old.message_id,
+        reply_markup: { inline_keyboard: [] }
+      });
+    } catch (error) {
+      console.warn("Could not disable buttons on replaced daily draft:", error && error.message ? error.message : "unknown error");
+    }
   }
   if (!force && old && ["generating", "failed"].includes(old.status) && Date.now() / 1000 - old.created_at < 1800) {
     return { ok: false, stage: "cooldown", error: "Недавно уже была попытка. Для ручной проверки используй /draft." };
