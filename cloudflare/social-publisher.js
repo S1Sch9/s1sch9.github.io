@@ -35,6 +35,7 @@ async function assetDataUrl(url) {
 async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
   // Единственный фирменный знак проекта — оригинальный логотип Совета.
   const councilLogo = await assetDataUrl(BRAND + "/logo-soveta-pervykh.png");
+  const importantMark = await assetDataUrl(BRAND + "/vazhen.png");
   const safeTitle = escapeHtml(title || "СОВЕТ ПЕРВЫХ");
   const safeSubtitle = escapeHtml(subtitle || "Школы №9");
   const isPhoto = Boolean(photoDataUrl);
@@ -49,7 +50,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
     '<div style="display:flex;position:absolute;right:-100px;top:-100px;width:330px;height:330px;border-radius:999px;background-color:rgba(240,200,105,.12)"></div>' +
     photoHeading + main +
     '<div style="display:flex;position:absolute;left:0;bottom:0;width:100%;height:104px;background-color:rgba(255,255,255,.97);border-top:3px solid #a1001f;align-items:center;justify-content:flex-start;padding:0 58px;box-sizing:border-box">' +
-    '<div style="display:flex;align-items:center;gap:18px"><img src="' + councilLogo + '" width="76" height="76" style="width:76px;height:76px;object-fit:contain" /><div style="display:flex;flex-direction:column"><div style="display:flex;font-size:25px;font-weight:800;color:#3d000d">СОВЕТ ПЕРВЫХ</div><div style="display:flex;font-size:18px;color:#745b65;margin-top:5px">ШКОЛЫ №9</div></div></div></div></div>';
+    '<div style="display:flex;width:100%;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:18px"><img src="' + councilLogo + '" width="76" height="76" style="width:76px;height:76px;object-fit:contain" /><div style="display:flex;flex-direction:column"><div style="display:flex;font-size:25px;font-weight:800;color:#3d000d">СОВЕТ ПЕРВЫХ</div><div style="display:flex;font-size:18px;color:#745b65;margin-top:5px">ШКОЛЫ №9</div></div></div><img src="' + importantMark + '" width="210" height="76" style="width:210px;height:76px;object-fit:contain;object-position:right center" /></div></div></div>';
   const { ImageResponse } = await import("workers-og");
   const response = new ImageResponse(html, { width:1280, height:720 });
   return new Uint8Array(await response.arrayBuffer());
@@ -88,8 +89,7 @@ const TEMPLATES = {
     { id: "editorial", name: "Редакционный", description: "Выразительный заголовок и короткая подпись" }
   ],
   photo: [
-    { id: "gallery", name: "Фотодневник", description: "Лаконичная подпись к кадрам" },
-    { id: "report", name: "Репортаж", description: "Акцент на событии и его участниках" }
+    { id: "gallery", name: "Фото Совета", description: "Горизонтальная карточка с логотипом и надписью «Важен каждый!»" }
   ],
 };
 
@@ -125,7 +125,7 @@ function captionFor(type, templateId, raw) {
     if (templateId === "editorial") return "◆  СОВЕТ ПЕРВЫХ · ШКОЛА №9\n\n" + text + "\n\n" + footer;
     return text + "\n\n" + footer;
   }
-  const prefix = templateId === "report" ? "●  СОБЫТИЯ СОВЕТА" : "●  ФОТОДНЕВНИК";
+  const prefix = "●  СОВЕТ ПЕРВЫХ · ШКОЛА №9";
   return [prefix, text, footer].filter(Boolean).join("\n\n").slice(0, 1024);
 }
 
@@ -240,41 +240,67 @@ async function handleSocialUpdate(env, item, adminId) {
       await tg(env, "sendMessage", { chat_id: adminId, text: "Для формата «Фото» пришли фотографию или альбом." });
       return true;
     }
-    const processingNotice = await tg(env, "sendMessage", {
-      chat_id: adminId,
-      text: type === "photo"
-        ? "📥 Фото получил! Уже начал обработку: загружаю оригинал и собираю фирменную карточку. Скоро пришлю предпросмотр."
-        : "📥 Текст получил! Уже начал оформление и подготовку предпросмотра. Скоро пришлю результат."
-    });
-    const template = await selectedTemplate(env, type);
-    const rawCaption = String(msg.caption || text || "").trim();
-    const caption = captionFor(type, template.id, rawCaption);
-    let preview;
-    const title = rawCaption.split(/[.!?\\n]/)[0].slice(0, 58) || "Новости и события";
-    if (type === "post") {
-      const card = await renderBrandCard({ type, title, subtitle:"Новости и события школьного Совета" });
-      preview = await sendBrandedPhoto(env, adminId, card, caption);
-    } else if (type === "photo") {
-      const photo = msg.photo[msg.photo.length - 1];
-      const dataUrl = await telegramImageData(env, photo.file_id);
-      const card = await renderBrandCard({ type, title, subtitle:rawCaption || "События и инициативы Совета", photoDataUrl:dataUrl });
-      preview = await sendBrandedPhoto(env, adminId, card, caption);
+    let processingNotice = null;
+    let stage = "приём сообщения";
+    try {
+      processingNotice = await tg(env, "sendMessage", {
+        chat_id: adminId,
+        text: type === "photo"
+          ? "📥 Фото получил! Загружаю оригинал и собираю горизонтальную карточку Совета. Скоро пришлю предпросмотр."
+          : "📥 Текст получил! Готовлю предпросмотр публикации."
+      });
+      stage = "чтение настроек оформления";
+      const template = await selectedTemplate(env, type);
+      const rawCaption = String(msg.caption || text || "").trim();
+      const caption = captionFor(type, template.id, rawCaption);
+      let preview;
+      const title = rawCaption.split(/[.!?\\n]/)[0].slice(0, 58) || "Новости и события";
+      if (type === "post") {
+        stage = "сборка карточки";
+        const card = await renderBrandCard({ type, title, subtitle:"Новости и события школьного Совета" });
+        stage = "отправка предпросмотра";
+        preview = await sendBrandedPhoto(env, adminId, card, caption);
+      } else if (type === "photo") {
+        stage = "загрузка оригинала фото";
+        const photo = msg.photo[msg.photo.length - 1];
+        const dataUrl = await telegramImageData(env, photo.file_id);
+        stage = "сборка карточки";
+        const card = await renderBrandCard({ type, title, subtitle:rawCaption || "События и инициативы Совета", photoDataUrl:dataUrl });
+        stage = "отправка предпросмотра";
+        preview = await sendBrandedPhoto(env, adminId, card, caption);
+      }
+      stage = "сохранение черновика";
+      const id = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?)")
+        .bind(type, msg.message_id, preview.message_id, template.id, "pending", Math.floor(Date.now()/1000)).run();
+      const draftId = id.meta && id.meta.last_row_id;
+      stage = "обновление статуса";
+      await tg(env, "editMessageText", {
+        chat_id: adminId,
+        message_id: processingNotice.message_id,
+        text: "✅ Предпросмотр готов · " + TYPES[type].title + " · шаблон «" + template.name + "».\\n\\nПроверь публикацию выше. В канал ничего не отправлено — публикация произойдёт только после твоего подтверждения."
+      });
+      await tg(env, "sendMessage", {
+        chat_id: adminId,
+        text: "Готово! Если всё выглядит правильно, подтверди публикацию:",
+        reply_markup: publishKeyboard(draftId)
+      });
+      await env.DB.prepare("DELETE FROM social_publication_state WHERE key='compose_type'").run();
+      return true;
+    } catch (error) {
+      const detail = String(error && error.message ? error.message : "неизвестная ошибка").slice(0, 220);
+      const message = "⚠️ Не удалось подготовить предпросмотр.\\nЭтап: " + stage + ".\\nПричина: " + detail + "\\n\\nВ канал ничего не опубликовано. Настройка формата сохранена — можно отправить фото ещё раз после исправления.";
+      console.error("Social publisher failed at " + stage + ":", detail);
+      try {
+        if (processingNotice && processingNotice.message_id) {
+          await tg(env, "editMessageText", { chat_id: adminId, message_id: processingNotice.message_id, text: message });
+        } else {
+          await tg(env, "sendMessage", { chat_id: adminId, text: message });
+        }
+      } catch (notifyError) {
+        console.error("Could not notify admin about social publisher failure:", notifyError && notifyError.message ? notifyError.message : "unknown error");
+      }
+      return true;
     }
-    const id = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?)")
-      .bind(type, msg.message_id, preview.message_id, template.id, "pending", Math.floor(Date.now()/1000)).run();
-    const draftId = id.meta && id.meta.last_row_id;
-    await tg(env, "editMessageText", {
-      chat_id: adminId,
-      message_id: processingNotice.message_id,
-      text: "✅ Предпросмотр готов · " + TYPES[type].title + " · шаблон «" + template.name + "».\n\nПроверь публикацию выше. В канал ничего не отправлено — публикация произойдёт только после твоего подтверждения."
-    });
-    await tg(env, "sendMessage", {
-      chat_id: adminId,
-      text: "Готово! Если всё выглядит правильно, подтверди публикацию:",
-      reply_markup: publishKeyboard(draftId)
-    });
-    await env.DB.prepare("DELETE FROM social_publication_state WHERE key='compose_type'").run();
-    return true;
   }
   return false;
 }
