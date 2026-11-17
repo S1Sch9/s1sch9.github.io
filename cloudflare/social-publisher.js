@@ -42,7 +42,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
   const main = isPhoto
     ? '<div style="position:absolute;left:54px;top:38px;width:1172px;height:548px;display:flex;align-items:center;justify-content:center;background:#fff;border:4px solid #a1001f;border-radius:28px;padding:12px;box-sizing:border-box;box-shadow:0 18px 48px rgba(61,0,13,.18)"><img src="' + photoDataUrl + '" width="1140" height="516" style="width:1140px;height:516px;object-fit:contain;border-radius:16px" /></div>'
     : '<div style="position:absolute;left:78px;top:112px;width:1124px;height:430px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px;box-sizing:border-box;background:rgba(255,255,255,.88);border:3px solid #a1001f;border-radius:30px;box-shadow:0 18px 48px rgba(61,0,13,.12)"><div style="font-size:22px;font-weight:700;letter-spacing:5px;color:#a1001f">СОВЕТ ПЕРВЫХ · ШКОЛА №9</div><div style="font-size:64px;line-height:1.1;font-weight:800;color:#3d000d;margin-top:28px">' + safeTitle + '</div><div style="font-size:28px;color:#745b65;margin-top:22px">' + safeSubtitle + '</div><div style="width:120px;height:7px;background:#f0c869;margin-top:28px;border-radius:8px"></div></div>';
-  const html = '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:radial-gradient(ellipse at 0% 0%,rgba(161,0,31,.13),transparent 42%),radial-gradient(ellipse at 100% 100%,rgba(161,0,31,.10),transparent 38%),#fffafb;font-family:Arial,sans-serif">' +
+  const html = '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background-color:#fffafb;background-image:radial-gradient(ellipse at 0% 0%,rgba(161,0,31,.13),transparent 42%),radial-gradient(ellipse at 100% 100%,rgba(161,0,31,.10),transparent 38%);font-family:Arial,sans-serif">' +
     '<div style="position:absolute;left:-90px;top:230px;width:260px;height:260px;border-radius:999px;background:rgba(161,0,31,.055)"></div>' +
     '<div style="position:absolute;right:-100px;top:-100px;width:330px;height:330px;border-radius:999px;background:rgba(240,200,105,.12)"></div>' +
     main +
@@ -239,6 +239,12 @@ async function handleSocialUpdate(env, item, adminId) {
       await tg(env, "sendMessage", { chat_id: adminId, text: "Для формата «Фото» пришли фотографию или альбом." });
       return true;
     }
+    const processingNotice = await tg(env, "sendMessage", {
+      chat_id: adminId,
+      text: type === "photo"
+        ? "⏳ Фото получил! Начинаю обработку: загружаю оригинал, добавляю фирменное оформление и готовлю предпросмотр. Это может занять немного времени."
+        : "⏳ Текст получил! Начинаю оформление публикации и подготовку предпросмотра. Это может занять немного времени."
+    });
     const template = await selectedTemplate(env, type);
     const rawCaption = String(msg.caption || text || "").trim();
     const caption = captionFor(type, template.id, rawCaption);
@@ -256,9 +262,14 @@ async function handleSocialUpdate(env, item, adminId) {
     const id = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?)")
       .bind(type, msg.message_id, preview.message_id, template.id, "pending", Math.floor(Date.now()/1000)).run();
     const draftId = id.meta && id.meta.last_row_id;
+    await tg(env, "editMessageText", {
+      chat_id: adminId,
+      message_id: processingNotice.message_id,
+      text: "✅ Предпросмотр готов · " + TYPES[type].title + " · шаблон «" + template.name + "».\n\nПроверь публикацию выше. В канал ничего не отправлено — публикация произойдёт только после твоего подтверждения."
+    });
     await tg(env, "sendMessage", {
       chat_id: adminId,
-      text: "Предпросмотр готов · " + TYPES[type].title + " · шаблон «" + template.name + "».\n\nВ канал ничего не отправлено. Проверь публикацию выше и нажми кнопку только если всё готово.",
+      text: "Готово! Если всё выглядит правильно, подтверди публикацию:",
       reply_markup: publishKeyboard(draftId)
     });
     await env.DB.prepare("DELETE FROM social_publication_state WHERE key='compose_type'").run();
