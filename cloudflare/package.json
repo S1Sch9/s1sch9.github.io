@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@block65/webcrypto-web-push": "2.0.0"
+    "@block65/webcrypto-web-push": "2.0.0",
+    "workers-og": "0.0.27"
   }
 }
