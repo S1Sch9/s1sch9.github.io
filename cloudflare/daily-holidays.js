@@ -4,13 +4,40 @@ const TEXT_MODEL = "@cf/google/gemma-4-26b-a4b-it";
 const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
 const POLL_CRON = "* * * * *";
 const DAILY_CRON = "0 5 * * *";
+const REQUEST_TIMEOUT_MS = 25000;
+const AI_TIMEOUT_MS = 45000;
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS, label = "Запрос") {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error(label + ": превышено время ожидания (" + Math.round(timeoutMs / 1000) + " сек.).");
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function withTimeout(promise, timeoutMs, label) {
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(label + ": превышено время ожидания (" + Math.round(timeoutMs / 1000) + " сек.).")), timeoutMs); })
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 async function tg(env, method, payload) {
-  const response = await fetch(API + env.SOVETTG_BOT_TOKEN + "/" + method, {
+  const response = await fetchWithTimeout(API + env.SOVETTG_BOT_TOKEN + "/" + method, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload || {})
-  });
+  }, REQUEST_TIMEOUT_MS, "Telegram " + method);
   const result = await response.json();
   if (!response.ok || !result.ok) throw new Error("Telegram " + method + " failed");
   return result.result;
@@ -40,9 +67,9 @@ function plain(html) {
 }
 
 async function candidatesFor(date) {
-  const response = await fetch("https://www.calend.ru/holidays/" + date + "/", {
+  const response = await fetchWithTimeout("https://www.calend.ru/holidays/" + date + "/", {
     headers: { "Accept": "text/html", "Accept-Language": "ru-RU,ru;q=0.9" }
-  });
+  }, REQUEST_TIMEOUT_MS, "Календарь");
   if (!response.ok) throw new Error("Calendar source unavailable");
   const html = await response.text();
   const re = /<div class="caption">\s*<span class="title">\s*<a href="([^"]+)">([\s\S]*?)<\/a>[\s\S]*?<p class="descr descrFixed">\s*<a href="[^"]+">([\s\S]*?)<\/a>/g;
@@ -191,7 +218,7 @@ async function makeDraft(env, force = false) {
       "Список: " + JSON.stringify(list)
     ].join("\n");
     stage = "text-ai";
-    const answer = await env.AI.run(TEXT_MODEL, {
+    const answer = await withTimeout(env.AI.run(TEXT_MODEL, {
       messages: [
         { role: "system", content: "Пиши грамотно, не выдумывай факты. Ответ — только JSON." },
         { role: "user", content: prompt }
@@ -200,7 +227,7 @@ async function makeDraft(env, force = false) {
       temperature: 0.4,
       chat_template_kwargs: { enable_thinking: false },
       response_format: { type: "json_object" }
-    });
+    }), AI_TIMEOUT_MS, "Текстовая AI-модель");
     const generatedText = modelText(answer);
     if (!generatedText.trim()) {
       const shape = answer && typeof answer === "object" ? Object.keys(answer).join(", ") : typeof answer;
@@ -219,7 +246,7 @@ async function makeDraft(env, force = false) {
     const dateForImage = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
-    const bytes = await renderHolidayTemplate(template, dateForImage, chosen.title);
+    const bytes = await withTimeout(renderHolidayTemplate(template, dateForImage, chosen.title), REQUEST_TIMEOUT_MS, "Сборка изображения");
     const keyboard = { inline_keyboard: [[
       { text: "✅ Опубликовать", callback_data: "publish:" + date },
       { text: "✖️ Отклонить", callback_data: "skip:" + date }
@@ -230,7 +257,7 @@ async function makeDraft(env, force = false) {
     form.append("caption", (post + "\n\nИсточник календаря: " + chosen.url).slice(0, 1024));
     form.append("reply_markup", JSON.stringify(keyboard));
     stage = "telegram-sendPhoto";
-    const sentResponse = await fetch(API + env.SOVETTG_BOT_TOKEN + "/sendPhoto", { method: "POST", body: form });
+    const sentResponse = await fetchWithTimeout(API + env.SOVETTG_BOT_TOKEN + "/sendPhoto", { method: "POST", body: form }, REQUEST_TIMEOUT_MS, "Отправка черновика в Telegram");
     const sent = await sentResponse.json();
     if (!sentResponse.ok || !sent.ok || !sent.result || !sent.result.message_id) {
       throw new Error("Telegram sendPhoto: " + String(sent.description || sentResponse.status).slice(0, 180));
@@ -356,6 +383,33 @@ async function processUpdate(env, item, adminId) {
     const result = await response.json();
     if (!response.ok || !result.ok) throw new Error("Не удалось отправить сохранённый шаблон из хранилища.");
     await tg(env, "sendMessage", { chat_id: adminId, text: "Вот точная копия сохранённого оригинала. Отправь этот файл сюда в ChatGPT, чтобы я мог измерить области макета." });
+    return;
+  }
+  if (text === "/status" || text === "/status@" + String(env.SOVETTG_BOT_USERNAME || "").toLowerCase()) {
+    await tables(env);
+    const date = localDate();
+    const row = await env.DB.prepare("SELECT status, created_at, holiday_title, message_id FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
+    let statusText;
+    if (!row) {
+      statusText = "ℹ️ На сегодня (" + date + ") черновик ещё не запускался.";
+    } else {
+      const age = Math.max(0, Math.floor(Date.now() / 1000) - Number(row.created_at || 0));
+      const minutes = Math.floor(age / 60);
+      const elapsed = minutes ? minutes + " мин. назад" : age + " сек. назад";
+      const states = {
+        generating: "⏳ Черновик сейчас готовится.",
+        pending: "✅ Черновик отправлен тебе и ожидает решения. В канал ничего не публиковалось.",
+        skipped: "✖️ Черновик отклонён. В канал ничего не публиковалось.",
+        published: "📣 Черновик уже опубликован в канале.",
+        publishing: "⏳ Идёт публикация в канал.",
+        failed: "⚠️ Последняя попытка завершилась ошибкой. Можно будет повторить после проверки."
+      };
+      statusText = (states[row.status] || "ℹ️ Статус: " + row.status) + "\nДата: " + date + "\nПоследнее изменение: " + elapsed;
+      if (row.holiday_title) statusText += "\nПраздник: " + row.holiday_title;
+      if (row.status === "pending" && row.message_id) statusText += "\nКнопки «Опубликовать» и «Отклонить» находятся в сообщении с черновиком.";
+      if (row.status === "generating" && age > 120) statusText += "\n⚠️ Подготовка длится необычно долго. Не запускай повторно, пока не проверим состояние.";
+    }
+    await tg(env, "sendMessage", { chat_id: adminId, text: statusText });
     return;
   }
   if (text === "/draft" || text === "/draft@" + String(env.SOVETTG_BOT_USERNAME || "").toLowerCase()) {
