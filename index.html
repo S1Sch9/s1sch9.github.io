@@ -2029,6 +2029,57 @@ main > section.on .rv{
  main > section.on .rv{will-change:auto!important}
 }
 </style>
+
+<style id="s1-topbar-responsive-final-2026">
+/* Верхняя панель: логотип и название занимают только доступное место,
+   кнопки поиска и настроек всегда остаются видимыми. */
+.bar{
+  display:flex!important;
+  align-items:center!important;
+  width:100%!important;
+  min-width:0!important;
+  gap:clamp(7px,2.5vw,12px)!important;
+  padding-left:clamp(10px,4vw,18px)!important;
+  padding-right:clamp(10px,4vw,18px)!important;
+  overflow:visible!important;
+}
+.bar .brand-logo{
+  flex:0 0 42px!important;
+  width:42px!important;
+  min-width:0!important;
+}
+.bar .brand-name{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+}
+.bar .brand-name strong{
+  display:block!important;
+  min-width:0!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+  font-size:clamp(9px,3.15vw,14px)!important;
+  letter-spacing:clamp(0em,.025em,.025em)!important;
+}
+.bar .site-search-trigger,
+.bar .site-settings-trigger{
+  flex:0 0 38px!important;
+  width:38px!important;
+  min-width:38px!important;
+  margin-left:0!important;
+  margin-right:0!important;
+}
+@media(max-width:360px){
+  .bar .brand-logo{flex-basis:36px!important;width:36px!important;height:36px!important}
+  .bar .site-search-trigger,.bar .site-settings-trigger{
+    flex-basis:35px!important;width:35px!important;min-width:35px!important;height:35px!important
+  }
+  .bar .brand-name strong{font-size:9px!important;letter-spacing:0!important}
+}
+</style>
 </head>
 <body>
 <div id="s1-page-loader" class="s1-page-loader" role="status" aria-label="Загрузка сайта">
