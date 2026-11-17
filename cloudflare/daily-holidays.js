@@ -1,5 +1,3 @@
-import { ImageResponse } from "workers-og";
-
 const API = "https://api.telegram.org/bot";
 const CHANNEL = "@dvizhenieschool9";
 const TEXT_MODEL = "@cf/google/gemma-4-26b-a4b-it";
@@ -119,6 +117,7 @@ function holidayIllustration(title) {
 }
 
 async function renderHolidayTemplate(template, dateLabel, holidayTitle) {
+  const { ImageResponse } = await import("workers-og");
   const lines = wrapHolidayTitle(holidayTitle);
   const fontSize = lines.length >= 5 ? 53 : lines.length === 4 ? 59 : 66;
   const lineHeight = Math.round(fontSize * 1.08);
