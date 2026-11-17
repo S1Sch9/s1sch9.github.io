@@ -497,7 +497,7 @@ export async function runDailyHolidayCron(controller, env) {
   // Manual requests run from the scheduled Worker invocation, not from
   // webhook waitUntil (whose lifetime is too short for image generation).
   const queued = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_requested'").first();
-  if (queued && queued.value && /^\\d{4}-\\d{2}-\\d{2}$/.test(queued.value)) {
+  if (queued && queued.value && /^\d{4}-\d{2}-\d{2}$/.test(queued.value)) {
     const date = queued.value;
     const lock = await env.DB.prepare("UPDATE daily_holiday_state SET value = ? WHERE key = 'manual_draft_requested' AND value = ?")
       .bind("processing:" + date, date).run();
@@ -509,13 +509,13 @@ export async function runDailyHolidayCron(controller, env) {
           ? "✅ Черновик готов и отправлен выше. Проверь текст и картинку — в канал он попадёт только после нажатия «Опубликовать»."
           : result && result.stage === "already-processed"
             ? "ℹ️ Сегодняшний черновик уже обработан. Повторная отправка не выполнялась."
-            : "⚠️ Не удалось подготовить черновик" + (result && result.stage ? " на этапе «" + result.stage + "»" : "") + ": " + String(result && result.error || "неизвестная ошибка").slice(0, 220) + "\\nВ канал ничего не публиковалось.";
+            : "⚠️ Не удалось подготовить черновик" + (result && result.stage ? " на этапе «" + result.stage + "»" : "") + ": " + String(result && result.error || "неизвестная ошибка").slice(0, 220) + "\nВ канал ничего не публиковалось.";
         await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: message });
       } catch (error) {
         const detail = String(error && error.message ? error.message : "unknown error").slice(0, 180);
         console.error("Manual daily draft job failed:", detail);
         try {
-          await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Фоновая подготовка черновика завершилась ошибкой: " + detail + "\\nВ канал ничего не публиковалось." });
+          await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Фоновая подготовка черновика завершилась ошибкой: " + detail + "\nВ канал ничего не публиковалось." });
         } catch {}
       } finally {
         await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_requested' AND value = ?")
