@@ -18,6 +18,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: cloudflare-worker-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
@@ -65,8 +69,20 @@ jobs:
           SOVETTG_BOT_TOKEN: ${{ secrets.SOVETTG_BOT_TOKEN }}
         run: |
           set -euo pipefail
-          WEBHOOK_PATH="$(node -e 'const c=require("crypto"); process.stdout.write("/telegram/daily/"+c.createHash("sha256").update(process.env.SOVETTG_BOT_TOKEN).digest("hex"))')"
-          curl --fail --silent --show-error --request POST "https://api.telegram.org/bot${SOVETTG_BOT_TOKEN}/setWebhook" \
-            --data-urlencode "url=https://still-frog-ce4c.school9ideasandsuggestions.workers.dev${WEBHOOK_PATH}" \
-            --data-urlencode 'allowed_updates=["message","callback_query"]' \
-            --data-urlencode 'drop_pending_updates=false'
+          export SOVETTG_BOT_TOKEN="$(printf '%s' "$SOVETTG_BOT_TOKEN" | tr -d '[:space:]')"
+          node --input-type=module <<'NODE'
+          import { createHash } from "node:crypto";
+          const token = process.env.SOVETTG_BOT_TOKEN;
+          if (!token) throw new Error("Daily bot token is empty");
+          const path = "/telegram/daily/" + createHash("sha256").update(token).digest("hex");
+          const endpoint = "https://api.telegram.org/bot" + token + "/setWebhook";
+          const body = new URLSearchParams({
+            url: "https://still-frog-ce4c.school9ideasandsuggestions.workers.dev" + path,
+            allowed_updates: JSON.stringify(["message", "callback_query"]),
+            drop_pending_updates: "false"
+          });
+          const response = await fetch(endpoint, { method: "POST", body });
+          const result = await response.json();
+          if (!response.ok || !result.ok) throw new Error("Telegram setWebhook failed: " + (result.description || response.status));
+          console.log("Daily bot webhook configured:", result.result.url);
+          NODE
