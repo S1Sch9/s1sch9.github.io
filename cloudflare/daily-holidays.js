@@ -341,7 +341,7 @@ async function makeDraft(env, force = false) {
     if (!illustrationResult || typeof illustrationResult.image !== "string" || illustrationResult.image.length < 4000) {
       throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
     }
-    const illustrationBase64 = illustrationResult.image.replace(/\\s/g, "");
+    const illustrationBase64 = illustrationResult.image.replace(/\s/g, "");
     if (!illustrationBase64.startsWith("/9j/")) {
       throw new Error("Иллюстрация пришла не в ожидаемом JPEG-формате. Черновик не отправлен.");
     }
