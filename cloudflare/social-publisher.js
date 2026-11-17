@@ -82,7 +82,19 @@ async function telegramImageData(env, fileId) {
   if (bytes.length > 8 * 1024 * 1024) throw new Error("Фото больше 8 МБ — отправь его в обычном размере.");
   let binary = "";
   for (let i=0;i<bytes.length;i+=0x8000) binary += String.fromCharCode(...bytes.subarray(i,i+0x8000));
-  return "data:" + (response.headers.get("content-type") || "image/jpeg") + ";base64," + btoa(binary);
+  const headerMime = String(response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+  const extension = String(info.file_path || "").split(".").pop().toLowerCase();
+  let detectedMime = headerMime.startsWith("image/") ? headerMime : "";
+  if (!detectedMime) {
+    if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) detectedMime = "image/png";
+    else if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) detectedMime = "image/jpeg";
+    else if (bytes.length >= 12 && String.fromCharCode(...bytes.subarray(0,4)) === "RIFF" && String.fromCharCode(...bytes.subarray(8,12)) === "WEBP") detectedMime = "image/webp";
+    else if (extension === "jpg" || extension === "jpeg") detectedMime = "image/jpeg";
+    else if (extension === "png") detectedMime = "image/png";
+    else if (extension === "webp") detectedMime = "image/webp";
+  }
+  if (!detectedMime) throw new Error("Telegram передал файл, но его формат не распознан как изображение.");
+  return "data:" + detectedMime + ";base64," + btoa(binary);
 }
 async function sendBrandedPhoto(env, chatId, bytes, caption) {
   const form = new FormData();
