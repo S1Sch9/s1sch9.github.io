@@ -269,7 +269,7 @@ async function handleSocialUpdate(env, item, adminId) {
       const rawCaption = String(msg.caption || text || "").trim();
       const caption = captionFor(type, template.id, rawCaption);
       let preview;
-      const title = rawCaption.split(/[.!?\\n]/)[0].slice(0, 58) || "Новости и события";
+      const title = rawCaption.split(/[.!?\n]/)[0].slice(0, 58) || "Новости и события";
       if (type === "post") {
         stage = "сборка карточки";
         const card = await renderBrandCard({ type, title, subtitle:"Новости и события школьного Совета" });
