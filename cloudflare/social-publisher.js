@@ -318,7 +318,12 @@ async function handleSocialUpdate(env, item, adminId) {
       return true;
     }
     if (type === "photo" && !msg.photo) {
-      await tg(env, "sendMessage", { chat_id: adminId, text: "Для формата «Фото» пришли фотографию или альбом." });
+      if (text) {
+        await env.DB.prepare("INSERT INTO social_publication_state (key,value) VALUES ('compose_title',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(text.slice(0,180)).run();
+        await tg(env, "sendMessage", { chat_id: adminId, text: "Заголовок сохранён: «" + text.slice(0,180) + "». Теперь отправь фотографию. Подпись к фото тоже можно использовать как заголовок." });
+      } else {
+        await tg(env, "sendMessage", { chat_id: adminId, text: "Сначала отправь заголовок текстом, затем фотографию. Или отправь фото с подписью." });
+      }
       return true;
     }
     if (type === "photo") {
