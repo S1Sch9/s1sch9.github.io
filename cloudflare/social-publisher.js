@@ -1,20 +1,34 @@
 const API = "https://api.telegram.org/bot";
 const BRAND = "https://s1sch9.github.io";
 const CHANNEL = "@dvizhenieschool9";
+const REQUEST_TIMEOUT_MS = 25000;
+
+async function fetchWithTimeout(url, options = {}, label = "Запрос") {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error(label + ": превышено время ожидания (25 сек.).");
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 async function tg(env, method, payload) {
-  const response = await fetch(API + env.SOVETTG_BOT_TOKEN + "/" + method, {
+  const response = await fetchWithTimeout(API + env.SOVETTG_BOT_TOKEN + "/" + method, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload || {})
-  });
+  }, "Telegram " + method);
   const data = await response.json();
   if (!response.ok || !data.ok) throw new Error("Telegram " + method + ": " + String(data.description || response.status));
   return data.result;
 }
 
 async function tgMultipart(env, method, form) {
-  const response = await fetch(API + env.SOVETTG_BOT_TOKEN + "/" + method, { method: "POST", body: form });
+  const response = await fetchWithTimeout(API + env.SOVETTG_BOT_TOKEN + "/" + method, { method: "POST", body: form }, "Telegram " + method);
   const data = await response.json();
   if (!response.ok || !data.ok) throw new Error("Telegram " + method + ": " + String(data.description || response.status));
   return data.result;
@@ -23,7 +37,7 @@ function escapeHtml(value) {
   return String(value || "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
 }
 async function assetDataUrl(url) {
-  const response = await fetch(url);
+  const response = await fetchWithTimeout(url, {}, "Загрузка фирменного изображения");
   if (!response.ok) throw new Error("Не удалось загрузить оригинальный логотип или герб школы.");
   const mime = response.headers.get("content-type") || "image/png";
   const bytes = new Uint8Array(await response.arrayBuffer());
@@ -57,7 +71,8 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
 }
 async function telegramImageData(env, fileId) {
   const info = await tg(env, "getFile", { file_id:fileId });
-  const response = await fetch("https://api.telegram.org/file/bot" + env.SOVETTG_BOT_TOKEN + "/" + info.file_path);
+  if (!info || !info.file_path) throw new Error("Telegram не вернул путь к фотографии.");
+  const response = await fetchWithTimeout("https://api.telegram.org/file/bot" + env.SOVETTG_BOT_TOKEN + "/" + info.file_path, {}, "Загрузка оригинала фото");
   if (!response.ok) throw new Error("Не удалось загрузить фотографию из Telegram.");
   const bytes = new Uint8Array(await response.arrayBuffer());
   if (bytes.length > 8 * 1024 * 1024) throw new Error("Фото больше 8 МБ — отправь его в обычном размере.");
