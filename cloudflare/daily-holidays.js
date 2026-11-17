@@ -120,17 +120,48 @@ function parseObject(value) {
 }
 
 
-function wrapHolidayTitle(value, maxChars = 13) {
-  const words = String(value || "").toLocaleUpperCase("ru").replace(/\s+/g, " ").trim().split(" ");
+const ROBOTO_BLACK_WIDTHS = {
+  А:.681,Б:.625,В:.645,Г:.558,Д:.742,Е:.560,Ё:.560,Ж:1.043,З:.629,И:.693,Й:.693,
+  К:.647,Л:.705,М:.876,Н:.703,О:.690,П:.704,Р:.651,С:.656,Т:.631,У:.633,Ф:.838,
+  Х:.639,Ц:.772,Ч:.699,Ш:.966,Щ:1.046,Ъ:.779,Ы:.872,Ь:.623,Э:.636,Ю:.972,Я:.572,
+  " ":.249,"-":.450
+};
+function robotoBlackWidth(value, fontSize) {
+  return Array.from(String(value || "")).reduce((sum, char) => sum + (ROBOTO_BLACK_WIDTHS[char] || .62) * fontSize, 0);
+}
+function wrapHolidayTitle(value, maxWidth = 430, fontSize = 76) {
+  const words = String(value || "").toLocaleUpperCase("ru").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
   const lines = [];
   let line = "";
   for (const word of words) {
+    if (robotoBlackWidth(word, fontSize) > maxWidth) {
+      if (line) { lines.push(line); line = ""; }
+      let chunk = "";
+      for (const char of Array.from(word)) {
+        const candidate = chunk + char;
+        if (chunk && robotoBlackWidth(candidate + "-", fontSize) > maxWidth) {
+          lines.push(chunk + "-");
+          chunk = char;
+        } else chunk = candidate;
+      }
+      line = chunk;
+      continue;
+    }
     const next = line ? line + " " + word : word;
-    if (line && next.length > maxChars) { lines.push(line); line = word; }
-    else line = next;
+    if (line && robotoBlackWidth(next, fontSize) > maxWidth) {
+      lines.push(line);
+      line = word;
+    } else line = next;
   }
   if (line) lines.push(line);
-  return lines.slice(0, 5);
+  return lines;
+}
+function fitHolidayTitle(value) {
+  for (let fontSize = 76; fontSize >= 42; fontSize -= 2) {
+    const lines = wrapHolidayTitle(value, 430, fontSize);
+    if (lines.length <= 4) return { lines, fontSize };
+  }
+  throw new Error("Название праздника слишком длинное для исходного шаблона. Черновик не отправлен.");
 }
 
 function holidayIllustration(title) {
@@ -158,20 +189,19 @@ async function loadHolidayFont() {
 async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationBase64) {
   const { ImageResponse } = await import("workers-og");
   const fontData = await loadHolidayFont();
-  const lines = wrapHolidayTitle(holidayTitle, 15);
-  const maxLineLength = Math.max(1, ...lines.map(line => line.length));
-  const baseFontSize = lines.length >= 5 ? 50 : lines.length === 4 ? 55 : 61;
-  const fontSize = Math.min(baseFontSize, Math.max(42, Math.floor(425 / (maxLineLength * 0.68))));
-  const lineHeight = Math.round(fontSize * 1.08);
+  const fittedTitle = fitHolidayTitle(holidayTitle);
+  const lines = fittedTitle.lines;
+  const fontSize = fittedTitle.fontSize;
+  const lineHeight = Math.round(fontSize * 1.16);
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:780px;top:' + (142 + index * lineHeight) + 'px;width:425px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:778px;top:' + (142 + index * lineHeight) + 'px;width:430px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
   // These two shapes exactly rebuild the original flat purple panel and its white circular corner.
   // This clears only the old date/title and old illustration; the left artwork and top-right crest stay untouched.
   const svg = '<svg width="1536" height="765" viewBox="0 0 1536 765" style="position:absolute;left:0;top:0"><path d="M770 20 H1220 V345 H1400 A320 320 0 0 0 1080 665 H770 Z" fill="#1a0b5c"/><path d="M1080 665 A320 320 0 0 1 1400 345 H1516 V765 H1080 Z" fill="#fff"/></svg>';
   const html = '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#1a0b5c"><img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px;object-fit:fill"/>' +
     svg +
-    '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:88px;color:#fff;font-family:Roboto Black,sans-serif;font-size:60px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
+    '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:88px;color:#fff;font-family:Roboto Black,sans-serif;font-size:68px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
     titleMarkup +
     '<img src="data:image/png;base64,' + illustrationBase64 + '" style="position:absolute;left:1200px;top:430px;width:310px;height:325px;object-fit:contain;object-position:center bottom"/>' +
     '</div>';
