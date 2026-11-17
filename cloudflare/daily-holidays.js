@@ -1,3 +1,5 @@
+import { handleSocialUpdate } from "./social-publisher.js";
+
 const API = "https://api.telegram.org/bot";
 const CHANNEL = "@dvizhenieschool9";
 const TEXT_MODEL = "@cf/google/gemma-4-26b-a4b-it";
@@ -11,6 +13,7 @@ function dailyMenuMarkup() {
   return {
     keyboard: [
       [{ text: "📝 Создать черновик" }],
+      [{ text: "✍️ Публикация" }, { text: "🎨 Шаблоны публикаций" }],
       [{ text: "📊 Проверить статус" }, { text: "🖼 Оригинальный шаблон" }],
     ],
     resize_keyboard: true,
@@ -655,6 +658,7 @@ async function saveTemplateFromTelegram(env, msg, adminId) {
 }
 
 async function processUpdate(env, item, adminId) {
+  if (await handleSocialUpdate(env, item, adminId)) return;
   if (item.callback_query) return callback(env, item, adminId);
   const msg = item.message;
   if (!msg || !msg.chat || msg.chat.type !== "private" || String(msg.chat.id) !== adminId || String(msg.from && msg.from.id) !== adminId) return;
