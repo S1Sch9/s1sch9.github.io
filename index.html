@@ -2258,23 +2258,130 @@ main > section.on .rv{
 
 
 <style id="s1-loader-logo-journey-2026">
-/* Оригинальный знак и фирменная подпись собираются в исходной композиции. */
-.s1-page-loader{overflow:hidden;background:radial-gradient(ellipse at 50% 47%,#fff 0%,#fff 52%,#fbf6f7 100%)!important}
-.s1-loader-journey{position:relative;inset:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;animation:s1-loader-pulse 2.8s ease-in-out 2.7s infinite}
-.s1-loader-journey svg{display:block;width:min(72vw,310px);height:min(72vw,310px);overflow:visible;flex:none}
-.s1-logo-piece{fill:#99002b;filter:drop-shadow(0 8px 13px rgba(80,0,22,.13));transform-box:fill-box;transform-origin:center}
-.s1-logo-arrow-piece{opacity:0;animation:s1-original-arrow-arrive 1.05s cubic-bezier(.16,1,.3,1) .08s forwards}
-.s1-logo-head-piece{opacity:0;animation:s1-original-head-arrive .88s cubic-bezier(.18,.9,.24,1) .34s forwards}
-.s1-logo-wordmark{fill:#99002b;opacity:0;filter:drop-shadow(0 3px 5px rgba(80,0,22,.08));animation:s1-original-wordmark-arrive .72s cubic-bezier(.16,1,.3,1) 1.02s forwards}
-.s1-loader-caption{fill:#99002b;font:800 19px Onest,system-ui,sans-serif;letter-spacing:2px;opacity:0;animation:s1-original-caption-arrive .58s cubic-bezier(.16,1,.3,1) 1.32s forwards}
-.s1-loader-progress{position:relative;width:112px;height:3px;margin-top:3px!important;overflow:hidden;border-radius:9px;background:#eee7e9}
-.s1-loader-progress span{display:block;width:38%;height:100%;border-radius:9px;background:linear-gradient(90deg,#8c1836,#c49a5c,#8c1836);background-size:200% 100%;animation:s1-loader-progress 1.35s ease-in-out infinite}
-@keyframes s1-original-arrow-arrive{0%{opacity:0;transform:translate(-110vw,55vh) rotate(-10deg) scale(.78)}65%{opacity:1;transform:translate(5px,-5px) rotate(1.5deg) scale(1.025)}82%{transform:translate(-2px,2px) rotate(-.5deg) scale(.99)}100%{opacity:1;transform:none}}
-@keyframes s1-original-head-arrive{0%{opacity:0;transform:translate(105vw,-55vh) scale(.42)}68%{opacity:1;transform:translate(-3px,5px) scale(1.08)}84%{transform:translate(1px,-2px) scale(.98)}100%{opacity:1;transform:none}}
-@keyframes s1-original-wordmark-arrive{0%{opacity:0;transform:translateX(110vw) scale(.92)}75%{opacity:1;transform:translateX(-3px) scale(1.02)}100%{opacity:1;transform:none}}
-@keyframes s1-original-caption-arrive{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
-@keyframes s1-loader-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
-@media(prefers-reduced-motion:reduce){.s1-logo-arrow-piece,.s1-logo-head-piece,.s1-logo-wordmark,.s1-loader-caption,.s1-loader-journey{animation:none!important}.s1-logo-arrow-piece,.s1-logo-head-piece,.s1-logo-wordmark,.s1-loader-caption{opacity:1!important;transform:none!important}}
+/* Полноэкранное появление оригинального фирменного знака. */
+.s1-page-loader{
+  overflow:hidden!important;
+  padding:0!important;
+  background:
+    radial-gradient(ellipse at 50% 48%,rgba(153,0,43,.075) 0%,rgba(153,0,43,.025) 34%,transparent 67%),
+    radial-gradient(ellipse at 50% 50%,#fff 0%,#fff 58%,#fbf6f7 100%)!important;
+}
+.s1-loader-journey{
+  position:relative;
+  width:100vw;
+  min-height:100vh;
+  min-height:100svh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(2px,.8vh,10px);
+  pointer-events:none;
+  animation:s1-loader-pulse 3.2s cubic-bezier(.45,0,.55,1) 2.25s infinite;
+}
+.s1-loader-journey svg{
+  display:block;
+  width:min(96vw,88vh,880px);
+  height:min(96vw,88vh,880px);
+  overflow:visible;
+  flex:none;
+}
+.s1-logo-piece{
+  fill:#99002b;
+  filter:drop-shadow(0 12px 20px rgba(80,0,22,.15));
+  transform-box:fill-box;
+  transform-origin:center;
+}
+.s1-logo-arrow-piece{
+  opacity:0;
+  animation:s1-fullscreen-arrow .98s cubic-bezier(.16,1,.3,1) .08s both;
+}
+.s1-logo-head-piece{
+  opacity:0;
+  animation:s1-fullscreen-circle .98s cubic-bezier(.16,1,.3,1) .12s both;
+}
+.s1-logo-wordmark{
+  fill:#99002b!important;
+  opacity:0;
+  filter:drop-shadow(0 4px 7px rgba(80,0,22,.09));
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:s1-fullscreen-wordmark .98s cubic-bezier(.16,1,.3,1) .12s both;
+}
+.s1-loader-caption{
+  fill:#99002b!important;
+  font:800 25px Onest,system-ui,sans-serif;
+  letter-spacing:2.4px;
+  opacity:0;
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:s1-fullscreen-caption .98s cubic-bezier(.16,1,.3,1) .12s both;
+}
+.s1-loader-progress{
+  position:relative;
+  width:clamp(112px,22vw,164px);
+  height:3px;
+  margin-top:clamp(8px,1.8vh,18px)!important;
+  overflow:hidden;
+  border-radius:9px;
+  background:#eee7e9;
+  opacity:0;
+  animation:s1-progress-appear .55s ease-out 1.02s both;
+}
+.s1-loader-progress span{
+  display:block;
+  width:38%;
+  height:100%;
+  border-radius:9px;
+  background:linear-gradient(90deg,#8c1836,#c49a5c,#8c1836);
+  background-size:200% 100%;
+  animation:s1-loader-progress 1.35s ease-in-out infinite;
+}
+@keyframes s1-fullscreen-arrow{
+  0%{opacity:0;transform:translate(-115vw,48vh) rotate(-16deg) scale(.42,.72)}
+  48%{opacity:1;transform:translate(2vw,-1vh) rotate(3deg) scale(1.12,.88)}
+  68%{transform:translate(-1vw,.5vh) rotate(-1.5deg) scale(.94,1.07)}
+  84%{transform:translate(.4vw,-.2vh) rotate(.4deg) scale(1.025,.985)}
+  100%{opacity:1;transform:none}
+}
+@keyframes s1-fullscreen-circle{
+  0%{opacity:0;transform:translate(112vw,-38vh) scale(.12,.5) rotate(38deg)}
+  48%{opacity:1;transform:translate(-1vw,1vh) scale(1.24,.78) rotate(-7deg)}
+  68%{transform:translate(.5vw,-.5vh) scale(.88,1.13) rotate(3deg)}
+  86%{transform:scale(1.045,.97) rotate(-1deg)}
+  100%{opacity:1;transform:none}
+}
+@keyframes s1-fullscreen-wordmark{
+  0%{opacity:0;transform:translateX(112vw) scaleX(.12) scaleY(.7)}
+  48%{opacity:1;transform:translateX(-1vw) scaleX(1.16) scaleY(.88)}
+  68%{transform:translateX(.5vw) scaleX(.91) scaleY(1.1)}
+  86%{transform:scaleX(1.035) scaleY(.98)}
+  100%{opacity:1;transform:none}
+}
+@keyframes s1-fullscreen-caption{
+  0%{opacity:0;transform:translateY(7vh) scaleX(.35) scaleY(.72);letter-spacing:9px}
+  48%{opacity:1;transform:translateY(-.5vh) scaleX(1.12) scaleY(1.08);letter-spacing:2.4px}
+  70%{transform:translateY(.25vh) scaleX(.96) scaleY(.96)}
+  100%{opacity:1;transform:none;letter-spacing:2.4px}
+}
+@keyframes s1-progress-appear{
+  from{opacity:0;transform:scaleX(.25)}
+  to{opacity:1;transform:scaleX(1)}
+}
+@keyframes s1-loader-pulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.018)}
+}
+@media(max-width:420px){
+  .s1-loader-caption{font-size:23px;letter-spacing:1.8px}
+}
+@media(orientation:landscape){
+  .s1-loader-journey svg{width:min(88vw,86vh,880px);height:min(88vw,86vh,880px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .s1-logo-arrow-piece,.s1-logo-head-piece,.s1-logo-wordmark,.s1-loader-caption,.s1-loader-journey,.s1-loader-progress{animation:none!important}
+  .s1-logo-arrow-piece,.s1-logo-head-piece,.s1-logo-wordmark,.s1-loader-caption,.s1-loader-progress{opacity:1!important;transform:none!important}
+}
 </style>
 </head>
 <body>
