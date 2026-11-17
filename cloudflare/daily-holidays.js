@@ -12,7 +12,6 @@ function dailyMenuMarkup() {
     keyboard: [
       [{ text: "📝 Создать черновик" }],
       [{ text: "📊 Проверить статус" }, { text: "🖼 Оригинальный шаблон" }],
-      [{ text: "ℹ️ Помощь" }]
     ],
     resize_keyboard: true,
     is_persistent: true,
