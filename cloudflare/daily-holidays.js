@@ -412,21 +412,19 @@ async function processUpdate(env, item, adminId) {
     await tg(env, "sendMessage", { chat_id: adminId, text: statusText });
     return;
   }
-  if (text === "/draft" || text === "/draft@" + String(env.SOVETTG_BOT_USERNAME || "").toLowerCase()) {
+  if (text === "/draft" || text.startsWith("/draft@")) {
+    await tables(env);
+    const date = localDate();
+    const current = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_requested'").first();
+    if (current && current.value) {
+      await tg(env, "sendMessage", { chat_id: adminId, text: "⏳ Запрос на подготовку уже стоит в очереди. Повторно запускать не нужно." });
+      return;
+    }
+    await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES ('manual_draft_requested', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(date).run();
     await tg(env, "sendMessage", {
       chat_id: adminId,
-      text: "⏳ Запускаю подготовку сегодняшнего черновика. Это может занять немного времени."
+      text: "⏳ Запрос принят. Подготовка запущена в фоновой задаче — она не зависит от времени жизни Telegram webhook. Я пришлю отдельное сообщение, когда черновик будет готов или если возникнет ошибка."
     });
-    const result = await makeDraft(env, true);
-    let statusText = "⚠️ Не удалось определить результат.";
-    if (result && result.ok) {
-      statusText = "✅ Черновик готов и отправлен выше. Проверь текст и картинку — в канал он попадёт только после нажатия «Опубликовать».";
-    } else if (result && result.stage === "already-processed") {
-      statusText = "На сегодня черновик уже обработан. Повторно он не отправлялся.";
-    } else if (result) {
-      statusText = "⚠️ Ошибка на этапе «" + result.stage + "»: " + result.error + "\nВ канал ничего не публиковалось.";
-    }
-    await tg(env, "sendMessage", { chat_id: adminId, text: statusText });
     return;
   }
   if (text === "/start" || text === "/help") {
@@ -494,5 +492,37 @@ export async function handleDailyWebhook(request, env, context) {
 
 export async function runDailyHolidayCron(controller, env) {
   if (!env || !env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.DB) return;
+  await tables(env);
+
+  // Manual requests run from the scheduled Worker invocation, not from
+  // webhook waitUntil (whose lifetime is too short for image generation).
+  const queued = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_requested'").first();
+  if (queued && queued.value && /^\\d{4}-\\d{2}-\\d{2}$/.test(queued.value)) {
+    const date = queued.value;
+    const lock = await env.DB.prepare("UPDATE daily_holiday_state SET value = ? WHERE key = 'manual_draft_requested' AND value = ?")
+      .bind("processing:" + date, date).run();
+    if (lock.meta && lock.meta.changes) {
+      let result;
+      try {
+        result = await makeDraft(env, true);
+        let message = result && result.ok
+          ? "✅ Черновик готов и отправлен выше. Проверь текст и картинку — в канал он попадёт только после нажатия «Опубликовать»."
+          : result && result.stage === "already-processed"
+            ? "ℹ️ Сегодняшний черновик уже обработан. Повторная отправка не выполнялась."
+            : "⚠️ Не удалось подготовить черновик" + (result && result.stage ? " на этапе «" + result.stage + "»" : "") + ": " + String(result && result.error || "неизвестная ошибка").slice(0, 220) + "\\nВ канал ничего не публиковалось.";
+        await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: message });
+      } catch (error) {
+        const detail = String(error && error.message ? error.message : "unknown error").slice(0, 180);
+        console.error("Manual daily draft job failed:", detail);
+        try {
+          await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Фоновая подготовка черновика завершилась ошибкой: " + detail + "\\nВ канал ничего не публиковалось." });
+        } catch {}
+      } finally {
+        await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_requested' AND value = ?")
+          .bind("processing:" + date).run();
+      }
+    }
+  }
+
   if (controller && controller.cron === DAILY_CRON) await makeDraft(env);
 }
