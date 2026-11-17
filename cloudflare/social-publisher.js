@@ -51,9 +51,12 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
   const councilLogo = await assetDataUrl(BRAND + "/official-logo.svg?v=20261114-final");
   const schoolCrest = await assetDataUrl(BRAND + "/gerb.png");
   const importantMark = await assetDataUrl(BRAND + "/vazhen.png");
-  const safeTitle = escapeHtml(title || "СОВЕТ ПЕРВЫХ");
-  const safeSubtitle = escapeHtml(subtitle || "Школы №9");
-  const isPhoto = Boolean(photoDataUrl);
+  const safeTitle = escapeHtml(title || "");
+  const safeSubtitle = escapeHtml(subtitle || "");
+  const isPhoto = type === "photo";
+  if (isPhoto && (!photoDataUrl || !String(photoDataUrl).startsWith("data:image/"))) {
+    throw new Error("Исходная фотография не загрузилась. Пустую карточку не отправляю.");
+  }
   const main = isPhoto
     ? '<div style="display:flex;position:absolute;left:54px;top:132px;width:1172px;height:454px;align-items:center;justify-content:center;background-color:#fff;border:4px solid #a1001f;border-radius:28px;padding:12px;box-sizing:border-box;box-shadow:0 18px 48px rgba(61,0,13,.18)"><img src="' + photoDataUrl + '" width="1140" height="422" style="width:1140px;height:422px;object-fit:contain;object-position:center;border-radius:18px" /></div>'
     : '<div style="display:flex;position:absolute;left:78px;top:142px;width:1124px;height:420px;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px;box-sizing:border-box;background-color:rgba(255,255,255,.88);border:3px solid #a1001f;border-radius:30px;box-shadow:0 18px 48px rgba(61,0,13,.12)"><div style="display:flex;font-size:22px;font-weight:700;letter-spacing:5px;color:#a1001f">СОВЕТ ПЕРВЫХ · ШКОЛА №9</div><div style="display:flex;font-size:64px;line-height:1.1;font-weight:800;color:#3d000d;margin-top:28px">' + safeTitle + '</div><div style="display:flex;font-size:28px;color:#745b65;margin-top:22px">' + safeSubtitle + '</div><div style="display:flex;width:120px;height:7px;background-color:#f0c869;margin-top:28px;border-radius:8px"></div></div>';
