@@ -1844,6 +1844,23 @@ body::before{filter:blur(16px)!important;opacity:.56!important}
 }
 </style>
 
+<style id="s1-settings-theme-switch-polish">
+.s1-theme-switch-row{min-height:76px}
+.s1-theme-switch-symbol{transition:background .25s ease,color .25s ease,transform .35s cubic-bezier(.2,.8,.2,1)}
+.s1-theme-switch-symbol svg{width:21px;height:21px}
+.s1-theme-switch-symbol .s1-theme-moon{display:none}
+.s1-theme-switch-symbol.is-dark{background:#30242e;color:#f4d68a;transform:rotate(-12deg)}
+.s1-theme-switch-symbol.is-dark .s1-theme-sun{display:none}
+.s1-theme-switch-symbol.is-dark .s1-theme-moon{display:block}
+.s1-theme-switch-row .s1-switch{width:58px;height:34px;background:#d8cfd2}
+.s1-theme-switch-row .s1-switch span{width:28px;height:28px;top:3px;left:3px}
+.s1-theme-switch-row .s1-switch.is-on{background:#8d1733}
+.s1-theme-switch-row .s1-switch.is-on span{transform:translateX(24px)}
+html[data-s1-theme="dark"] .s1-theme-switch-row{background:#241c22;border-color:#40323a}
+html[data-s1-theme="dark"] .s1-theme-switch-symbol{background:#3a2630;color:#ffdce4}
+html[data-s1-theme="dark"] .s1-theme-switch-symbol.is-dark{background:#463727;color:#f4d68a}
+@media(prefers-reduced-motion:reduce){.s1-theme-switch-symbol,.s1-theme-switch-row .s1-switch,.s1-theme-switch-row .s1-switch span{transition:none!important}}
+</style>
 </head>
 <body>
 <svg id="s1-floating-ribbons" aria-hidden="true" focusable="false" style="visibility:hidden" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
@@ -2296,9 +2313,13 @@ function openSiteSettings(){
   <div class="s1-settings-content">
    <div class="s1-setting-group">
     <div class="s1-setting-title"><b>Внешний вид</b><small>Выбери тему оформления</small></div>
-    <div class="s1-theme-options" role="group" aria-label="Тема оформления">
-     <button type="button" class="s1-theme-choice" data-s1-theme-choice="light" onclick="s1SetTheme('light')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-light"><i></i><i></i><i></i></span><b>Светлая</b></button>
-     <button type="button" class="s1-theme-choice" data-s1-theme-choice="dark" onclick="s1SetTheme('dark')" aria-pressed="false"><span class="s1-theme-preview s1-theme-preview-dark"><i></i><i></i><i></i></span><b>Тёмная</b></button>
+    <div class="s1-switch-row s1-theme-switch-row">
+     <span class="s1-switch-symbol s1-theme-switch-symbol" aria-hidden="true">
+      <svg class="s1-theme-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+      <svg class="s1-theme-moon" viewBox="0 0 24 24"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.7 8.7 0 1 0 20.2 15.1Z"/></svg>
+     </span>
+     <span class="s1-switch-copy"><b>Тёмная тема</b><small data-s1-theme-status>Выключена</small></span>
+     <button class="s1-switch" type="button" role="switch" aria-checked="false" aria-label="Тёмная тема" data-s1-theme-toggle onclick="s1SetTheme(S1_PREFS.theme==='dark'?'light':'dark')"><span></span></button>
     </div>
    </div>
    <div class="s1-setting-group">
@@ -2318,7 +2339,10 @@ function openSiteSettings(){
 }
 function s1RenderSettings(){
  const p=$("#pn");if(!p||!p.classList.contains("s1-settings-panel"))return;
- p.querySelectorAll("[data-s1-theme-choice]").forEach(b=>{const v=b.dataset.s1ThemeChoice===S1_PREFS.theme;b.classList.toggle("is-selected",v);b.setAttribute("aria-pressed",String(v));});
+ const themeToggle=p.querySelector("[data-s1-theme-toggle]");
+ if(themeToggle){const dark=S1_PREFS.theme==="dark";themeToggle.classList.toggle("is-on",dark);themeToggle.setAttribute("aria-checked",String(dark));}
+ const themeStatus=p.querySelector("[data-s1-theme-status]");if(themeStatus)themeStatus.textContent=S1_PREFS.theme==="dark"?"Включена":"Выключена";
+ const themeSymbol=p.querySelector(".s1-theme-switch-symbol");if(themeSymbol)themeSymbol.classList.toggle("is-dark",S1_PREFS.theme==="dark");
  p.querySelectorAll("[data-s1-text-choice]").forEach(b=>{const v=b.dataset.s1TextChoice===S1_PREFS.textSize;b.classList.toggle("is-selected",v);b.setAttribute("aria-pressed",String(v));});
  const toggle=p.querySelector("[data-s1-motion-toggle]");
  if(toggle){toggle.classList.toggle("is-on",!!S1_PREFS.motion);toggle.setAttribute("aria-checked",String(!!S1_PREFS.motion));}
@@ -2328,41 +2352,6 @@ function s1SetTheme(v){S1_PREFS.theme=v==="dark"?"dark":"light";s1SavePrefs();s1
 function s1SetMotion(v){S1_PREFS.motion=!!v;s1SavePrefs();s1RenderSettings();}
 function s1SetTextSize(v){S1_PREFS.textSize=v==="large"?"large":"normal";s1SavePrefs();s1RenderSettings();}
 function s1ResetPrefs(){S1_PREFS={...S1_DEFAULT_PREFS};s1SavePrefs();s1RenderSettings();}
-(function installThemeSwipe(){
- let start=null,locked=false;
- const ignored='input,textarea,select,button,a,[contenteditable="true"],nav,.day-showcase,.calendar-details,.news-comments-list,.news-comments-compose,.home-shortcuts-viewport,[data-no-theme-swipe]';
- const isIgnored=target=>target instanceof Element&&!!target.closest(ignored);
- const begin=e=>{
-  if(e.touches.length!==1||isIgnored(e.target)){start=null;locked=false;return;}
-  const t=e.touches[0];start={id:t.identifier,x:t.clientX,y:t.clientY};locked=false;
- };
- const move=e=>{
-  if(!start||e.touches.length!==1)return;
-  const t=Array.from(e.touches).find(x=>x.identifier===start.id);if(!t)return;
-  const dx=t.clientX-start.x,dy=t.clientY-start.y;
-  if(Math.abs(dy)>18&&Math.abs(dy)>Math.abs(dx)){start=null;locked=false;return;}
-  if(Math.abs(dx)>14&&Math.abs(dx)>Math.abs(dy)*1.2)locked=true;
-  if(locked&&e.cancelable)e.preventDefault();
- };
- const finish=e=>{
-  if(!start)return;
-  const t=Array.from(e.changedTouches).find(x=>x.identifier===start.id);
-  if(t&&locked){
-   const dx=t.clientX-start.x,dy=t.clientY-start.y;
-   if(Math.abs(dx)>=60&&Math.abs(dx)>Math.abs(dy)*1.35){
-    const next=dx<0?"dark":"light";
-    if(next!==S1_PREFS.theme)s1SetTheme(next);
-   }
-  }
-  start=null;locked=false;
- };
- const cancel=()=>{start=null;locked=false;};
- window.addEventListener("touchstart",begin,{passive:true,capture:true});
- window.addEventListener("touchmove",move,{passive:false,capture:true});
- window.addEventListener("touchend",finish,{passive:true,capture:true});
- window.addEventListener("touchcancel",cancel,{passive:true,capture:true});
-})();
-
 function openMoreMenu(){
   openSh(`
     <div class="more-menu-heading">
