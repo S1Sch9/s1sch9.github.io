@@ -1,0 +1,38 @@
+name: Update site build number
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "site-version.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-build-number
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Increment build number
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const file = 'site-version.json';
+          const version = JSON.parse(fs.readFileSync(file, 'utf8'));
+          version.build = Number(version.build || 0) + 1;
+          fs.writeFileSync(file, JSON.stringify(version, null, 2) + '\n');
+          NODE
+      - name: Commit build number
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site-version.json
+          git commit -m "chore: bump site build number"
+          git push
