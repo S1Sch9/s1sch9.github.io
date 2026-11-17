@@ -297,15 +297,15 @@ async function makeDraft(env, force = false) {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
     const post = [
-      "<b>Доброе утро! ☀️</b>",
-      "<b>Наша ежедневная рубрика «Праздник каждый день»!</b>",
-      "<b>" + escapeHtml(dateForPost) + "</b>",
-      "<b>" + escapeHtml(chosen.title) + "</b>",
-      escapeHtml(body),
-      "<b>Желаем вам отличного дня! 😊</b>",
-      '<b>👉 <a href="https://s1sch9.github.io/">С1Шк9.Сайт</a> | <a href="https://t.me/dvizhenieschool9">TGK</a> | <a href="https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI">MAX</a></b>'
+      "Доброе утро! ☀️",
+      "Наша ежедневная рубрика «Праздник каждый день»!",
+      dateForPost,
+      chosen.title,
+      body,
+      "Желаем вам отличного дня! 😊",
+      "👉 С1Шк9.Сайт: https://s1sch9.github.io/ | TGK: https://t.me/dvizhenieschool9 | MAX: https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI"
     ].join("\n\n");
-    if (post.replace(/<[^>]+>/g, "").length > 1024) throw new Error("Текст по утверждённому шаблону превышает лимит Telegram. Черновик не отправлен.");
+    if (post.length > 1024) throw new Error("Текст по утверждённому шаблону превышает лимит Telegram. Черновик не отправлен.");
 
     stage = "image-ai";
     const illustrationPrompt = [
@@ -341,7 +341,6 @@ async function makeDraft(env, force = false) {
     form.append("chat_id", String(env.TELEGRAM_ADMIN_ID));
     form.append("photo", new Blob([bytes], { type: "image/png" }), "holiday-" + date + ".png");
     form.append("caption", post);
-    form.append("parse_mode", "HTML");
     form.append("reply_markup", JSON.stringify(keyboard));
     stage = "telegram-sendPhoto";
     const sentResponse = await fetchWithTimeout(API + env.SOVETTG_BOT_TOKEN + "/sendPhoto", { method: "POST", body: form }, REQUEST_TIMEOUT_MS, "Отправка черновика в Telegram");
