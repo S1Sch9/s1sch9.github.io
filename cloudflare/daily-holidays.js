@@ -143,24 +143,50 @@ function holidayIllustration(title) {
   return '<g stroke="#21105f" stroke-width="9" stroke-linejoin="round"><path d="M44 100 L132 48 L220 100 V212 H44Z" fill="#65b9d4"/><path d="M44 100 L132 154 L220 100" fill="#ef6b59"/><path d="M132 48 V154" fill="none" stroke="#fff"/><path d="M132 20 L145 45 L173 49 L153 69 L158 98 L132 84 L106 98 L111 69 L91 49 L119 45Z" fill="#ffcf55"/></g>';
 }
 
-async function renderHolidayTemplate(template, dateLabel, holidayTitle) {
-  const { ImageResponse } = await import("workers-og");
-  const lines = wrapHolidayTitle(holidayTitle);
-  const fontSize = lines.length >= 5 ? 53 : lines.length === 4 ? 59 : 66;
-  const lineHeight = Math.round(fontSize * 1.08);
-  const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:780px;top:' + (142 + index * lineHeight) + 'px;width:420px;height:' + lineHeight + 'px;color:#fff;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap">' + escapeHtml(line) + '</div>'
-  ).join("");
-  const svg = '<svg width="1536" height="765" viewBox="0 0 1536 765" style="position:absolute;left:0;top:0"><path d="M770 20 H1220 V345 H1400 A320 320 0 0 0 1080 665 H770 Z" fill="#1b0d5b"/><path d="M1080 665 A320 320 0 0 1 1400 345 H1516 V765 H1080 Z" fill="#fff"/>' + '<g transform="translate(1230 465) scale(0.9)">' + holidayIllustration(holidayTitle) + '</g></svg>';
-  const html = '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#1b0d5b"><img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px"/>' +
-    svg +
-    '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:90px;color:#fff;font-family:Arial,sans-serif;font-size:62px;font-weight:900;line-height:1;white-space:nowrap">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
-    titleMarkup +
-    '</div>';
-  const rendered = new ImageResponse(html, { width: 1536, height: 765 });
-  return new Uint8Array(await rendered.arrayBuffer());
+async function loadHolidayFont() {
+  const cssResponse = await fetchWithTimeout(
+    "https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@900",
+    { headers: { "User-Agent": "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" } },
+    REQUEST_TIMEOUT_MS,
+    "Загрузка шрифта"
+  );
+  if (!cssResponse.ok) throw new Error("Не удалось загрузить шрифт Roboto Condensed.");
+  const css = await cssResponse.text();
+  const blocks = [...css.matchAll(/@font-face\\s*\\{([^}]+)\\}/g)].map(match => match[1]);
+  const cyrillicBlock = blocks.find(block => /unicode-range:[^}]*U\\+0400/i.test(block)) ||
+    blocks.find(block => /unicode-range:[^}]*U\\+04/i.test(block));
+  const fontBlock = cyrillicBlock || blocks[0] || "";
+  const fontUrl = fontBlock.match(/url\\((https:\\/\\/[^)]+)\\)\\s*format\\(['"](?:truetype|opentype)['"]\\)/i) ||
+    fontBlock.match(/url\\((https:\\/\\/[^)]+)\\)/i);
+  if (!fontUrl) throw new Error("Не найден файл кириллического шрифта Roboto Condensed.");
+  const fontResponse = await fetchWithTimeout(fontUrl[1], {}, REQUEST_TIMEOUT_MS, "Загрузка файла шрифта");
+  if (!fontResponse.ok) throw new Error("Файл шрифта недоступен.");
+  return await fontResponse.arrayBuffer();
 }
 
+async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationBase64) {
+  const { ImageResponse } = await import("workers-og");
+  const fontData = await loadHolidayFont();
+  const lines = wrapHolidayTitle(holidayTitle, 15);
+  const fontSize = lines.length >= 5 ? 50 : lines.length === 4 ? 55 : 61;
+  const lineHeight = Math.round(fontSize * 1.08);
+  const titleMarkup = lines.map((line, index) =>
+    '<div style="display:flex;position:absolute;left:780px;top:' + (142 + index * lineHeight) + 'px;width:425px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Condensed,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+  ).join("");
+  const svg = '<svg width="1536" height="765" viewBox="0 0 1536 765" style="position:absolute;left:0;top:0"><path d="M770 20 H1220 V345 H1400 A320 320 0 0 0 1080 665 H770 Z" fill="#1b0d5b"/><path d="M1080 665 A320 320 0 0 1 1400 345 H1516 V765 H1080 Z" fill="#fff"/></svg>';
+  const html = '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#1b0d5b"><img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px;object-fit:fill"/>' +
+    svg +
+    '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:88px;color:#fff;font-family:Roboto Condensed,sans-serif;font-size:60px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
+    titleMarkup +
+    '<img src="data:image/jpeg;base64,' + illustrationBase64 + '" style="position:absolute;left:1188px;top:420px;width:330px;height:340px;object-fit:contain;object-position:center bottom"/>' +
+    '</div>';
+  const rendered = new ImageResponse(html, {
+    width: 1536,
+    height: 765,
+    fonts: [{ name: "Roboto Condensed", data: fontData, weight: 900, style: "normal" }]
+  });
+  return new Uint8Array(await rendered.arrayBuffer());
+}
 function escapeHtml(value) {
   return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
@@ -242,11 +268,32 @@ async function makeDraft(env, force = false) {
     const imagePrompt = String(draft.image_prompt || "").slice(0, 1700);
     if (post.length < 80 || imagePrompt.length < 30) throw new Error("Incomplete AI draft");
 
+    stage = "image-ai";
+    const illustrationPrompt = [
+      imagePrompt,
+      "Create one small standalone corner illustration for a Russian school holiday poster.",
+      "Style: warm, polished hand-drawn editorial cartoon with gentle watercolor texture, clean confident outlines and friendly expressive characters.",
+      "Background must be pure solid white (#FFFFFF), evenly lit, with no frame, no shadow outside the subject.",
+      "No text, no letters, no numbers, no logos, no watermark, no poster layout.",
+      "Show only the holiday-related subject, centered, with clear silhouette and enough white margin around it."
+    ].join(" ").slice(0, 2048);
+    const illustrationResult = await withTimeout(env.AI.run(IMAGE_MODEL, {
+      prompt: illustrationPrompt,
+      steps: 4
+    }), AI_TIMEOUT_MS, "Генерация тематической иллюстрации");
+    if (!illustrationResult || typeof illustrationResult.image !== "string" || illustrationResult.image.length < 4000) {
+      throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
+    }
+
     stage = "template-render";
     const dateForImage = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
-    const bytes = await withTimeout(renderHolidayTemplate(template, dateForImage, chosen.title), REQUEST_TIMEOUT_MS, "Сборка изображения");
+    const bytes = await withTimeout(
+      renderHolidayTemplate(template, dateForImage, chosen.title, illustrationResult.image),
+      REQUEST_TIMEOUT_MS,
+      "Сборка изображения"
+    );
     const keyboard = { inline_keyboard: [[
       { text: "✅ Опубликовать", callback_data: "publish:" + date },
       { text: "✖️ Отклонить", callback_data: "skip:" + date }
