@@ -147,9 +147,9 @@ details.rules summary{font-weight:700;color:var(--ink);cursor:pointer}details.ru
 .link i{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-style:normal;font-size:22px;color:#fff;flex:none}.link i svg{width:26px;height:26px;display:block}.link i img{width:100%;height:100%;display:block;object-fit:contain}.link.school i{background:#fff;padding:3px}
 /* Обновлённая главная — фирменная обложка и быстрые разделы */
 .home-hero{position:relative;isolation:isolate;overflow:hidden;margin:7px 0 22px;padding:22px 20px 18px;border-radius:29px;color:#fff;background:linear-gradient(145deg,#b4002c 0%,#79001b 58%,#3d000d 100%);box-shadow:0 14px 32px rgba(83,0,22,.16)}
-.home-hero:before,.home-hero:after{content:"";position:absolute;z-index:-1;border-radius:50%;pointer-events:none}
-.home-hero:before{width:230px;height:230px;right:-110px;top:-125px;background:rgba(255,255,255,.15);filter:blur(2px)}
-.home-hero:after{width:170px;height:170px;left:-100px;bottom:-120px;background:rgba(240,200,105,.23);filter:blur(8px)}
+/* Декоративное свечение встроено в фон: без размытых псевдоэлементов, которые на iOS могли давать квадратные артефакты у скруглений. */
+.home-hero{background:radial-gradient(ellipse 155px 125px at 0% 100%,rgba(240,200,105,.12) 0%,rgba(240,200,105,.065) 35%,rgba(240,200,105,0) 76%),radial-gradient(ellipse 180px 150px at 100% 0%,rgba(255,255,255,.11) 0%,rgba(255,255,255,0) 74%),linear-gradient(145deg,#b4002c 0%,#79001b 58%,#3d000d 100%)}
+.home-hero:before,.home-hero:after{content:none!important}
 .home-eyebrow{display:flex;align-items:center;gap:8px;color:#f5d98e;font-size:9px;font-weight:900;letter-spacing:1.35px;margin-bottom:18px}
 .home-eyebrow span{width:7px;height:7px;border-radius:50%;background:#f0c869;box-shadow:0 0 0 4px rgba(240,200,105,.15)}
 .home-brand{display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;gap:15px}
