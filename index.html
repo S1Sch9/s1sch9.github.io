@@ -1976,14 +1976,25 @@ body.s1-motion-off #gm.on iframe{
 
 
 <style id="s1-burgundy-card-and-loader-corner-fix">
-/* Скругляем только сами поверхности. Не используем clip-path и не обрезаем внешние тени. */
-.home-hero{border-radius:29px!important}
-.hero{border-radius:30px!important}
-.day-showcase{border-radius:27px!important}
-#games .game{border-radius:19px!important}
-/* У логотипа сохраняем исходную видимую область и внешнюю тень; скругляем только изображение. */
-.s1-loader-mark{overflow:visible!important;border-radius:28px!important}
-.s1-loader-mark img{display:block;border-radius:28px!important}
+/* Мягкие многослойные тени повторяют скругление самих карточек.
+   Радиусы, overflow и анимации исходных элементов не переопределяем. */
+.home-hero{
+  box-shadow:0 18px 46px rgba(83,0,22,.13),0 5px 16px rgba(83,0,22,.07)!important;
+}
+.hero{
+  box-shadow:0 18px 48px rgba(61,0,13,.16),0 5px 16px rgba(61,0,13,.08)!important;
+}
+.day-showcase{
+  box-shadow:0 16px 42px rgba(61,0,13,.075),0 4px 13px rgba(61,0,13,.035)!important;
+}
+#games .game{
+  box-shadow:0 16px 40px rgba(61,0,13,.085),0 4px 13px rgba(61,0,13,.04)!important;
+}
+/* Меняем только мягкость тени загрузочного логотипа.
+   Его исходные анимации, изображение и drop-shadow остаются нетронутыми. */
+.s1-loader-mark{
+  box-shadow:0 16px 42px rgba(61,0,13,.12),0 4px 14px rgba(61,0,13,.055)!important;
+}
 </style>
 </head>
 <body>
