@@ -71,6 +71,79 @@ function localDate() {
   return p.year + "-" + p.month + "-" + p.day;
 }
 
+function shiftDate(date, days) {
+  const [year, month, day] = date.split("-").map(Number);
+  const value = new Date(Date.UTC(year, month - 1, day + days));
+  return value.getUTCFullYear() + "-" +
+    String(value.getUTCMonth() + 1).padStart(2, "0") + "-" +
+    String(value.getUTCDate()).padStart(2, "0");
+}
+
+function validIsoDate(value) {
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(value || ""))) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day;
+}
+
+function parseDateInput(value) {
+  const input = String(value || "").trim();
+  let match = input.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})$/);
+  if (match) {
+    const date = match[1] + "-" + match[2].padStart(2, "0") + "-" + match[3].padStart(2, "0");
+    return validIsoDate(date) ? date : null;
+  }
+  match = input.match(/^(\\d{1,2})[.\\/-](\\d{1,2})[.\\/-](\\d{4})$/);
+  if (!match) return null;
+  const date = match[3] + "-" + match[2].padStart(2, "0") + "-" + match[1].padStart(2, "0");
+  return validIsoDate(date) ? date : null;
+}
+
+function formatHolidayDate(date) {
+  return new Intl.DateTimeFormat("ru-RU", {
+    timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric"
+  }).format(new Date(date + "T12:00:00+03:00"));
+}
+
+async function queueManualDraft(env, adminId, date) {
+  await tables(env);
+  if (!validIsoDate(date) || date < localDate()) {
+    await tg(env, "sendMessage", {
+      chat_id: adminId,
+      text: "⚠️ Можно выбрать сегодняшнюю или будущую дату. Проверь дату и попробуй ещё раз.",
+      reply_markup: dailyMenuMarkup()
+    });
+    return { ok: false, reason: "invalid-date" };
+  }
+  const existing = await env.DB.prepare("SELECT status FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
+  if (existing && ["published", "publishing"].includes(existing.status)) {
+    await tg(env, "sendMessage", {
+      chat_id: adminId,
+      text: "ℹ️ На " + formatHolidayDate(date) + " публикация уже размещена или сейчас публикуется. Повторная генерация не запущена.",
+      reply_markup: dailyMenuMarkup()
+    });
+    return { ok: false, reason: "already-published" };
+  }
+  const lock = await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES ('manual_draft_requested', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value WHERE daily_holiday_state.value = ''")
+    .bind(date).run();
+  if (!lock.meta || !lock.meta.changes) {
+    await tg(env, "sendMessage", {
+      chat_id: adminId,
+      text: "⏳ Сейчас уже обрабатывается другой запрос. Дождись готового черновика, затем можно выбрать следующую дату.",
+      reply_markup: dailyMenuMarkup()
+    });
+    return { ok: false, reason: "busy" };
+  }
+  await tg(env, "sendMessage", {
+    chat_id: adminId,
+    text: "⏳ Запрос принят. Готовлю черновик на " + formatHolidayDate(date) + ". Когда он будет готов, пришлю его сюда. В канал он попадёт только после твоего нажатия «Опубликовать».",
+    reply_markup: dailyMenuMarkup()
+  });
+  return { ok: true, date };
+}
+
 function plain(html) {
   return String(html || "").replace(/<[^>]*>/g, " ")
     .replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&quot;/gi, '"')
@@ -239,7 +312,7 @@ function escapeHtml(value) {
   return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-async function makeDraft(env, force = false) {
+async function makeDraft(env, force = false, requestedDate = null) {
   if (!env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.AI || !env.DB) {
     return { ok: false, stage: "configuration", error: "Не настроены обязательные параметры Worker." };
   }
@@ -248,15 +321,16 @@ async function makeDraft(env, force = false) {
   if (!template || !template.content_base64 || !["image/png", "image/jpeg"].includes(template.mime_type)) {
     return { ok: false, stage: "template", error: "Оригинальный шаблон не найден или повреждён. Черновик не отправлен." };
   }
-  const date = localDate();
+  const date = requestedDate || localDate();
+  if (!validIsoDate(date) || date < localDate()) return { ok: false, stage: "date", error: "Выбрана некорректная или прошедшая дата." };
   const old = await env.DB.prepare("SELECT status, created_at, chat_id, message_id FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
   if (old && ["publishing", "published"].includes(old.status)) {
     return { ok: false, stage: "already-processed", error: old.status === "published"
-      ? "Сегодняшняя публикация уже размещена в канале. Повторная публикация заблокирована."
-      : "Сегодняшняя публикация сейчас обрабатывается. Повторный запуск заблокирован." };
+      ? "Публикация на выбранную дату уже размещена в канале. Повторная публикация заблокирована."
+      : "Публикация на выбранную дату сейчас обрабатывается. Повторный запуск заблокирован." };
   }
   if (!force && old && ["pending", "skipped"].includes(old.status)) {
-    return { ok: false, stage: "already-processed", error: "Черновик на сегодня уже создан или отклонён. Для повторной подготовки используй /draft." };
+    return { ok: false, stage: "already-processed", error: "Черновик на выбранную дату уже создан или отклонён. Для повторной подготовки выбери эту дату в меню ещё раз." };
   }
   if (force && old && old.status === "pending" && old.message_id) {
     try {
