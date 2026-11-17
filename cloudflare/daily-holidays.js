@@ -67,19 +67,26 @@ function parseObject(value) {
   return JSON.parse(s.slice(a, b + 1));
 }
 
-async function makeDraft(env) {
-  if (!env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.AI || !env.DB) return;
+async function makeDraft(env, force = false) {
+  if (!env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.AI || !env.DB) {
+    return { ok: false, stage: "configuration", error: "Не настроены обязательные параметры Worker." };
+  }
   await tables(env);
   const date = localDate();
   const old = await env.DB.prepare("SELECT status, created_at FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
-  if (old && ["pending", "publishing", "published", "skipped"].includes(old.status)) return;
-  if (old && ["generating", "failed"].includes(old.status) && Date.now() / 1000 - old.created_at < 1800) return;
+  if (old && ["pending", "publishing", "published", "skipped"].includes(old.status)) {
+    return { ok: false, stage: "already-processed", error: "Черновик на сегодня уже обработан." };
+  }
+  if (!force && old && ["generating", "failed"].includes(old.status) && Date.now() / 1000 - old.created_at < 1800) {
+    return { ok: false, stage: "cooldown", error: "Недавно уже была попытка. Для ручной проверки используй /draft." };
+  }
+  let stage = "calendar";
   await env.DB.prepare("INSERT INTO daily_holiday_drafts (date, chat_id, status, created_at) VALUES (?, ?, 'generating', ?) ON CONFLICT(date) DO UPDATE SET chat_id=excluded.chat_id, message_id=NULL, status='generating', created_at=excluded.created_at")
     .bind(date, String(env.TELEGRAM_ADMIN_ID), Math.floor(Date.now() / 1000)).run();
 
   try {
     const list = await candidatesFor(date);
-    if (!list.length) throw new Error("No holiday candidates");
+    if (!list.length) throw new Error("На сайте календаря не найдены праздники для этой даты.");
     const dateLabel = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric", weekday: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
@@ -92,6 +99,7 @@ async function makeDraft(env) {
       "Для картинки: выразительная праздничная редакционная иллюстрация, глубокий фиолетовый фон, белые и золотистые акценты, мягкое освещение; без текста, букв, логотипов и водяных знаков.",
       "Список: " + JSON.stringify(list)
     ].join("\n");
+    stage = "text-ai";
     const answer = await env.AI.run(TEXT_MODEL, {
       messages: [
         { role: "system", content: "Пиши грамотно, не выдумывай факты. Ответ — только JSON." },
@@ -109,12 +117,15 @@ async function makeDraft(env) {
     const imagePrompt = String(draft.image_prompt || "").slice(0, 1700);
     if (post.length < 80 || imagePrompt.length < 30) throw new Error("Incomplete AI draft");
 
+    stage = "image-ai";
     const picture = await env.AI.run(IMAGE_MODEL, {
       prompt: imagePrompt + ". Square composition, high quality, no text, no letters, no logo, no watermark.",
       steps: 4,
       seed: Math.floor(Date.now() / 1000) % 2147483647
     });
-    if (!picture || !picture.image) throw new Error("Image generation failed");
+    if (!picture || typeof picture.image !== "string" || !picture.image.length) {
+      throw new Error("Модель изображения вернула пустой результат.");
+    }
     const bytes = Uint8Array.from(atob(picture.image), c => c.charCodeAt(0));
     const keyboard = { inline_keyboard: [[
       { text: "✅ Опубликовать", callback_data: "publish:" + date },
@@ -125,14 +136,20 @@ async function makeDraft(env) {
     form.append("photo", new Blob([bytes], { type: "image/jpeg" }), "holiday-" + date + ".jpg");
     form.append("caption", (post + "\n\nИсточник календаря: " + chosen.url).slice(0, 1024));
     form.append("reply_markup", JSON.stringify(keyboard));
+    stage = "telegram-sendPhoto";
     const sentResponse = await fetch(API + env.SOVETTG_BOT_TOKEN + "/sendPhoto", { method: "POST", body: form });
     const sent = await sentResponse.json();
-    if (!sentResponse.ok || !sent.ok || !sent.result || !sent.result.message_id) throw new Error("Draft delivery failed");
+    if (!sentResponse.ok || !sent.ok || !sent.result || !sent.result.message_id) {
+      throw new Error("Telegram sendPhoto: " + String(sent.description || sentResponse.status).slice(0, 180));
+    }
     await env.DB.prepare("UPDATE daily_holiday_drafts SET message_id = ?, status = 'pending', holiday_title = ?, source_url = ? WHERE date = ?")
       .bind(sent.result.message_id, chosen.title, chosen.url, date).run();
+    return { ok: true, title: chosen.title };
   } catch (error) {
     await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'failed' WHERE date = ?").bind(date).run();
-    console.error("Daily post generation failed:", error && error.message ? error.message : "unknown error");
+    const detail = String(error && error.message ? error.message : "Неизвестная ошибка").slice(0, 220);
+    console.error("Daily post generation failed at " + stage + ":", detail);
+    return { ok: false, stage, error: detail };
   }
 }
 
@@ -189,13 +206,15 @@ async function processUpdate(env, item, adminId) {
       chat_id: adminId,
       text: "⏳ Запускаю подготовку сегодняшнего черновика. Это может занять немного времени."
     });
-    await makeDraft(env);
-    const row = await env.DB.prepare("SELECT status, holiday_title FROM daily_holiday_drafts WHERE date = ?").bind(localDate()).first();
-    let statusText = "Не удалось определить результат. Проверьте попытку чуть позже.";
-    if (row && row.status === "pending") statusText = "✅ Черновик готов и отправлен выше. Проверь текст и картинку — в канал он попадёт только после нажатия «Опубликовать».";
-    else if (row && row.status === "failed") statusText = "⚠️ Не получилось подготовить черновик. Я записал ошибку в журнал Worker; публикации в канал не было.";
-    else if (row && ["published", "skipped"].includes(row.status)) statusText = "На сегодня черновик уже обработан (" + (row.status === "published" ? "опубликован" : "отклонён") + "). Повторно он не отправлялся.";
-    else if (row && row.status === "generating") statusText = "Черновик ещё готовится. Подожди немного.";
+    const result = await makeDraft(env, true);
+    let statusText = "⚠️ Не удалось определить результат.";
+    if (result && result.ok) {
+      statusText = "✅ Черновик готов и отправлен выше. Проверь текст и картинку — в канал он попадёт только после нажатия «Опубликовать».";
+    } else if (result && result.stage === "already-processed") {
+      statusText = "На сегодня черновик уже обработан. Повторно он не отправлялся.";
+    } else if (result) {
+      statusText = "⚠️ Ошибка на этапе «" + result.stage + "»: " + result.error + "\nВ канал ничего не публиковалось.";
+    }
     await tg(env, "sendMessage", { chat_id: adminId, text: statusText });
     return;
   }
