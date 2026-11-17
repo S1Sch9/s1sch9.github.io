@@ -1,4 +1,4 @@
-import { handleSocialUpdate } from "./social-publisher.js";
+import { handleSocialUpdate, processQueuedSocialPhotos } from "./social-publisher.js";
 
 const API = "https://api.telegram.org/bot";
 const CHANNEL = "@dvizhenieschool9";
@@ -891,6 +891,11 @@ export async function handleDailyWebhook(request, env, context) {
 export async function runDailyHolidayCron(controller, env) {
   if (!env || !env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.DB) return;
   await tables(env);
+
+  // Process at most one queued photo per scheduled invocation; image rendering
+  // must not run inside the short-lived Telegram webhook waitUntil task.
+  try { await processQueuedSocialPhotos(env); }
+  catch (error) { console.error("Queued social photo processing failed:", error && error.message ? error.message : "unknown error"); }
 
   // Publish approved future-dated drafts at 06:00 Moscow time.
   const nowSeconds = Math.floor(Date.now() / 1000);
