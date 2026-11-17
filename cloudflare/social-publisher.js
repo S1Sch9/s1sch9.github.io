@@ -1,4 +1,7 @@
+import { ImageResponse } from "workers-og";
+
 const API = "https://api.telegram.org/bot";
+const BRAND = "https://s1sch9.github.io";
 const CHANNEL = "@dvizhenieschool9";
 
 async function tg(env, method, payload) {
@@ -10,6 +13,53 @@ async function tg(env, method, payload) {
   const data = await response.json();
   if (!response.ok || !data.ok) throw new Error("Telegram " + method + " failed");
   return data.result;
+}
+
+
+async function tgMultipart(env, method, form) {
+  const response = await fetch(API + env.SOVETTG_BOT_TOKEN + "/" + method, { method: "POST", body: form });
+  const data = await response.json();
+  if (!response.ok || !data.ok) throw new Error("Telegram " + method + " failed");
+  return data.result;
+}
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+}
+async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
+  const councilLogo = BRAND + "/logo-soveta-pervykh.png";
+  const schoolCrest = BRAND + "/school9-emblem.png";
+  const safeTitle = escapeHtml(title || "СОВЕТ ПЕРВЫХ");
+  const safeSubtitle = escapeHtml(subtitle || "Школы №9");
+  const photo = photoDataUrl ? '<img src="' + photoDataUrl + '" style="position:absolute;left:0;top:0;width:1280px;height:600px;object-fit:cover" />' : "";
+  const shade = photoDataUrl ? '<div style="position:absolute;left:0;top:0;width:1280px;height:600px;background:linear-gradient(90deg,rgba(40,0,15,.78),rgba(40,0,15,.08))"></div>' : "";
+  const titleColor = photoDataUrl ? "#ffffff" : "#3d000d";
+  const html = '<div style="display:flex;flex-direction:column;position:relative;width:1280px;height:720px;background:#fbf9fa;font-family:Arial,sans-serif;overflow:hidden">' +
+    photo + shade +
+    '<div style="display:flex;position:absolute;left:0;top:0;width:100%;height:600px;padding:64px 76px;box-sizing:border-box;flex-direction:column;justify-content:space-between">' +
+    '<div style="display:flex;align-items:center;gap:18px"><div style="width:9px;height:46px;background:#a1001f"></div><div style="font-size:22px;font-weight:700;letter-spacing:4px;color:' + titleColor + '">СОВЕТ ПЕРВЫХ  /  ШКОЛА №9</div></div>' +
+    '<div style="display:flex;flex-direction:column;gap:20px;max-width:1050px"><div style="font-size:62px;line-height:1.12;font-weight:800;color:' + titleColor + '">' + safeTitle + '</div><div style="font-size:27px;color:' + titleColor + '">' + safeSubtitle + '</div><div style="width:100px;height:7px;background:#f0c869"></div></div></div>' +
+    '<div style="display:flex;position:absolute;left:0;bottom:0;width:100%;height:120px;background:#fff;border-top:3px solid #a1001f;align-items:center;justify-content:space-between;padding:0 54px;box-sizing:border-box">' +
+    '<div style="display:flex;align-items:center;gap:18px"><img src="' + councilLogo + '" style="width:76px;height:76px;object-fit:contain" /><div style="display:flex;flex-direction:column"><div style="font-size:24px;font-weight:800;color:#3d000d">СОВЕТ ПЕРВЫХ</div><div style="font-size:18px;color:#745b65">ШКОЛЫ №9</div></div></div>' +
+    '<div style="display:flex;align-items:center;gap:16px"><div style="font-size:16px;color:#806b74">' + (type === "video" ? "ВИДЕО" : type === "photo" ? "ФОТОРЕПОРТАЖ" : "НОВОСТИ") + '</div><img src="' + schoolCrest + '" style="width:78px;height:78px;object-fit:contain" /></div></div></div>';
+  const response = new ImageResponse(html, { width:1280, height:720 });
+  return new Uint8Array(await response.arrayBuffer());
+}
+async function telegramImageData(env, fileId) {
+  const info = await tg(env, "getFile", { file_id:fileId });
+  const response = await fetch("https://api.telegram.org/file/bot" + env.SOVETTG_BOT_TOKEN + "/" + info.file_path);
+  if (!response.ok) throw new Error("Не удалось загрузить фотографию из Telegram.");
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (bytes.length > 8 * 1024 * 1024) throw new Error("Фото больше 8 МБ — отправь его в обычном размере.");
+  let binary = "";
+  for (let i=0;i<bytes.length;i+=0x8000) binary += String.fromCharCode(...bytes.subarray(i,i+0x8000));
+  return "data:" + (response.headers.get("content-type") || "image/jpeg") + ";base64," + btoa(binary);
+}
+async function sendBrandedPhoto(env, chatId, bytes, caption) {
+  const form = new FormData();
+  form.append("chat_id", String(chatId));
+  form.append("photo", new Blob([bytes], {type:"image/png"}), "s1sch9-brand.png");
+  if (caption) form.append("caption", caption.slice(0,1024));
+  return tgMultipart(env, "sendPhoto", form);
 }
 
 async function ensureTables(env) {
@@ -196,14 +246,23 @@ async function handleSocialUpdate(env, item, adminId) {
     const rawCaption = String(msg.caption || text || "").trim();
     const caption = captionFor(type, template.id, rawCaption);
     let preview;
+    const title = rawCaption.split(/[.!?\\n]/)[0].slice(0, 58) || (type === "video" ? "События Совета" : "Новости и события");
     if (type === "post") {
-      preview = await tg(env, "sendMessage", { chat_id: adminId, text: caption, reply_markup: { inline_keyboard: [] } });
+      const card = await renderBrandCard({ type, title, subtitle:"Новости и события школьного Совета" });
+      preview = await sendBrandedPhoto(env, adminId, card, caption);
+    } else if (type === "photo") {
+      const photo = msg.photo[msg.photo.length - 1];
+      const dataUrl = await telegramImageData(env, photo.file_id);
+      const card = await renderBrandCard({ type, title, subtitle:rawCaption || "События и инициативы Совета", photoDataUrl:dataUrl });
+      preview = await sendBrandedPhoto(env, adminId, card, caption);
     } else {
-      const copied = await tg(env, "copyMessage", {
-        chat_id: adminId, from_chat_id: adminId, message_id: msg.message_id,
-        caption: caption.slice(0, 1024)
-      });
-      preview = copied;
+      const cover = await renderBrandCard({ type, title, subtitle:rawCaption || "Смотрите видео" });
+      const form = new FormData();
+      form.append("chat_id", String(adminId));
+      form.append("video", msg.video.file_id);
+      form.append("thumbnail", new Blob([cover], {type:"image/png"}), "s1sch9-video-cover.png");
+      form.append("caption", caption.slice(0,1024));
+      preview = await tgMultipart(env, "sendVideo", form);
     }
     const id = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?)")
       .bind(type, msg.message_id, preview.message_id, template.id, "pending", Math.floor(Date.now()/1000)).run();
