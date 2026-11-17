@@ -1890,6 +1890,34 @@ body.s1-motion-off *{transition:none!important}
  .s1-page-loader{transition:none!important}
 }
 </style>
+
+<style id="s1-section-open-motion-2026">
+/* Плавное появление разделов — без изменения их размеров и расположения. */
+main > section.on{
+  animation:s1SectionOpen .56s cubic-bezier(.22,.78,.22,1) both;
+  transform-origin:50% 0;
+}
+@keyframes s1SectionOpen{
+  from{opacity:0;transform:translate3d(0,18px,0) scale(.988)}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+/* Карточки и другие элементы с классом rv появляются последовательно. */
+main > section.on .rv{
+  animation:s1SectionItemIn .48s cubic-bezier(.2,.78,.2,1) both;
+  animation-delay:calc(min(var(--i,0),8)*48ms);
+}
+@keyframes s1SectionItemIn{
+  from{opacity:0;transform:translate3d(0,12px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+@media(prefers-reduced-motion:reduce){
+  main > section.on,
+  main > section.on .rv{
+    animation:none!important;
+    transform:none!important;
+  }
+}
+</style>
 </head>
 <body>
 <div id="s1-page-loader" class="s1-page-loader" role="status" aria-label="Загрузка сайта">
