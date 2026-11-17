@@ -210,7 +210,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
     '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:88px;color:#fff;font-family:Roboto Black,sans-serif;font-size:68px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
     titleMarkup +
     '<div style="display:flex;position:absolute;left:1080px;top:345px;width:640px;height:640px;background:#fff;border-radius:50%;overflow:hidden">' +
-    '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;position:absolute;left:44px;top:44px;width:552px;height:552px;object-fit:contain;border-radius:50%"/>' +
+    '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;position:absolute;left:83px;top:64px;width:330px;height:330px;object-fit:contain;border-radius:50%"/>' +
     '</div>' +
     '</div>';
   const rendered = new ImageResponse(html, {
