@@ -768,7 +768,7 @@ async function processUpdate(env, item, adminId) {
     const queuedDate = validIsoDate(queuedValue) ? queuedValue : "";
     const processingMatch = queuedValue.match(/^processing:(\d{4}-\d{2}-\d{2})(?::(\d+))?$/);
     const statusDate = queuedDate || (processingMatch ? processingMatch[1] : date);
-    const row = await env.DB.prepare("SELECT status, created_at, holiday_title, message_id FROM daily_holiday_drafts WHERE date = ?").bind(statusDate).first();
+    const row = await env.DB.prepare("SELECT status, created_at, holiday_title, message_id, scheduled_publish_at FROM daily_holiday_drafts WHERE date = ?").bind(statusDate).first();
     const processingStartedAt = processingMatch ? Number(processingMatch[2] || row && row.created_at || 0) : 0;
     const processingAge = processingStartedAt ? Math.max(0, Math.floor(Date.now() / 1000) - processingStartedAt) : 0;
     let statusText;
@@ -787,7 +787,7 @@ async function processUpdate(env, item, adminId) {
       const states = {
         generating: age > 240 ? "⚠️ Подготовка черновика зависла." : "⏳ Черновик сейчас готовится.",
         pending: "✅ Черновик отправлен тебе и ожидает решения. В канал ничего не публиковалось.",
-        scheduled: "🕕 Черновик одобрен и запланирован на 06:00 по Москве.",
+        scheduled: "🕒 Черновик одобрен и ожидает запланированной публикации.",
         skipped: "✖️ Черновик отклонён. В канал ничего не публиковалось.",
         published: "📣 Черновик уже опубликован в канале.",
         publishing: "⏳ Идёт публикация в канал.",
@@ -795,6 +795,9 @@ async function processUpdate(env, item, adminId) {
       };
       statusText = (states[row.status] || "ℹ️ Статус: " + row.status) + "\nДата: " + statusDate + "\nПоследнее изменение: " + elapsed;
       if (row.holiday_title) statusText += "\nПраздник: " + row.holiday_title;
+      if (row.status === "scheduled" && row.scheduled_publish_at) {
+        statusText += "\nВремя публикации: " + new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", dateStyle: "short", timeStyle: "short" }).format(new Date(row.scheduled_publish_at * 1000)) + " (Москва)";
+      }
       if (row.status === "pending" && row.message_id) statusText += "\nКнопки «Опубликовать» и «Отклонить» находятся в сообщении с черновиком.";
     }
     await tg(env, "sendMessage", { chat_id: adminId, text: statusText, reply_markup: dailyMenuMarkup() });
@@ -881,7 +884,8 @@ export async function runDailyHolidayCron(controller, env) {
     try {
       await tg(env, "copyMessage", { chat_id: CHANNEL, from_chat_id: String(draft.chat_id), message_id: draft.message_id });
       await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'published', published_at = ?, scheduled_publish_at = NULL WHERE date = ? AND status = 'publishing'").bind(nowSeconds, draft.date).run();
-      await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "📣 Готово! Одобренный пост на " + formatHolidayDate(draft.date) + " опубликован в канале в 06:00 по Москве." });
+      const publishedTime = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(nowSeconds * 1000));
+      await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "📣 Готово! Одобренный пост на " + formatHolidayDate(draft.date) + " опубликован в канале в " + publishedTime + " по Москве." });
     } catch (error) {
       await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'scheduled' WHERE date = ? AND status = 'publishing'").bind(draft.date).run();
       console.error("Scheduled daily holiday publish failed:", error && error.message ? error.message : "unknown error");
