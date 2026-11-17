@@ -64,7 +64,8 @@ async function sendBrandedPhoto(env, chatId, bytes, caption) {
 
 async function ensureTables(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS social_publication_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
-  await env.DB.prepare("CREATE TABLE IF NOT EXISTS social_publication_drafts (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, source_message_id INTEGER NOT NULL, preview_message_id INTEGER NOT NULL, template_id TEXT NOT NULL, status TEXT NOT NULL, created_at INTEGER NOT NULL)").run();
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS social_publication_drafts (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, source_message_id INTEGER NOT NULL, preview_message_id INTEGER NOT NULL, preview_video_message_id INTEGER, template_id TEXT NOT NULL, status TEXT NOT NULL, created_at INTEGER NOT NULL)").run();
+  try { await env.DB.prepare("ALTER TABLE social_publication_drafts ADD COLUMN preview_video_message_id INTEGER").run(); } catch {}
 }
 
 const TYPES = {
@@ -199,6 +200,9 @@ async function handleSocialUpdate(env, item, adminId) {
       }
       try {
         await tg(env, "copyMessage", { chat_id: CHANNEL, from_chat_id: adminId, message_id: draft.preview_message_id });
+        if (draft.preview_video_message_id) {
+          await tg(env, "copyMessage", { chat_id: CHANNEL, from_chat_id: adminId, message_id: draft.preview_video_message_id });
+        }
         await env.DB.prepare("UPDATE social_publication_drafts SET status='published' WHERE id=?").bind(Number(id)).run();
         await tg(env, "editMessageReplyMarkup", { chat_id: adminId, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } });
         await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Опубликовано в канале!" });
@@ -257,15 +261,12 @@ async function handleSocialUpdate(env, item, adminId) {
       preview = await sendBrandedPhoto(env, adminId, card, caption);
     } else {
       const cover = await renderBrandCard({ type, title, subtitle:rawCaption || "Смотрите видео" });
-      const form = new FormData();
-      form.append("chat_id", String(adminId));
-      form.append("video", msg.video.file_id);
-      form.append("thumbnail", new Blob([cover], {type:"image/png"}), "s1sch9-video-cover.png");
-      form.append("caption", caption.slice(0,1024));
-      preview = await tgMultipart(env, "sendVideo", form);
+      preview = await sendBrandedPhoto(env, adminId, cover, "");
+      const videoMessage = await tg(env, "sendVideo", { chat_id:adminId, video:msg.video.file_id, caption:caption.slice(0,1024) });
+      videoPreviewId = videoMessage.message_id;
     }
-    const id = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?)")
-      .bind(type, msg.message_id, preview.message_id, template.id, "pending", Math.floor(Date.now()/1000)).run();
+    const id = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,preview_video_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?,?)")
+      .bind(type, msg.message_id, preview.message_id, videoPreviewId, template.id, "pending", Math.floor(Date.now()/1000)).run();
     const draftId = id.meta && id.meta.last_row_id;
     await tg(env, "sendMessage", {
       chat_id: adminId,
