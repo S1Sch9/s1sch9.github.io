@@ -196,14 +196,20 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const titleMarkup = lines.map((line, index) =>
     '<div style="display:flex;position:absolute;left:778px;top:' + (142 + index * lineHeight) + 'px;width:430px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
-  // These two shapes exactly rebuild the original flat purple panel and its white circular corner.
-  // This clears only the old date/title and old illustration; the left artwork and top-right crest stay untouched.
-  const svg = '<svg width="1536" height="765" viewBox="0 0 1536 765" style="position:absolute;left:0;top:0"><path d="M770 20 H1220 V345 H1400 A320 320 0 0 0 1080 665 H770 Z" fill="#1a0b5c"/><path d="M1080 665 A320 320 0 0 1 1400 345 H1516 V765 H1080 Z" fill="#fff"/></svg>';
-  const html = '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#1a0b5c"><img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px;object-fit:fill"/>' +
-    svg +
+
+  // Repaint only the right text field. The path follows the existing white circle,
+  // leaving the original left artwork, divider, crest and top-right label untouched.
+  const textMask = '<svg width="1536" height="765" viewBox="0 0 1536 765" style="position:absolute;left:0;top:0"><path d="M776 20 H1220 V345 H1400 A320 320 0 0 0 1080 665 H776 Z" fill="#1a0b5c"/></svg>';
+
+  // The original illustration sits inside a white circle centered at (1400, 665),
+  // radius 320. A circular white-backed image exactly replaces that corner artwork
+  // while keeping the circle silhouette and everything outside it intact.
+  const html = '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#1a0b5c">' +
+    '<img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px;object-fit:fill"/>' +
+    textMask +
     '<div style="display:flex;position:absolute;left:780px;top:35px;width:425px;height:88px;color:#fff;font-family:Roboto Black,sans-serif;font-size:68px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateLabel.toLocaleUpperCase("ru")) + '</div>' +
     titleMarkup +
-    '<img src="data:image/png;base64,' + illustrationBase64 + '" style="position:absolute;left:1200px;top:430px;width:310px;height:325px;object-fit:contain;object-position:center bottom"/>' +
+    '<img src="data:image/png;base64,' + illustrationBase64 + '" style="position:absolute;left:1080px;top:345px;width:640px;height:640px;object-fit:contain;border-radius:50%"/>' +
     '</div>';
   const rendered = new ImageResponse(html, {
     width: 1536,
