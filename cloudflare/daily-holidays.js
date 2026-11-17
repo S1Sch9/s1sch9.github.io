@@ -152,7 +152,7 @@ async function loadHolidayFont() {
   );
   if (!fontResponse.ok) throw new Error("Не удалось загрузить шрифт Roboto Condensed.");
   const fontData = await fontResponse.arrayBuffer();
-  if (fontData.byteLength < 50000) throw new Error("Файл шрифта Roboto Condensed повреждён.");
+  if (fontData.byteLength < 10000) throw new Error("Файл шрифта Roboto Condensed повреждён.");
   return fontData;
 }
 async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationBase64) {
