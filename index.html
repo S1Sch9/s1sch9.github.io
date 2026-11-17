@@ -1976,38 +1976,14 @@ body.s1-motion-off #gm.on iframe{
 
 
 <style id="s1-burgundy-card-and-loader-corner-fix">
-/* Единое точное отсечение фоновых слоёв по скруглённым контурам крупных панелей. */
-.home-hero{
-  overflow:hidden!important;
-  border-radius:29px!important;
-  clip-path:inset(0 round 29px);
-}
-.hero{
-  overflow:hidden!important;
-  border-radius:30px!important;
-  clip-path:inset(0 round 30px);
-}
-.day-showcase{
-  overflow:hidden!important;
-  border-radius:27px!important;
-  clip-path:inset(0 round 27px);
-}
-#games .game{
-  overflow:hidden!important;
-  border-radius:19px!important;
-  clip-path:inset(0 round 19px);
-}
-/* На заставке масштабируемый логотип не должен показывать квадратные углы. */
-.s1-loader-mark{
-  overflow:hidden!important;
-  border-radius:28px!important;
-  clip-path:inset(0 round 28px);
-}
-.s1-loader-mark img{
-  display:block;
-  width:100%;height:100%;
-  border-radius:28px!important;
-}
+/* Скругляем только сами поверхности. Не используем clip-path и не обрезаем внешние тени. */
+.home-hero{border-radius:29px!important}
+.hero{border-radius:30px!important}
+.day-showcase{border-radius:27px!important}
+#games .game{border-radius:19px!important}
+/* У логотипа сохраняем исходную видимую область и внешнюю тень; скругляем только изображение. */
+.s1-loader-mark{overflow:visible!important;border-radius:28px!important}
+.s1-loader-mark img{display:block;border-radius:28px!important}
 </style>
 </head>
 <body>
