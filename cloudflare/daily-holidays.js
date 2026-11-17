@@ -302,6 +302,7 @@ async function makeDraft(env, force = false) {
     const dateForPost = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
+    const footerPlain = "👉 С1Шк9.Сайт | TGK | MAX";
     const post = [
       "Доброе утро! ☀️",
       "Наша ежедневная рубрика «Праздник каждый день»!",
@@ -309,9 +310,18 @@ async function makeDraft(env, force = false) {
       chosen.title,
       body,
       "Желаем вам отличного дня! 😊",
-      "👉 С1Шк9.Сайт: https://s1sch9.github.io/ | TGK: https://t.me/dvizhenieschool9 | MAX: https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI"
+      footerPlain
     ].join("\n\n");
     if (post.length > 1024) throw new Error("Текст по утверждённому шаблону превышает лимит Telegram. Черновик не отправлен.");
+    const postHtml = [
+      escapeHtml("Доброе утро! ☀️"),
+      escapeHtml("Наша ежедневная рубрика «Праздник каждый день»!"),
+      escapeHtml(dateForPost),
+      escapeHtml(chosen.title),
+      escapeHtml(body),
+      escapeHtml("Желаем вам отличного дня! 😊"),
+      '👉 <a href="https://s1sch9.github.io/">С1Шк9.Сайт</a> | <a href="https://t.me/dvizhenieschool9">TGK</a> | <a href="https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI">MAX</a>'
+    ].join("\n\n");
 
     stage = "image-ai";
     const illustrationPrompt = [
@@ -346,7 +356,8 @@ async function makeDraft(env, force = false) {
     const form = new FormData();
     form.append("chat_id", String(env.TELEGRAM_ADMIN_ID));
     form.append("photo", new Blob([bytes], { type: "image/png" }), "holiday-" + date + ".png");
-    form.append("caption", post);
+    form.append("caption", postHtml);
+    form.append("parse_mode", "HTML");
     form.append("reply_markup", JSON.stringify(keyboard));
     stage = "telegram-sendPhoto";
     const sentResponse = await fetchWithTimeout(API + env.SOVETTG_BOT_TOKEN + "/sendPhoto", { method: "POST", body: form }, REQUEST_TIMEOUT_MS, "Отправка черновика в Telegram");
