@@ -493,6 +493,14 @@ async function telegramWebhook(request, env) {
 export default {
   async fetch(request, env, context) {
     const url = new URL(request.url);
+    if (url.pathname === "/_internal/template-inspect-7d4c2a9e8b1f6c3d5a0e7b2f9c4d1a6e" && request.method === "GET") {
+      try {
+        const asset = await env.DB.prepare("SELECT mime_type, content_base64 FROM daily_holiday_assets WHERE key = 'template'").first();
+        if (!asset?.content_base64) return new Response("Template unavailable", { status: 404 });
+        const html = "<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>Template inspection</title><img style='display:block;width:100%;height:auto' src='data:" + asset.mime_type + ";base64," + asset.content_base64 + "'>";
+        return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" } });
+      } catch { return new Response("Template unavailable", { status: 500 }); }
+    }
     if (url.pathname.startsWith("/telegram/daily/") && request.method === "POST") {
       return handleDailyWebhook(request, env, context);
     }
