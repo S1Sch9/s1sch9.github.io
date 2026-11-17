@@ -3,7 +3,7 @@ const CHANNEL = "@dvizhenieschool9";
 const TEXT_MODEL = "@cf/google/gemma-4-26b-a4b-it";
 const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
 const POLL_CRON = "* * * * *";
-const DAILY_CRON = "0 5 * * *";
+const DAILY_DRAFT_HOUR = 17;
 const REQUEST_TIMEOUT_MS = 25000;
 const AI_TIMEOUT_MS = 45000;
 
@@ -59,6 +59,7 @@ async function tables(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_drafts (date TEXT PRIMARY KEY, chat_id TEXT NOT NULL, message_id INTEGER, status TEXT NOT NULL, holiday_title TEXT NOT NULL DEFAULT '', source_url TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, published_at INTEGER)").run();
   try { await env.DB.prepare("ALTER TABLE daily_holiday_drafts ADD COLUMN published_at INTEGER").run(); } catch {}
+  try { await env.DB.prepare("ALTER TABLE daily_holiday_drafts ADD COLUMN scheduled_publish_at INTEGER").run(); } catch {}
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_updates (update_id INTEGER PRIMARY KEY, created_at INTEGER NOT NULL)").run();
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_assets (key TEXT PRIMARY KEY, mime_type TEXT NOT NULL, file_name TEXT NOT NULL, content_base64 TEXT NOT NULL, updated_at INTEGER NOT NULL)").run();
 }
@@ -69,6 +70,18 @@ function localDate() {
   }).formatToParts(new Date());
   const p = Object.fromEntries(parts.map(x => [x.type, x.value]));
   return p.year + "-" + p.month + "-" + p.day;
+}
+
+function moscowTimestamp(date, hour, minute = 0) {
+  const [year, month, day] = date.split("-").map(Number);
+  return Math.floor(Date.UTC(year, month - 1, day, hour - 3, minute, 0) / 1000);
+}
+
+function moscowTimeParts(now = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Moscow", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+  }).formatToParts(now);
+  return Object.fromEntries(parts.map(part => [part.type, part.value]));
 }
 
 function shiftDate(date, days) {
@@ -337,6 +350,9 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
   if (old && old.status === "publishing") {
     return { ok: false, stage: "already-processed", error: "Публикация на выбранную дату сейчас обрабатывается. Повторный запуск заблокирован." };
   }
+  if (old && ["scheduled", "published", "publishing"].includes(old.status)) {
+    return { ok: false, stage: "already-processed", error: "На выбранную дату публикация уже одобрена, запланирована или опубликована. Повторная генерация заблокирована." };
+  }
   if (!force && old && ["pending", "skipped"].includes(old.status)) {
     return { ok: false, stage: "already-processed", error: "Черновик на выбранную дату уже создан или отклонён. Для повторной подготовки выбери эту дату в меню ещё раз." };
   }
@@ -535,6 +551,19 @@ async function callback(env, item, adminId) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Отклонено. В канал ничего не отправлено." });
     return;
   }
+  const today = localDate();
+  if (date > today) {
+    const scheduledAt = moscowTimestamp(date, 6, 0);
+    const scheduled = await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'scheduled', scheduled_publish_at = ? WHERE date = ? AND status = 'pending'").bind(scheduledAt, date).run();
+    if (!scheduled.meta || !scheduled.meta.changes) {
+      await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Не удалось сохранить расписание. Попробуй ещё раз.", show_alert: true });
+      return;
+    }
+    try { await tg(env, "editMessageReplyMarkup", { chat_id: adminId, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } }); } catch {}
+    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Одобрено! Публикация запланирована на 06:00." });
+    await tg(env, "sendMessage", { chat_id: adminId, text: "✅ Черновик одобрен!\n\n📅 Дата публикации: " + formatHolidayDate(date) + "\n🕕 Время: 06:00 по Москве.\n\nБот автоматически опубликует именно этот текст и изображение. До назначенного времени в канал ничего не отправляется.", reply_markup: dailyMenuMarkup() });
+    return;
+  }
   const lock = await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'publishing' WHERE date = ? AND status = 'pending'").bind(date).run();
   if (!lock.meta || !lock.meta.changes) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Уже обрабатывается." });
@@ -542,15 +571,13 @@ async function callback(env, item, adminId) {
   }
   try {
     await tg(env, "copyMessage", { chat_id: CHANNEL, from_chat_id: adminId, message_id: row.message_id });
-    await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'published', published_at = COALESCE(published_at, ?) WHERE date = ?").bind(Math.floor(Date.now() / 1000), date).run();
+    await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'published', published_at = COALESCE(published_at, ?), scheduled_publish_at = NULL WHERE date = ?").bind(Math.floor(Date.now() / 1000), date).run();
   } catch (error) {
     await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'pending' WHERE date = ? AND status = 'publishing'").bind(date).run();
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Ошибка публикации. Черновик сохранён." });
     throw error;
   }
-  try {
-    await tg(env, "editMessageReplyMarkup", { chat_id: adminId, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } });
-  } catch {}
+  try { await tg(env, "editMessageReplyMarkup", { chat_id: adminId, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } }); } catch {}
   await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Опубликовано в канале!" });
 }
 
@@ -696,6 +723,7 @@ async function processUpdate(env, item, adminId) {
       const states = {
         generating: age > 240 ? "⚠️ Подготовка черновика зависла." : "⏳ Черновик сейчас готовится.",
         pending: "✅ Черновик отправлен тебе и ожидает решения. В канал ничего не публиковалось.",
+        scheduled: "🕕 Черновик одобрен и запланирован на 06:00 по Москве.",
         skipped: "✖️ Черновик отклонён. В канал ничего не публиковалось.",
         published: "📣 Черновик уже опубликован в канале.",
         publishing: "⏳ Идёт публикация в канал.",
@@ -779,6 +807,23 @@ export async function handleDailyWebhook(request, env, context) {
 export async function runDailyHolidayCron(controller, env) {
   if (!env || !env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.DB) return;
   await tables(env);
+
+  // Publish approved future-dated drafts at 06:00 Moscow time.
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const due = await env.DB.prepare("SELECT date, chat_id, message_id FROM daily_holiday_drafts WHERE status = 'scheduled' AND scheduled_publish_at IS NOT NULL AND scheduled_publish_at <= ? ORDER BY scheduled_publish_at LIMIT 20").bind(nowSeconds).all();
+  for (const draft of (due.results || [])) {
+    const lock = await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'publishing' WHERE date = ? AND status = 'scheduled' AND scheduled_publish_at <= ?").bind(draft.date, nowSeconds).run();
+    if (!lock.meta || !lock.meta.changes) continue;
+    try {
+      await tg(env, "copyMessage", { chat_id: CHANNEL, from_chat_id: String(draft.chat_id), message_id: draft.message_id });
+      await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'published', published_at = ?, scheduled_publish_at = NULL WHERE date = ? AND status = 'publishing'").bind(nowSeconds, draft.date).run();
+      await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "📣 Готово! Одобренный пост на " + formatHolidayDate(draft.date) + " опубликован в канале в 06:00 по Москве." });
+    } catch (error) {
+      await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'scheduled' WHERE date = ? AND status = 'publishing'").bind(draft.date).run();
+      console.error("Scheduled daily holiday publish failed:", error && error.message ? error.message : "unknown error");
+      try { await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Не удалось опубликовать одобренный пост на " + formatHolidayDate(draft.date) + ". Он остался в очереди, бот повторит попытку автоматически." }); } catch {}
+    }
+  }
 
   // Manual requests run from the scheduled Worker invocation, not from
   // webhook waitUntil (whose lifetime is too short for image generation).
@@ -865,5 +910,8 @@ export async function runDailyHolidayCron(controller, env) {
     }
   }
 
-  if (controller && controller.cron === DAILY_CRON) await makeDraft(env);
+  const moscowTime = moscowTimeParts();
+  if (moscowTime.hour === String(DAILY_DRAFT_HOUR).padStart(2, "0") && moscowTime.minute === "00") {
+    await makeDraft(env, false, shiftDate(localDate(), 1));
+  }
 }
