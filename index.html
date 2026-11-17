@@ -1972,6 +1972,38 @@ body.s1-motion-off #gm.on iframe{
   }
 }
 </style>
+
+<style id="s1-rounded-edge-cleanup-2026">
+/* Чистая обрезка полупрозрачных слоёв: без квадратных ореолов по углам. */
+.bar{
+  isolation:isolate;
+  overflow:hidden;
+  background-clip:padding-box;
+  -webkit-mask-image:-webkit-radial-gradient(white,black);
+}
+.bar .brand-logo{
+  display:block;
+  overflow:hidden;
+  clip-path:inset(0 round 12px);
+  -webkit-mask-image:-webkit-radial-gradient(white,black);
+}
+.s1-loader-mark{
+  overflow:hidden!important;
+  clip-path:inset(0 round 28px);
+  -webkit-mask-image:-webkit-radial-gradient(white,black);
+  isolation:isolate;
+}
+.s1-loader-mark img{
+  display:block;
+  overflow:hidden;
+  clip-path:inset(0 round 28px);
+}
+/* Слои декоративных фонов не должны выступать за скруглённые контейнеры. */
+.home-hero,.hero,.game,.game-art,.home-appeal{
+  background-clip:padding-box;
+  -webkit-mask-image:-webkit-radial-gradient(white,black);
+}
+</style>
 </head>
 <body>
 <div id="s1-page-loader" class="s1-page-loader" role="status" aria-label="Загрузка сайта">
