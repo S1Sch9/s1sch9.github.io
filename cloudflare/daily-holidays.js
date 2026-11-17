@@ -792,7 +792,7 @@ export async function runDailyHolidayCron(controller, env) {
         await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "✅ Черновик уже был сформирован и отправлен. Проверь предыдущее сообщение с кнопками — повторная генерация не запускалась." });
       } else if (oldDraft && ["failed", "skipped", "published", "publishing"].includes(oldDraft.status)) {
         await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_requested' AND value = ?").bind(queueValue).run();
-        if (oldDraft.status === "failed") await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Предыдущая фоновая попытка завершилась ошибкой. Зависшая отметка очищена; после проверки можно отправить /draft ещё раз." });
+        if (oldDraft.status === "failed") await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Предыдущая фоновая попытка завершилась ошибкой. Зависшая отметка очищена; после проверки можно выбрать дату в меню и повторить.", reply_markup: dailyMenuMarkup() });
       } else {
         const recovered = await env.DB.prepare("UPDATE daily_holiday_state SET value = ? WHERE key = 'manual_draft_requested' AND value = ?").bind(stuckDate, queueValue).run();
         if (recovered.meta && recovered.meta.changes) {
@@ -810,11 +810,11 @@ export async function runDailyHolidayCron(controller, env) {
     if (lock.meta && lock.meta.changes) {
       let result;
       try {
-        result = await makeDraft(env, true);
+        result = await makeDraft(env, true, requestedDate);
         let message = result && result.ok
           ? "✅ Черновик готов и отправлен выше. Проверь текст и картинку — в канал он попадёт только после нажатия «Опубликовать»."
           : result && result.stage === "already-processed"
-            ? "ℹ️ Сегодняшний черновик уже обработан. Повторная отправка не выполнялась."
+            ? "ℹ️ Черновик на выбранную дату уже обработан. Повторная отправка не выполнялась."
             : "⚠️ Не удалось подготовить черновик" + (result && result.stage ? " на этапе «" + result.stage + "»" : "") + ": " + String(result && result.error || "неизвестная ошибка").slice(0, 220) + "\nВ канал ничего не публиковалось.";
         await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: message, reply_markup: dailyMenuMarkup() });
       } catch (error) {
