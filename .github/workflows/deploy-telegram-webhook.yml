@@ -60,3 +60,13 @@ jobs:
           set -euo pipefail
           test -n "$SOVETTG_BOT_TOKEN"
           printf '%s' "$SOVETTG_BOT_TOKEN" | npx --yes wrangler@4.160.1 secret put SOVETTG_BOT_TOKEN --config wrangler.jsonc
+      - name: Configure instant webhook for daily bot
+        env:
+          SOVETTG_BOT_TOKEN: ${{ secrets.SOVETTG_BOT_TOKEN }}
+        run: |
+          set -euo pipefail
+          WEBHOOK_PATH="$(node -e 'const c=require("crypto"); process.stdout.write("/telegram/daily/"+c.createHash("sha256").update(process.env.SOVETTG_BOT_TOKEN).digest("hex"))')"
+          curl --fail --silent --show-error --request POST "https://api.telegram.org/bot${SOVETTG_BOT_TOKEN}/setWebhook" \
+            --data-urlencode "url=https://still-frog-ce4c.school9ideasandsuggestions.workers.dev${WEBHOOK_PATH}" \
+            --data-urlencode 'allowed_updates=["message","callback_query"]' \
+            --data-urlencode 'drop_pending_updates=false'
