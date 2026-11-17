@@ -4223,7 +4223,7 @@ body::before{
 .home-shortcut>strong{display:none!important}
 .news-open-label [aria-hidden="true"]{display:none!important}
 #events .event-list-chevron{display:none!important}
-.site-search-result>span:last-child{display:none!important}
+/* Результаты поиска: не скрываем единственный текстовый контейнер карточки. */
 </style>
 
 <style id="s1-visible-motion-refresh-2026">
@@ -4950,6 +4950,15 @@ html[data-s1-theme="dark"] .appeal-rules-scroll-cue{background:#30252d;color:#ff
 .appeal-rules-body b{color:var(--red)}
 html[data-s1-theme="dark"] .appeal-rules-body p{background:#24202a;color:#f4eff2;border-color:#49414d}
 html[data-s1-theme="dark"] .appeal-rules-body b{color:#e18aa2}
+</style>
+
+<style id="s1-search-results-visibility-fix">
+.site-search-result>span:first-child{display:block!important;flex:1 1 auto!important;min-width:0!important;color:var(--ink)!important;text-align:left!important}
+.site-search-result>span:first-child>b{display:block!important;color:var(--ink)!important;white-space:normal!important;overflow-wrap:anywhere}
+.site-search-result>span:first-child>small{display:block!important;white-space:normal!important}
+html[data-s1-theme="dark"] .site-search-result>span:first-child,
+html[data-s1-theme="dark"] .site-search-result>span:first-child>b{color:var(--s1-text)!important}
+html[data-s1-theme="dark"] .site-search-result>span:first-child>small{color:var(--s1-accent)!important}
 </style>
 
 <style id="s1-dark-theme-complete-2026">
