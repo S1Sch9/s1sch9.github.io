@@ -1,5 +1,5 @@
 import { adminPage } from "./admin-page.js";
-import { runDailyHolidayCron } from "./daily-holidays.js";
+import { runDailyHolidayCron, handleDailyWebhook } from "./daily-holidays.js";
 import { buildPushPayload } from "@block65/webcrypto-web-push";
 
 // Combined appeals and news administration.
@@ -491,8 +491,11 @@ async function telegramWebhook(request, env) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, context) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith("/telegram/daily/") && request.method === "POST") {
+      return handleDailyWebhook(request, env, context);
+    }
     const origin = request.headers.get("Origin") || "";
     const headers = securityHeaders();
 
