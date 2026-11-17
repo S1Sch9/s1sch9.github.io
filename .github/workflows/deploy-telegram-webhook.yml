@@ -7,7 +7,7 @@ on:
       - main
     paths:
       - "cloudflare/worker.js"
-      - "cloudflare/daily-holidays.js"
+      - "cloudflare/daily-holidays.js"\n      - "cloudflare/social-publisher.js"
       - "cloudflare/admin-page.js"
       - "cloudflare/package.json"
       - "cloudflare/validate-source.mjs"
@@ -37,7 +37,7 @@ jobs:
         working-directory: cloudflare
         run: |
           node --check worker.js
-          node --check daily-holidays.js
+          node --check daily-holidays.js\n          node --check social-publisher.js
           node --check admin-page.js
           node validate-source.mjs
       - name: Install Worker dependencies
