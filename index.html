@@ -1861,8 +1861,68 @@ html[data-s1-theme="dark"] .s1-theme-switch-symbol{background:#3a2630;color:#ffd
 html[data-s1-theme="dark"] .s1-theme-switch-symbol.is-dark{background:#463727;color:#f4d68a}
 @media(prefers-reduced-motion:reduce){.s1-theme-switch-symbol,.s1-theme-switch-row .s1-switch,.s1-theme-switch-row .s1-switch span{transition:none!important}}
 </style>
+<style id="s1-fluid-theme-transition-and-page-loader">
+/* Плавная смена палитры без анимации геометрии и положения элементов. */
+html.s1-theme-changing *,
+html.s1-theme-changing *::before,
+html.s1-theme-changing *::after{
+ transition-property:background-color,color,border-color,box-shadow,fill,stroke!important;
+ transition-duration:620ms!important;
+ transition-timing-function:cubic-bezier(.22,.75,.25,1)!important;
+}
+body.s1-motion-off *{transition:none!important}
+@media(prefers-reduced-motion:reduce){
+ html.s1-theme-changing *,html.s1-theme-changing *::before,html.s1-theme-changing *::after{transition:none!important}
+}
+.s1-page-loader{
+ position:fixed;inset:0;z-index:200000;display:grid;place-items:center;
+ padding:24px;background:radial-gradient(ellipse at 50% 42%,#74142d 0%,#4a091c 48%,#260711 100%);
+ color:#fff;opacity:1;visibility:visible;
+ transition:opacity .52s ease,visibility .52s ease;
+}
+.s1-loader-content{display:flex;flex-direction:column;align-items:center;text-align:center;animation:s1-loader-arrive .7s cubic-bezier(.2,.8,.2,1) both}
+.s1-loader-mark{position:relative;width:94px;height:94px;display:grid;place-items:center;margin-bottom:22px;border-radius:29px;background:rgba(255,255,255,.96);box-shadow:0 12px 46px rgba(0,0,0,.23),0 0 0 1px rgba(255,255,255,.24);animation:s1-loader-float 2.4s ease-in-out infinite}
+.s1-loader-mark:before{content:"";position:absolute;inset:-9px;border:1px solid rgba(255,226,183,.38);border-radius:35px;animation:s1-loader-ring 2.8s ease-out infinite}
+.s1-loader-mark img{width:74%;height:74%;object-fit:contain}
+.s1-loader-title{font:850 17px/1.2 Onest,system-ui,sans-serif;letter-spacing:.11em}
+.s1-loader-subtitle{margin-top:6px;color:#f2c9a0;font:700 10px/1.2 Onest,system-ui,sans-serif;letter-spacing:.23em}
+.s1-loader-progress{width:116px;height:3px;margin-top:29px;overflow:hidden;border-radius:9px;background:rgba(255,255,255,.19)}
+.s1-loader-progress span{display:block;width:42%;height:100%;border-radius:9px;background:linear-gradient(90deg,#e7bd77,#fff0cf);animation:s1-loader-progress 1.15s ease-in-out infinite}
+.s1-loader-caption{margin-top:12px;color:rgba(255,255,255,.66);font:500 11px/1.4 Onest,system-ui,sans-serif;letter-spacing:.025em}
+.s1-page-loader.is-leaving{opacity:0;visibility:hidden;pointer-events:none}
+@keyframes s1-loader-arrive{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes s1-loader-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes s1-loader-ring{0%{transform:scale(.94);opacity:.7}100%{transform:scale(1.16);opacity:0}}
+@keyframes s1-loader-progress{0%{transform:translateX(-115%)}100%{transform:translateX(260%)}}
+@media(prefers-reduced-motion:reduce){
+ .s1-loader-content,.s1-loader-mark,.s1-loader-mark:before,.s1-loader-progress span{animation:none!important}
+ .s1-page-loader{transition:none!important}
+}
+</style>
 </head>
 <body>
+<div id="s1-page-loader" class="s1-page-loader" role="status" aria-label="Загрузка сайта">
+ <div class="s1-loader-content">
+  <div class="s1-loader-mark"><img src="official-logo.svg?v=20261114-final" alt=""></div>
+  <div class="s1-loader-title">СОВЕТ ПЕРВЫХ</div>
+  <div class="s1-loader-subtitle">ШКОЛЫ ДЕВЯТЬ</div>
+  <div class="s1-loader-progress"><span></span></div>
+  <div class="s1-loader-caption">Загружаем самое важное</div>
+ </div>
+</div>
+<script>
+(function(){
+ const loader=document.getElementById("s1-page-loader");if(!loader)return;
+ const started=Date.now();let finished=false;
+ function hide(){
+  if(finished)return;finished=true;
+  const wait=Math.max(0,460-(Date.now()-started));
+  setTimeout(()=>{loader.classList.add("is-leaving");setTimeout(()=>loader.remove(),620);},wait);
+ }
+ window.addEventListener("load",hide,{once:true});
+ setTimeout(hide,1900);
+})();
+</script>
 <svg id="s1-floating-ribbons" aria-hidden="true" focusable="false" style="visibility:hidden" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
   <defs>
     <linearGradient id="s1-ribbon-burgundy" x1="0" y1="0" x2="1" y2="1">
@@ -2348,7 +2408,18 @@ function s1RenderSettings(){
  if(toggle){toggle.classList.toggle("is-on",!!S1_PREFS.motion);toggle.setAttribute("aria-checked",String(!!S1_PREFS.motion));}
  const status=p.querySelector("[data-s1-motion-status]");if(status)status.textContent=S1_PREFS.motion?"Включены":"Выключены";
 }
-function s1SetTheme(v){S1_PREFS.theme=v==="dark"?"dark":"light";s1SavePrefs();s1RenderSettings();}
+function s1SetTheme(v){
+ const next=v==="dark"?"dark":"light";
+ if(next===S1_PREFS.theme)return;
+ const reduceMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+ if(S1_PREFS.motion&&!reduceMotion){
+  const root=document.documentElement;
+  root.classList.add("s1-theme-changing");
+  clearTimeout(window.s1ThemeTransitionTimer);
+  window.s1ThemeTransitionTimer=setTimeout(()=>root.classList.remove("s1-theme-changing"),760);
+ }
+ S1_PREFS.theme=next;s1SavePrefs();s1RenderSettings();
+}
 function s1SetMotion(v){S1_PREFS.motion=!!v;s1SavePrefs();s1RenderSettings();}
 function s1SetTextSize(v){S1_PREFS.textSize=v==="large"?"large":"normal";s1SavePrefs();s1RenderSettings();}
 function s1ResetPrefs(){S1_PREFS={...S1_DEFAULT_PREFS};s1SavePrefs();s1RenderSettings();}
