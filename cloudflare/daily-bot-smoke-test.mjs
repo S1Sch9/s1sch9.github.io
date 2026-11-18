@@ -4,7 +4,7 @@ import { modelText } from "./daily-holidays.js";
 
 const sample = {
   selected_index: 1,
-  body: "Первый абзац о празднике.\\n\\nВторой абзац с интересным фактом.",
+  body: "Первый абзац о празднике.\n\nВторой абзац с интересным фактом.",
   image_prompt: "A cheerful school child holding a small paper star"
 };
 
@@ -26,13 +26,15 @@ for (const phrase of [
   "https://t.me/dvizhenieschool9"
 ]) assert.ok(daily.includes(phrase), "Approved daily caption phrase missing: " + phrase);
 
-assert.match(daily, /env\\.AI\\.run\\(IMAGE_MODEL, \\{\\s*prompt: illustrationPrompt,\\s*steps: 4\\s*\\}\\)/);
-assert.doesNotMatch(daily, /env\\.AI\\.run\\(IMAGE_MODEL, \\{[^}]*\\bseed\\s*:/s);
-assert.match(daily, /response_format: \\{ type: "json_object" \\}/);
-assert.match(daily, /result\\.image\\.replace\\(\\s*\\/\\s*\\\\s\\s*\\/g/);
+assert.ok(daily.includes("env.AI.run(IMAGE_MODEL, {"));
+assert.ok(daily.includes("prompt: illustrationPrompt,"));
+assert.ok(daily.includes("steps: 4"));
+assert.doesNotMatch(daily, /env\.AI\.run\(IMAGE_MODEL,\s*\{[^}]*\bseed\s*:/s);
+assert.ok(daily.includes('response_format: { type: "json_object" }'));
+assert.ok(daily.includes('result.image.replace(/\\s/g, "")'));
 
-assert.ok(social.includes("BRAND + \"/official-logo.svg\""));
-assert.ok(social.includes("BRAND + \"/gerb.png\""));
+assert.ok(social.includes('BRAND + "/official-logo.svg"'));
+assert.ok(social.includes('BRAND + "/gerb.png"'));
 assert.ok(social.includes("width:1280px;height:720px"));
 assert.ok(social.includes("#a1001f"));
 assert.ok(social.includes("В канал ничего не отправлено"));
