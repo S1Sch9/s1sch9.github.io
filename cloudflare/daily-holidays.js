@@ -154,7 +154,7 @@ async function queueManualDraft(env, adminId, date) {
   }
   const statusMessage = await tg(env, "sendMessage", {
     chat_id: adminId,
-    text: "⏳ Запрос принят. Готовлю черновик на " + formatHolidayDate(date) + ".\n\n📅 Сейчас начну подготовку — буду показывать этапы здесь. В канал пост попадёт только после твоего нажатия «Опубликовать».",
+    text: "⚙️ Бот работает · «Праздник каждый день»\n\n▰▱▱▱▱▱▱▱▱▱ 5%\n📅 Запускаю подготовку черновика на " + formatHolidayDate(date) + "…\n\nЯ буду обновлять это сообщение по мере выполнения. В канал пост попадёт только после твоего нажатия «Опубликовать».",
     reply_markup: dailyMenuMarkup()
   });
   if (statusMessage && statusMessage.message_id) {
@@ -985,7 +985,7 @@ export async function runDailyHolidayCron(controller, env) {
     if (lock.meta && lock.meta.changes) {
       let result;
       const statusRow = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_status_message_id'").first();
-      const statusMessageId = Number(statusRow && statusRow.value || 0);
+      let statusMessageId = Number(statusRow && statusRow.value || 0);
       const progressText = {
         calendar: { percent: 8, label: "📅 Проверяю календарь и ищу праздники…" },
         "text-ai": { percent: 28, label: "✍️ Выбираю подходящий праздник и пишу текст…" },
@@ -1010,6 +1010,23 @@ export async function runDailyHolidayCron(controller, env) {
           return true;
         } catch (error) {
           console.warn("Could not update daily draft progress message:", error && error.message ? error.message : "unknown error");
+          // If Telegram refuses to edit the original status message, send a fresh
+          // progress message and use it for all subsequent updates.
+          try {
+            const sent = await tg(env, "sendMessage", {
+              chat_id: String(env.TELEGRAM_ADMIN_ID),
+              text: rendered,
+              reply_markup: dailyMenuMarkup()
+            });
+            if (sent && sent.message_id) {
+              statusMessageId = Number(sent.message_id);
+              await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES ('manual_draft_status_message_id', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
+                .bind(String(statusMessageId)).run();
+              return true;
+            }
+          } catch (fallbackError) {
+            console.warn("Could not send fallback daily draft progress message:", fallbackError && fallbackError.message ? fallbackError.message : "unknown error");
+          }
           return false;
         }
       };
