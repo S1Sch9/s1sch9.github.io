@@ -62,7 +62,7 @@ assert.ok(daily.includes('Первое предложение сразу и пр
 assert.ok(daily.includes('You are an expert editorial illustrator.'));
 assert.ok(daily.includes('EXACT HOLIDAY TITLE: '));
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
-assert.ok(daily.includes('no \'Happy Holidays\''));
+assert.ok(daily.includes('NO TEXT AT ALL: no words, letters, numbers'));
 assert.ok(daily.includes('one clear recognizable scene, centered, fully visible, large enough to read at a glance'));
 assert.ok(daily.includes('no words, no letters, no numbers, no typography'));
 assert.ok(daily.includes('right:78px;top:55px;width:360px;height:96px'));
