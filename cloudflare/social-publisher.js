@@ -384,6 +384,9 @@ async function handleSocialUpdate(env, item, adminId) {
   const text = String(msg.text || "").trim();
   const normalized = text.toLocaleLowerCase("ru");
 
+  // /start belongs to the main bot handler; never treat it as a post title or caption.
+  if (normalized === "/start" || normalized.startsWith("/start@")) return false;
+
   if (normalized === "✍️ публикация" || normalized === "/social") {
     await sendTypeMenu(env, adminId);
     return true;
