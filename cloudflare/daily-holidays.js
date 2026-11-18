@@ -190,38 +190,41 @@ async function candidatesFor(date) {
 }
 
 export function modelText(result) {
-  const extract = value => {
+  const seen = new Set();
+  const visit = (value, depth = 0) => {
+    if (depth > 5 || value == null) return "";
     if (typeof value === "string") return value;
-    if (Array.isArray(value)) return value.map(item => {
-      if (typeof item === "string") return item;
-      if (item && typeof item.text === "string") return item.text;
-      if (item && typeof item.content === "string") return item.content;
-      return "";
-    }).filter(Boolean).join("\n");
+    if (Array.isArray(value)) {
+      return value.map(item => visit(item, depth + 1)).filter(Boolean).join("\n");
+    }
+    if (typeof value !== "object" || seen.has(value)) return "";
+    seen.add(value);
+    // Prefer actual generated text fields over serializing wrapper metadata.
+    for (const key of ["text", "output_text", "generated_text", "content", "response", "result", "completion"]) {
+      if (value[key] != null) {
+        const found = visit(value[key], depth + 1);
+        if (found) return found;
+      }
+    }
+    if (Array.isArray(value.choices)) {
+      const found = visit(value.choices, depth + 1);
+      if (found) return found;
+    }
+    if (Array.isArray(value.output)) {
+      const found = visit(value.output, depth + 1);
+      if (found) return found;
+    }
+    if (value.message) {
+      const found = visit(value.message, depth + 1);
+      if (found) return found;
+    }
+    // Some providers return the requested JSON object as the response itself.
+    if ("selected_index" in value || "body" in value || "image_prompt" in value) {
+      try { return JSON.stringify(value); } catch {}
+    }
     return "";
   };
-  const serialize = value => {
-    if (!value || typeof value !== "object") return "";
-    try { return JSON.stringify(value); } catch { return ""; }
-  };
-  if (typeof result === "string") return result;
-  if (!result || typeof result !== "object") return "";
-  // Workers AI JSON mode can return a parsed object directly in response.
-  const direct = extract(result.response) || serialize(result.response) ||
-    extract(result.output_text) || extract(result.text) || extract(result.content);
-  if (direct) return direct;
-  const choice = result.choices && result.choices[0];
-  if (choice) {
-    const fromMessage = extract(choice.message && choice.message.content);
-    if (fromMessage) return fromMessage;
-    const fromChoice = extract(choice.text);
-    if (fromChoice) return fromChoice;
-  }
-  for (const item of (Array.isArray(result.output) ? result.output : [])) {
-    const value = extract(item && item.content);
-    if (value) return value;
-  }
-  return "";
+  return visit(result).trim();
 }
 function parseObject(value) {
   const s = String(value || "").replace(/^\s*\x60{3}(?:json)?/i, "").replace(/\x60{3}\s*$/, "").trim();
@@ -420,21 +423,39 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     ].join("\n");
     stage = "text-ai";
     if (onProgress) await onProgress(stage);
-    const answer = await withTimeout(env.AI.run(TEXT_MODEL, {
-      messages: [
-        { role: "system", content: "Пиши грамотно, не выдумывай факты. Верни только один корректный JSON-объект без Markdown, пояснений и текста до или после него. Строковые значения JSON должны быть корректно экранированы." },
-        { role: "user", content: prompt }
-      ],
-      max_tokens: 900,
-      temperature: 0.3
-    }), AI_TIMEOUT_MS, "Текстовая AI-модель");
-    const generatedText = modelText(answer);
-    if (!generatedText.trim()) {
-      const shape = answer && typeof answer === "object" ? Object.keys(answer).join(", ") : typeof answer;
-      const modelError = answer && (answer.error || answer.message || answer.details);
-      throw new Error("Модель вернула пустой текст. Поля ответа: " + (shape || "нет") + (modelError ? "; " + String(modelError).slice(0, 120) : ""));
+    let draft = null;
+    let lastParseError = null;
+    for (let attempt = 0; attempt < 2 && !draft; attempt++) {
+      const answer = await withTimeout(env.AI.run(TEXT_MODEL, {
+        messages: [
+          {
+            role: "system",
+            content: attempt === 0
+              ? "Пиши грамотно, не выдумывай факты. Верни только один корректный JSON-объект без Markdown, пояснений и текста до или после него. Обязательные ключи: selected_index (число), body (строка), image_prompt (строка). Строковые значения JSON должны быть корректно экранированы."
+              : "Исправь формат ответа. Верни исключительно один полноценный JSON-объект, без вступления, Markdown и пояснений. Обязательные ключи: selected_index (число), body (строка), image_prompt (строка). Не обрезай JSON и корректно экранируй кавычки и переносы строк."
+          },
+          { role: "user", content: prompt }
+        ],
+        max_tokens: 1100,
+        temperature: attempt === 0 ? 0.3 : 0.1
+      }), AI_TIMEOUT_MS, "Текстовая AI-модель");
+      const generatedText = modelText(answer);
+      if (!generatedText) {
+        const shape = answer && typeof answer === "object" ? Object.keys(answer).join(", ") : typeof answer;
+        const modelError = answer && (answer.error || answer.message || answer.details);
+        lastParseError = new Error("Модель вернула пустой текст. Поля ответа: " + (shape || "нет") + (modelError ? "; " + String(modelError).slice(0, 120) : ""));
+        continue;
+      }
+      try {
+        draft = parseObject(generatedText);
+      } catch (error) {
+        lastParseError = error;
+      }
     }
-    const draft = parseObject(generatedText);
+    if (!draft) {
+      throw new Error("AI не вернула корректный JSON даже после повторной попытки: " +
+        String(lastParseError && lastParseError.message || "пустой ответ").slice(0, 150));
+    }
     const index = Number(draft.selected_index);
     if (!Number.isInteger(index) || index < 0 || index >= list.length) throw new Error("Invalid selected holiday");
     const chosen = list[index];
@@ -1009,24 +1030,10 @@ export async function runDailyHolidayCron(controller, env) {
           });
           return true;
         } catch (error) {
-          console.warn("Could not update daily draft progress message:", error && error.message ? error.message : "unknown error");
-          // If Telegram refuses to edit the original status message, send a fresh
-          // progress message and use it for all subsequent updates.
-          try {
-            const sent = await tg(env, "sendMessage", {
-              chat_id: String(env.TELEGRAM_ADMIN_ID),
-              text: rendered,
-              reply_markup: dailyMenuMarkup()
-            });
-            if (sent && sent.message_id) {
-              statusMessageId = Number(sent.message_id);
-              await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES ('manual_draft_status_message_id', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
-                .bind(String(statusMessageId)).run();
-              return true;
-            }
-          } catch (fallbackError) {
-            console.warn("Could not send fallback daily draft progress message:", fallbackError && fallbackError.message ? fallbackError.message : "unknown error");
-          }
+          // Keep exactly one progress message. Never create replacement status
+          // messages: a failed edit is logged and the next stage retries editing
+          // the same original message.
+          console.warn("Could not edit the single daily draft progress message:", error && error.message ? error.message : "unknown error");
           return false;
         }
       };
@@ -1040,16 +1047,12 @@ export async function runDailyHolidayCron(controller, env) {
           : result && result.stage === "already-processed"
             ? "ℹ️ Черновик на выбранную дату уже обработан. Повторная отправка не выполнялась."
             : "⚠️ Не удалось подготовить черновик" + (result && result.stage ? " на этапе «" + result.stage + "»" : "") + ": " + String(result && result.error || "неизвестная ошибка").slice(0, 220) + "\nВ канал ничего не публиковалось.";
-        if (!await updateStatus(message)) {
-          await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: message, reply_markup: dailyMenuMarkup() });
-        }
+        await updateStatus(message);
       } catch (error) {
         const detail = String(error && error.message ? error.message : "unknown error").slice(0, 180);
         console.error("Manual daily draft job failed:", detail);
         const message = "⚠️ Фоновая подготовка черновика завершилась ошибкой: " + detail + "\nВ канал ничего не публиковалось.";
-        if (!await updateStatus(message)) {
-          try { await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: message }); } catch {}
-        }
+        await updateStatus(message);
       } finally {
         await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_requested' AND value = ?").bind(processingValue).run();
         await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_status_message_id'").run();
