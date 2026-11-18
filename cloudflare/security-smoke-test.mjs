@@ -1,5 +1,32 @@
 import assert from "node:assert/strict";
 import worker from "./worker.js";
+import { modelText } from "./daily-holidays.js";
+
+const structuredResponse = {
+  selected_index: 1,
+  body: "Первый абзац.\\n\\nВторой абзац.",
+  image_prompt: "A cheerful student celebrating a school holiday"
+};
+assert.equal(
+  modelText({ response: structuredResponse }),
+  JSON.stringify(structuredResponse),
+  "Workers AI JSON mode object responses must be converted to JSON text"
+);
+assert.deepEqual(
+  JSON.parse(modelText({ response: structuredResponse })),
+  structuredResponse,
+  "Structured model response must remain valid JSON"
+);
+assert.equal(
+  modelText({ choices: [{ message: { content: '{"selected_index":0}' } }] }),
+  '{"selected_index":0}',
+  "OpenAI-compatible chat completion responses must remain supported"
+);
+assert.equal(
+  modelText({ response: [{ text: "first" }, { text: "second" }] }),
+  "first\\nsecond",
+  "Array-based text responses must be joined with real newlines"
+);
 
 const env = { ADMIN_TOKEN: "test-admin-token-".padEnd(48, "x") };
 assert.equal(typeof worker.scheduled, "function", "Worker must expose the scheduled handler");
