@@ -47,28 +47,28 @@ async function assetDataUrl(url) {
 }
 
 async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
-  // Единственный фирменный знак проекта — оригинальный логотип Совета.
-  const councilLogo = await assetDataUrl(BRAND + "/official-logo.svg?v=20261114-final");
+  const councilLogo = await assetDataUrl(BRAND + "/official-logo.svg");
   const schoolCrest = await assetDataUrl(BRAND + "/gerb.png");
-  const importantMark = await assetDataUrl(BRAND + "/vazhen.png");
-  const safeTitle = escapeHtml(title || "");
+  const safeTitle = escapeHtml(title || "Новости и события");
   const safeSubtitle = escapeHtml(subtitle || "");
-  const isPhoto = type === "photo";
-  if (isPhoto && (!photoDataUrl || !String(photoDataUrl).startsWith("data:image/"))) {
-    throw new Error("Исходная фотография не загрузилась. Пустую карточку не отправляю.");
+  if (type !== "photo" || !photoDataUrl || !String(photoDataUrl).startsWith("data:image/")) {
+    throw new Error("Не удалось подготовить исходную фотографию.");
   }
-  const main = isPhoto
-    ? '<div style="display:flex;position:absolute;left:54px;top:132px;width:1172px;height:454px;align-items:center;justify-content:center;background-color:#fff;border:4px solid #a1001f;border-radius:28px;padding:12px;box-sizing:border-box;box-shadow:0 18px 48px rgba(61,0,13,.18)"><img src="' + photoDataUrl + '" width="1140" height="422" style="width:1140px;height:422px;object-fit:contain;object-position:center;border-radius:18px" /></div>'
-    : '<div style="display:flex;position:absolute;left:78px;top:142px;width:1124px;height:420px;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px;box-sizing:border-box;background-color:rgba(255,255,255,.88);border:3px solid #a1001f;border-radius:30px;box-shadow:0 18px 48px rgba(61,0,13,.12)"><div style="display:flex;font-size:22px;font-weight:700;letter-spacing:5px;color:#a1001f">СОВЕТ ПЕРВЫХ · ШКОЛА №9</div><div style="display:flex;font-size:64px;line-height:1.1;font-weight:800;color:#3d000d;margin-top:28px">' + safeTitle + '</div><div style="display:flex;font-size:28px;color:#745b65;margin-top:22px">' + safeSubtitle + '</div><div style="display:flex;width:120px;height:7px;background-color:#f0c869;margin-top:28px;border-radius:8px"></div></div>';
-  const photoHeading = isPhoto
-    ? '<div style="display:flex;position:absolute;left:54px;top:34px;width:1172px;height:76px;align-items:center;padding:0 30px;box-sizing:border-box;background-color:#fff;border-left:5px solid #a1001f;border-radius:18px;box-shadow:0 8px 24px rgba(61,0,13,.08)"><div style="display:flex;font-size:34px;font-weight:800;color:#3d000d;line-height:1.1">' + safeTitle + '</div></div>'
-    : '';
-  const html = '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background-color:#fffafb;font-family:Arial,sans-serif">' +
-    '<div style="display:flex;position:absolute;left:-90px;top:230px;width:260px;height:260px;border-radius:999px;background-color:rgba(161,0,31,.055)"></div>' +
-    '<div style="display:flex;position:absolute;right:-100px;top:-100px;width:330px;height:330px;border-radius:999px;background-color:rgba(240,200,105,.12)"></div>' +
-    photoHeading + main +
-    '<div style="display:flex;position:absolute;left:0;bottom:0;width:100%;height:104px;background-color:rgba(255,255,255,.97);border-top:3px solid #a1001f;align-items:center;justify-content:flex-start;padding:0 58px;box-sizing:border-box">' +
-    '<div style="display:flex;width:100%;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:18px"><img src="' + councilLogo + '" width="68" height="68" style="width:68px;height:68px;object-fit:contain" /><img src="' + schoolCrest + '" width="68" height="68" style="width:68px;height:68px;object-fit:contain" /><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;font-size:22px;font-weight:800;color:#3d000d">СОВЕТ ПЕРВЫХ</div><div style="display:flex;font-size:22px;font-weight:800;color:#3d000d">ШКОЛЫ №9</div></div></div><img src="' + importantMark + '" width="210" height="76" style="width:210px;height:76px;object-fit:contain;object-position:right center" /></div></div></div>';
+  const html =
+    '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
+      '<div style="display:flex;position:absolute;left:-110px;top:420px;width:300px;height:300px;border-radius:50%;background:rgba(161,0,31,.045)"></div>' +
+      '<div style="display:flex;position:absolute;right:-120px;top:-150px;width:360px;height:360px;border-radius:50%;background:rgba(240,200,105,.10)"></div>' +
+      '<div style="display:flex;position:absolute;left:52px;top:38px;width:1176px;height:116px;align-items:center;padding:0 28px;box-sizing:border-box;background:#fff;border:3px solid #a1001f;border-radius:24px">' +
+        '<img src="' + councilLogo + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:18px"/>' +
+        '<img src="' + schoolCrest + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:22px"/>' +
+        '<div style="display:flex;flex-direction:column;gap:5px"><div style="display:flex;font-size:30px;font-weight:800;color:#3d000d">СОВЕТ ПЕРВЫХ</div><div style="display:flex;font-size:22px;font-weight:600;color:#745b65">ШКОЛЫ №9</div></div>' +
+        '<div style="display:flex;margin-left:auto;max-width:400px;font-size:25px;font-weight:800;color:#3d000d;text-align:right">' + safeTitle + '</div>' +
+      '</div>' +
+      '<div style="display:flex;position:absolute;left:52px;top:184px;width:1176px;height:452px;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;background:#fff;border:4px solid #a1001f;border-radius:30px;box-shadow:0 16px 42px rgba(61,0,13,.10)">' +
+        '<img src="' + photoDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;object-position:center;border-radius:18px"/>' +
+      '</div>' +
+      '<div style="display:flex;position:absolute;left:72px;bottom:20px;max-width:1120px;font-size:18px;font-weight:600;color:#745b65">' + safeSubtitle + '</div>' +
+    '</div>';
   const { ImageResponse } = await import("workers-og");
   const response = new ImageResponse(html, { width:1280, height:720 });
   return new Uint8Array(await response.arrayBuffer());
@@ -126,7 +126,7 @@ const TEMPLATES = {
 
 function typeKeyboard() {
   return { inline_keyboard: [
-    [{ text: "✍️ Пост", callback_data: "social:type:post" }, { text: "🖼 Фото", callback_data: "social:type:photo" }],
+    [{ text: "✍️ Текстовый пост", callback_data: "social:type:post" }, { text: "🖼 Фото", callback_data: "social:type:photo" }],
   ] };
 }
 
@@ -260,20 +260,7 @@ async function handleSocialUpdate(env, item, adminId) {
       }
       await env.DB.prepare("INSERT INTO social_publication_state (key,value) VALUES ('compose_type',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(type).run();
       await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Формат выбран." });
-      await tg(env, "sendMessage", { chat_id: adminId, text: TYPES[type].prompt + "\n\nТекущий шаблон будет применён автоматически. Чтобы поменять его, нажми «🎨 Шаблоны публикаций» в меню." });
-      return true;
-    }
-    const templateMatch = data.match(/^social:template:(post|photo):([a-z]+)$/);
-    if (templateMatch) {
-      const [, type, id] = templateMatch;
-      const template = TEMPLATES[type].find(x => x.id === id);
-      if (!template) {
-        await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Шаблон не найден." });
-        return true;
-      }
-      await env.DB.prepare("INSERT INTO social_publication_state (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind("template:" + type, id).run();
-      await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Сохранено для следующих публикаций." });
-      await tg(env, "sendMessage", { chat_id: adminId, text: "✅ Для формата «" + TYPES[type].title + "» сохранён шаблон «" + template.name + "». Больше не буду спрашивать его при каждой публикации." });
+      await tg(env, "sendMessage", { chat_id: adminId, text: TYPES[type].prompt + "\n\nЕдиный фирменный шаблон будет применён автоматически." });
       return true;
     }
     const publishMatch = data.match(/^social:(publish|reject):(\d+)$/);
@@ -318,11 +305,7 @@ async function handleSocialUpdate(env, item, adminId) {
     await sendTypeMenu(env, adminId);
     return true;
   }
-  if (normalized === "🎨 шаблоны публикаций" || normalized === "/templates") {
-    await env.DB.prepare("INSERT INTO social_publication_state (key,value) VALUES ('template_mode','1') ON CONFLICT(key) DO UPDATE SET value='1'").run();
-    await tg(env, "sendMessage", { chat_id: adminId, text: "Выбери формат, для которого хочешь изменить сохранённый шаблон:", reply_markup: typeKeyboard() });
-    return true;
-  }
+
 
   if (msg.photo || text) {
     const state = await env.DB.prepare("SELECT value FROM social_publication_state WHERE key='compose_type'").first();
