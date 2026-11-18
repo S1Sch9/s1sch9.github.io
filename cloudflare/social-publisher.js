@@ -82,6 +82,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
   const [councilLogo, schoolCrest, importantLogo] = await loadBrandAssets();
   await onStage("Фирменные элементы готовы…", 62);
   const safeTitle = escapeHtml(title || "События и инициативы");
+  const titleFontSize = String(title || "").length > 34 ? 23 : String(title || "").length > 24 ? 27 : 31;
   if (type !== "photo" || !photoDataUrl || !String(photoDataUrl).startsWith("data:image/")) {
     throw new Error("Не удалось подготовить исходную фотографию.");
   }
@@ -98,7 +99,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
         '</div>' +
         '<div style="display:flex;align-items:center;justify-content:flex-end;margin-left:auto;width:350px;height:100%;color:#3d000d;font-size:31px;line-height:1.12;font-weight:800;text-align:right;overflow:hidden">' + safeTitle + '</div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:54px;top:178px;width:1172px;height:488px;overflow:hidden;border-radius:24px;background:#fff;border:4px solid #a1001f;box-sizing:border-box">' +
+      '<div style="display:flex;position:absolute;left:160px;top:154px;width:960px;height:540px;overflow:hidden;border-radius:24px;background:#fff;border:4px solid #a1001f;box-sizing:border-box">' +
         '<img src="' + photoDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;object-position:center"/>' +
       '</div>' +
     '</div>';
@@ -196,7 +197,7 @@ function captionFor(type, templateId, raw) {
     if (templateId === "editorial") return "◆  СОВЕТ ПЕРВЫХ · ШКОЛА №9\n\n" + text + "\n\n" + footer;
     return text + "\n\n" + footer;
   }
-  return text.slice(0, 1024);
+  return "";
 }
 
 async function sendTypeMenu(env, adminId) {
