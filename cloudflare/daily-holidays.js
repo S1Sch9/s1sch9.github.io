@@ -358,6 +358,31 @@ function holidayIllustration(title) {
   return '<g stroke="#21105f" stroke-width="9" stroke-linejoin="round"><path d="M44 100 L132 48 L220 100 V212 H44Z" fill="#65b9d4"/><path d="M44 100 L132 154 L220 100" fill="#ef6b59"/><path d="M132 48 V154" fill="none" stroke="#fff"/><path d="M132 20 L145 45 L173 49 L153 69 L158 98 L132 84 L106 98 L111 69 L91 49 L119 45Z" fill="#ffcf55"/></g>';
 }
 
+
+export function holidayVisualConcept(title, description = "") {
+  const value = (String(title || "") + " " + String(description || "")).toLocaleLowerCase("ru");
+  const concepts = [
+    [/гиннесс|рекорд.{0,20}гиннесс|книга рекордов/, "One unmistakable hero object: a large, thick deep-blue hardcover record book, shown open at a three-quarter angle. A bold golden laurel wreath is embossed on the front cover and one small gold medal rests on the open pages; the book itself dominates the composition. No writing or letters anywhere."],
+    [/пасх|светлое христово воскрес|воскресение христово/, "One unmistakable hero object: a single large, beautifully decorated Easter egg, upright and centered, with elegant traditional red, gold and white ornamental patterns. The egg fills most of the composition; no basket, no people, no extra objects."],
+    [/блин|маслениц/, "One unmistakable hero object: a tall, appetizing stack of golden Russian pancakes with a small curl of butter melting on top. The pancake stack fills most of the composition; no table setting or extra food."],
+    [/книг|чтен|писател|поэз|литератур/, "One unmistakable hero object: a beautiful open hardback book with clearly visible thick pages, viewed at a slight angle. The open book fills most of the composition; no readable writing, letters or extra objects."],
+    [/космос|космонавт|астронавт|день космонавтики/, "One unmistakable hero object: a classic silver-and-white astronaut helmet with a large dark blue reflective visor, shown close-up and centered. The helmet fills most of the composition; no planets, stars or extra objects."],
+    [/земл.{0,12}(день|планет)|день земли/, "One unmistakable hero object: a beautiful blue-and-green planet Earth globe, with recognizable continents and oceans, centered and filling most of the composition. No stars, orbit rings or extra objects."],
+    [/вод.{0,12}(день|ресурс)|день воды/, "One unmistakable hero object: a large crystal-clear blue water droplet with a simple reflective highlight, centered and filling most of the composition. No waves, no glass, no extra objects."],
+    [/учител|педагог/, "One unmistakable hero object: a single fresh red apple with a small green leaf, beautifully illustrated and centered. The apple fills most of the composition; no books, chalkboards or extra objects."],
+    [/музык|композитор|скрипк|оркестр/, "One unmistakable hero object: a richly colored wooden violin, shown at a slight angle with its full recognizable silhouette visible. The violin fills most of the composition; no notes, no staff lines or extra objects."],
+    [/театр|драматург|сценическ/, "One unmistakable hero object: the classic pair of theatrical masks, one smiling and one sad, overlapping slightly as a single recognizable symbol. Large, centered, with no stage or extra objects."],
+    [/птиц|орнитолог/, "One unmistakable hero object: one beautifully illustrated small songbird perched in profile, with a clear recognizable silhouette and colorful feathers. The bird fills most of the composition; no branch clutter or extra objects."],
+    [/кош|котён|котен|день кота/, "One unmistakable hero subject: one friendly cat sitting upright and looking directly forward, with a clear expressive face and full recognizable silhouette. The cat fills most of the composition; no toys or extra objects."],
+    [/собак|пёс|пес|щенок/, "One unmistakable hero subject: one friendly dog sitting upright and looking directly forward, with a clear expressive face and full recognizable silhouette. The dog fills most of the composition; no toys or extra objects."],
+    [/шоколад/, "One unmistakable hero object: a large rich-brown chocolate bar, with a few neat raised squares and one clean broken edge showing its thickness. Centered and filling most of the composition; no wrappers or extra objects."],
+    [/пицц/, "One unmistakable hero object: a single triangular slice of pizza with melted cheese and a few classic toppings, shown close-up with its full silhouette visible. It fills most of the composition; no plate or extra objects."],
+    [/новый год|новогод|рождеств/, "One unmistakable hero object: a beautifully decorated evergreen Christmas tree with a single bright golden star at its top. The tree fills most of the composition; no gifts, text or extra objects."]
+  ];
+  for (const [pattern, concept] of concepts) if (pattern.test(value)) return concept;
+  return "";
+}
+
 let cachedHolidayAssetsPromise;
 async function holidayBrandAsset(url) {
   const response = await fetchWithTimeout(url, {}, REQUEST_TIMEOUT_MS, "Загрузка фирменного логотипа");
@@ -610,26 +635,31 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       throw new Error("Не удалось получить достаточно сведений о выбранном празднике из календаря." +
         (textAiError ? " " + textAiError.slice(0, 100) : ""));
     }
-    const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert editorial illustrator. Return ONLY English, 2–3 concise sentences describing one clear, elegant, instantly recognizable illustration subject for the exact named holiday. Prefer one iconic real-world object or a simple meaningful scene, not a busy collage. Say exactly what the viewer should see and what is happening. Treat the holiday title and calendar description as hard facts. Do not invent symbols or substitute a generic celebration. No style, background, lighting, text, lettering, or logos."
-        },
-        {
-          role: "user",
-          content: "EXACT HOLIDAY TITLE: " + chosen.title + "\nCALENDAR DESCRIPTION: " + chosen.description + "\nAPPROVED POST TEXT: " + body + "\nDescribe the one most recognizable real-world subject or action that represents THIS holiday."
-        }
-      ],
-      max_completion_tokens: 220,
-      temperature: 0.2,
-      chat_template_kwargs: { enable_thinking: false }
-    }), AI_TIMEOUT_MS, "Создание тематического описания иллюстрации");
-    imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
-      .replace(/^["'`]+|["'`]+$/g, "")
-      .replace(/\s+/g, " ")
-      .slice(0, 700);
-    if (imagePrompt.length < 35) throw new Error("Не удалось получить точное описание иллюстрации к выбранному празднику.");
+    const curatedVisualConcept = holidayVisualConcept(chosen.title, chosen.description);
+    if (curatedVisualConcept) {
+      imagePrompt = curatedVisualConcept;
+    } else {
+      const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert editorial illustrator. Return ONLY one concrete visual subject in 1–2 short English sentences. Name one physical object or one clearly identifiable subject, not an abstract idea, shape, sphere, ball, orb, generic symbol or decorative composition. It must be the first object people associate with the exact holiday. Do not invent a connection. No style, background, lighting, text, lettering or logos."
+          },
+          {
+            role: "user",
+            content: "EXACT HOLIDAY TITLE: " + chosen.title + "\nCALENDAR DESCRIPTION: " + chosen.description + "\nAPPROVED POST TEXT: " + body + "\nName the single most recognizable physical object or subject for this exact holiday. Be literal and specific. If there is no reliable symbol, choose the most concrete object directly mentioned by the holiday."
+          }
+        ],
+        max_tokens: 120,
+        temperature: 0.1,
+        chat_template_kwargs: { enable_thinking: false }
+      }), AI_TIMEOUT_MS, "Создание тематического описания иллюстрации");
+      imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
+        .replace(/^["'`]+|["'`]+$/g, "")
+        .replace(/\s+/g, " ")
+        .slice(0, 420);
+    }
+    if (imagePrompt.length < 25) throw new Error("Не удалось получить точное описание иллюстрации к выбранному празднику.");
     const dateForPost = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
@@ -662,14 +692,14 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     stage = "image-ai";
     if (onProgress) await onProgress(stage);
     const illustrationPrompt = [
-      "Generate one standalone editorial illustration asset, not a greeting card, not a poster, not a banner.",
-      "Exact holiday: " + chosen.title + ". Calendar context: " + chosen.description + ".",
-      "Show this specific subject or action: " + imagePrompt + ". This is the central subject and must remain the main focus. Do not replace it with a generic celebration or an unrelated person/object.",
-      "STYLE: warm, charming flat 2D hand-drawn cartoon, like a beautifully illustrated children's storybook. Rounded expressive shapes, confident dark indigo-purple outlines, cheerful solid colors, gentle minimal shading. Consistent visual style across the series.",
-      "COMPOSITION: one clear recognizable scene, centered, fully visible, large enough to read at a glance. One main subject and only the few details needed to identify this exact holiday. Keep generous pure-white space around the scene.",
-      "BACKGROUND: plain pure white (#FFFFFF).",
-      "ABSOLUTELY NO TEXT: no words, no letters, no numbers, no typography, no labels, no greeting, no 'Happy Holidays', no logos, no watermarks, no card or poster layout.",
-      "Avoid photorealism, 3D, gradients, cinematic lighting, busy collages, decorative filler and generic party imagery."
+      "Create one standalone editorial illustration asset for a polished school holiday series. This is artwork placed inside an existing poster template, not a poster or greeting card.",
+      "EXACT HOLIDAY: " + chosen.title + ".",
+      "THE ONE MAIN SUBJECT: " + imagePrompt + " The described physical subject must be unmistakable and must occupy about 75–85% of the square image. Preserve its natural recognizable shape; do not reinterpret it as a sphere, ball, orb, planet, abstract blob or generic decorative icon.",
+      "STYLE: warm, premium flat 2D storybook illustration; confident dark indigo outlines, rich clean colors, soft restrained shading, beautifully drawn shapes. Consistent style across the series.",
+      "COMPOSITION: one large hero object or one clearly identifiable subject, centered, full silhouette visible, close enough to recognize instantly on a phone. At most one tiny supporting detail only if essential to identify this holiday. No empty tiny object floating in the middle.",
+      "BACKGROUND: clean pure white (#FFFFFF), simple and uncluttered.",
+      "NO TEXT AT ALL: no words, letters, numbers, labels, symbols made of typography, logos, watermarks or captions.",
+      "Avoid generic celebration imagery, balloons, confetti, random spheres, abstract geometry, collages, photorealism, 3D, gradients and decorative filler."
     ].join(" ").slice(0, 2048);
     const illustrationResult = await withTimeout(env.AI.run(IMAGE_MODEL, {
       prompt: illustrationPrompt,
