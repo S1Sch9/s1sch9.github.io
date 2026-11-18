@@ -38,7 +38,7 @@ assert.ok(daily.includes("attempt < 3 && !draft"));
 assert.ok(daily.includes("ПРЕДЫДУЩИЙ ОТВЕТ НЕ ПРОШЁЛ ПРОВЕРКУ"));
 assert.ok(daily.includes("Не удалось получить полный текст после 3 попыток"));
 assert.ok(daily.includes("Keep a valid holiday text even if the image description is missing."));
-assert.ok(daily.includes("Создание описания иллюстрации"));
+assert.ok(daily.includes("Создание тематического описания иллюстрации"));
 assert.ok(daily.includes("Never ask the model to rewrite the body just to repair image_prompt."));
 assert.ok(daily.includes("void loadHolidayBrandAssets().catch"));
 assert.ok(daily.indexOf("// Manual requests run from the scheduled Worker invocation") < daily.indexOf("// Publish approved future-dated drafts at 06:00 Moscow time."));
