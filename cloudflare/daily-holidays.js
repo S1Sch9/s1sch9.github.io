@@ -63,6 +63,8 @@ async function tables(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_drafts (date TEXT PRIMARY KEY, chat_id TEXT NOT NULL, message_id INTEGER, status TEXT NOT NULL, holiday_title TEXT NOT NULL DEFAULT '', source_url TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, published_at INTEGER)").run();
   try { await env.DB.prepare("ALTER TABLE daily_holiday_drafts ADD COLUMN published_at INTEGER").run(); } catch {}
   try { await env.DB.prepare("ALTER TABLE daily_holiday_drafts ADD COLUMN scheduled_publish_at INTEGER").run(); } catch {}
+  try { await env.DB.prepare("ALTER TABLE daily_holiday_drafts ADD COLUMN last_error TEXT").run(); } catch {}
+  try { await env.DB.prepare("ALTER TABLE daily_holiday_drafts ADD COLUMN last_stage TEXT").run(); } catch {}
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_updates (update_id INTEGER PRIMARY KEY, created_at INTEGER NOT NULL)").run();
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily_holiday_assets (key TEXT PRIMARY KEY, mime_type TEXT NOT NULL, file_name TEXT NOT NULL, content_base64 TEXT NOT NULL, updated_at INTEGER NOT NULL)").run();
 }
@@ -404,7 +406,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
   }
   let stage = "calendar";
   if (onProgress) await onProgress(stage);
-  await env.DB.prepare("INSERT INTO daily_holiday_drafts (date, chat_id, status, created_at) VALUES (?, ?, 'generating', ?) ON CONFLICT(date) DO UPDATE SET chat_id=excluded.chat_id, message_id=NULL, status='generating', created_at=excluded.created_at")
+  await env.DB.prepare("INSERT INTO daily_holiday_drafts (date, chat_id, status, created_at) VALUES (?, ?, 'generating', ?) ON CONFLICT(date) DO UPDATE SET chat_id=excluded.chat_id, message_id=NULL, status='generating', created_at=excluded.created_at, holiday_title='', source_url='', last_error=NULL, last_stage=NULL")
     .bind(date, String(env.TELEGRAM_ADMIN_ID), Math.floor(Date.now() / 1000)).run();
 
   try {
@@ -546,8 +548,8 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       .bind(sent.result.message_id, chosen.title, chosen.url, date).run();
     return { ok: true, title: chosen.title };
   } catch (error) {
-    await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'failed' WHERE date = ?").bind(date).run();
     const detail = String(error && error.message ? error.message : "Неизвестная ошибка").slice(0, 220);
+    await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'failed', last_error = ?, last_stage = ? WHERE date = ?").bind(detail, stage, date).run();
     console.error("Daily post generation failed at " + stage + ":", detail);
     return { ok: false, stage, error: detail };
   }
@@ -843,7 +845,7 @@ async function processUpdate(env, item, adminId) {
     const lastRequested = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_last_date'").first();
     const lastRequestedDate = validIsoDate(lastRequested && lastRequested.value) ? lastRequested.value : "";
     const statusDate = queuedDate || (processingMatch ? processingMatch[1] : "") || lastRequestedDate || localDate();
-    const row = await env.DB.prepare("SELECT status, created_at, holiday_title, message_id, scheduled_publish_at FROM daily_holiday_drafts WHERE date = ?").bind(statusDate).first();
+    const row = await env.DB.prepare("SELECT status, created_at, holiday_title, message_id, scheduled_publish_at, last_error, last_stage FROM daily_holiday_drafts WHERE date = ?").bind(statusDate).first();
     const processingStartedAt = processingMatch ? Number(processingMatch[2] || row && row.created_at || 0) : 0;
     const processingAge = processingStartedAt ? Math.max(0, Math.floor(Date.now() / 1000) - processingStartedAt) : 0;
     let statusText;
@@ -870,6 +872,8 @@ async function processUpdate(env, item, adminId) {
       };
       statusText = (states[row.status] || "ℹ️ Статус: " + row.status) + "\nДата: " + statusDate + "\nПоследнее изменение: " + elapsed;
       if (row.holiday_title) statusText += "\nПраздник: " + row.holiday_title;
+      if (row.status === "failed" && row.last_stage) statusText += "\nЭтап: " + row.last_stage;
+      if (row.status === "failed" && row.last_error) statusText += "\nПричина: " + String(row.last_error).slice(0, 220);
       if (row.status === "scheduled" && row.scheduled_publish_at) {
         statusText += "\nВремя публикации: " + new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", dateStyle: "short", timeStyle: "short" }).format(new Date(row.scheduled_publish_at * 1000)) + " (Москва)";
       }
