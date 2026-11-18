@@ -142,6 +142,8 @@ async function queueManualDraft(env, adminId, date) {
     });
     return { ok: false, reason: "already-published" };
   }
+  await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES ('manual_draft_last_date', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
+    .bind(date).run();
   const lock = await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES ('manual_draft_requested', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value WHERE daily_holiday_state.value = ''")
     .bind(date).run();
   if (!lock.meta || !lock.meta.changes) {
@@ -829,12 +831,13 @@ async function processUpdate(env, item, adminId) {
   }
   if (text === "/status" || text === "/status@" + String(env.SOVETTG_BOT_USERNAME || "").toLowerCase()) {
     await tables(env);
-    const date = localDate();
     const queued = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_requested'").first();
     const queuedValue = String(queued && queued.value || "");
     const queuedDate = validIsoDate(queuedValue) ? queuedValue : "";
     const processingMatch = queuedValue.match(/^processing:(\d{4}-\d{2}-\d{2})(?::(\d+))?$/);
-    const statusDate = queuedDate || (processingMatch ? processingMatch[1] : date);
+    const lastRequested = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_last_date'").first();
+    const lastRequestedDate = validIsoDate(lastRequested && lastRequested.value) ? lastRequested.value : "";
+    const statusDate = queuedDate || (processingMatch ? processingMatch[1] : "") || lastRequestedDate || localDate();
     const row = await env.DB.prepare("SELECT status, created_at, holiday_title, message_id, scheduled_publish_at FROM daily_holiday_drafts WHERE date = ?").bind(statusDate).first();
     const processingStartedAt = processingMatch ? Number(processingMatch[2] || row && row.created_at || 0) : 0;
     const processingAge = processingStartedAt ? Math.max(0, Math.floor(Date.now() / 1000) - processingStartedAt) : 0;
@@ -946,11 +949,6 @@ export async function runDailyHolidayCron(controller, env) {
   if (!env || !env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.DB) return;
   await tables(env);
 
-  // Process at most one queued photo per scheduled invocation; image rendering
-  // must not run inside the short-lived Telegram webhook waitUntil task.
-  try { await processQueuedSocialPhotos(env); }
-  catch (error) { console.error("Queued social photo processing failed:", error && error.message ? error.message : "unknown error"); }
-
   // Publish approved future-dated drafts at 06:00 Moscow time.
   const nowSeconds = Math.floor(Date.now() / 1000);
   const due = await env.DB.prepare("SELECT date, chat_id, message_id FROM daily_holiday_drafts WHERE status = 'scheduled' AND scheduled_publish_at IS NOT NULL AND scheduled_publish_at <= ? ORDER BY scheduled_publish_at LIMIT 20").bind(nowSeconds).all();
@@ -1059,6 +1057,11 @@ export async function runDailyHolidayCron(controller, env) {
       }
     }
   }
+
+  // Handle the manual holiday draft first. A slow unrelated social-photo job
+  // must never hold its progress message at 5% or starve the requested date.
+  try { await processQueuedSocialPhotos(env); }
+  catch (error) { console.error("Queued social photo processing failed:", error && error.message ? error.message : "unknown error"); }
 
   const moscowTime = moscowTimeParts();
   if (moscowTime.hour === String(DAILY_DRAFT_HOUR).padStart(2, "0") && moscowTime.minute === "00") {
