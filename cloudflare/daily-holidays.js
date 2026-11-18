@@ -295,17 +295,25 @@ async function holidayBrandAsset(url) {
   for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return "data:" + (response.headers.get("content-type") || "image/png") + ";base64," + btoa(binary);
 }
+async function holidayRobotoBlackFont() {
+  const response = await fetchWithTimeout("https://raw.githubusercontent.com/google/fonts/main/ofl/roboto/Roboto%5Bwdth,wght%5D.ttf", {}, REQUEST_TIMEOUT_MS, "Загрузка шрифта Roboto");
+  if (!response.ok) throw new Error("Не удалось загрузить фирменный шрифт Roboto Black.");
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (!bytes.length || bytes.length > 2000000) throw new Error("Файл шрифта Roboto повреждён или слишком большой.");
+  return bytes;
+}
 async function loadHolidayBrandAssets() {
   if (!cachedHolidayAssetsPromise) {
     cachedHolidayAssetsPromise = Promise.all([
       holidayBrandAsset("https://s1sch9.github.io/official-logo.svg"),
-      holidayBrandAsset("https://s1sch9.github.io/gerb.png")
+      holidayBrandAsset("https://s1sch9.github.io/gerb.png"),
+      holidayRobotoBlackFont()
     ]).catch(error => { cachedHolidayAssetsPromise = null; throw error; });
   }
   return cachedHolidayAssetsPromise;
 }
 async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationBase64, bodyText = "") {
-  const [councilLogo, schoolCrest] = await loadHolidayBrandAssets();
+  const [councilLogo, schoolCrest, robotoBlackFont] = await loadHolidayBrandAssets();
   const { ImageResponse } = await import("workers-og");
   const fittedTitle = fitHolidayTitle(holidayTitle);
   const lines = fittedTitle.lines;
@@ -328,13 +336,13 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
       '<div style="display:flex;position:absolute;right:70px;top:58px;width:550px;height:110px;align-items:center;justify-content:center;gap:18px;background:#1a0b5c;border-radius:24px;color:#fff;box-sizing:border-box;padding:16px 24px"><div style="display:flex;width:62px;height:62px;align-items:center;justify-content:center;border:3px solid rgba(255,255,255,.85);border-radius:19px;font-size:38px;font-weight:900;color:#fff">✦</div><div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start"><div style="display:flex;font-family:Arial,sans-serif;font-size:31px;line-height:34px;font-weight:900;letter-spacing:.3px;color:#fff">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:28px;line-height:31px;font-weight:900;letter-spacing:.6px;color:#fff">КАЖДЫЙ ДЕНЬ</div></div></div>' +
       '<div style="display:flex;position:absolute;left:78px;top:252px;width:640px;height:40px;align-items:center;color:#655b91;font-size:24px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
       titleMarkup +
-      '<div style="display:flex;position:absolute;left:78px;top:178px;width:300px;height:58px;align-items:center;justify-content:center;gap:12px;background:#fff;border:2px solid #1a0b5c;border-radius:16px;box-sizing:border-box;padding:5px 14px;color:#1a0b5c"><div style="display:flex;flex-direction:column;gap:0;align-items:flex-start;font-family:Arial,sans-serif;font-size:23px;line-height:22px;font-weight:900;letter-spacing:-.3px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div><div style="display:flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:50%;background:#1a0b5c;color:#fff;font-size:19px;font-weight:900">✦</div></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:178px;width:300px;height:58px;align-items:center;justify-content:center;gap:12px;background:#fff;border:2px solid #1a0b5c;border-radius:16px;box-sizing:border-box;padding:5px 14px;color:#1a0b5c"><div style="display:flex;flex-direction:column;gap:0;align-items:flex-start;font-family:Roboto,sans-serif;font-size:23px;line-height:22px;font-weight:900;letter-spacing:-.3px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div><div style="display:flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:50%;background:#1a0b5c;color:#fff;font-size:19px;font-weight:900">✦</div></div>' +
       '<div style="display:flex;position:absolute;left:78px;top:306px;width:112px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
       '<div style="display:flex;position:absolute;left:820px;top:205px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:3px solid #1a0b5c;border-radius:32px;padding:16px;box-sizing:border-box">' +
         '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
       '</div>' +
     '</div>';
-  const rendered = new ImageResponse(html, { width: 1280, height: 720 });
+  const rendered = new ImageResponse(html, { width: 1280, height: 720, fonts: [{ name: "Roboto", data: robotoBlackFont, weight: 900, style: "normal" }] });
   return new Uint8Array(await rendered.arrayBuffer());
 }
 function escapeHtml(value) {
