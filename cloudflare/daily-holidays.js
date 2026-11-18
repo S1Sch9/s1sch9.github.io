@@ -313,7 +313,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const lineHeight = Math.round(fontSize * 1.08);
   const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:76px;top:' + (330 + index * lineHeight) + 'px;width:650px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:76px;top:' + (344 + index * lineHeight) + 'px;width:650px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
   const html =
     '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
@@ -323,12 +323,13 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
       '<div style="display:flex;position:absolute;left:70px;top:58px;width:540px;height:110px;align-items:center">' +
         '<img src="' + councilLogo + '" style="display:flex;width:88px;height:88px;object-fit:contain;margin-right:18px"/>' +
         '<img src="' + schoolCrest + '" style="display:flex;width:88px;height:88px;object-fit:contain;margin-right:22px"/>' +
-        '<div style="display:flex;flex-direction:column;gap:5px"><div style="display:flex;font-size:28px;font-weight:900;color:#1a0b5c">СОВЕТ ПЕРВЫХ</div><div style="display:flex;font-size:22px;font-weight:700;color:#51477a">ШКОЛЫ №9</div></div>' +
+        '<div style="display:flex;flex-direction:column;gap:3px"><div style="display:flex;font-family:Arial,sans-serif;font-size:28px;font-weight:900;line-height:32px;color:#1a0b5c;letter-spacing:-.5px">СОВЕТ ПЕРВЫХ</div><div style="display:flex;font-family:Arial,sans-serif;font-size:28px;font-weight:900;line-height:32px;color:#1a0b5c;letter-spacing:-.5px">ШКОЛЫ №9</div></div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;right:70px;top:88px;width:560px;height:52px;align-items:center;justify-content:flex-end;color:#1a0b5c;font-size:27px;font-weight:900;letter-spacing:.5px;text-align:right">ПРАЗДНИК КАЖДЫЙ ДЕНЬ</div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:238px;width:640px;height:44px;align-items:center;color:#655b91;font-size:25px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
+      '<div style="display:flex;position:absolute;right:70px;top:58px;width:550px;height:110px;align-items:center;justify-content:center;gap:18px;background:#1a0b5c;border-radius:24px;color:#fff;box-sizing:border-box;padding:16px 24px"><div style="display:flex;width:62px;height:62px;align-items:center;justify-content:center;border:3px solid rgba(255,255,255,.85);border-radius:19px;font-size:38px;font-weight:900;color:#fff">✦</div><div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start"><div style="display:flex;font-family:Arial,sans-serif;font-size:31px;line-height:34px;font-weight:900;letter-spacing:.3px;color:#fff">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:28px;line-height:31px;font-weight:900;letter-spacing:.6px;color:#fff">КАЖДЫЙ ДЕНЬ</div></div></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:252px;width:640px;height:40px;align-items:center;color:#655b91;font-size:24px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
       titleMarkup +
-      '<div style="display:flex;position:absolute;left:78px;top:292px;width:112px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:178px;width:300px;height:58px;align-items:center;justify-content:center;gap:12px;background:#fff;border:2px solid #1a0b5c;border-radius:16px;box-sizing:border-box;padding:5px 14px;color:#1a0b5c"><div style="display:flex;flex-direction:column;gap:0;align-items:flex-start;font-family:Arial,sans-serif;font-size:23px;line-height:22px;font-weight:900;letter-spacing:-.3px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div><div style="display:flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:50%;background:#1a0b5c;color:#fff;font-size:19px;font-weight:900">✦</div></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:306px;width:112px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
       '<div style="display:flex;position:absolute;left:820px;top:205px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:3px solid #1a0b5c;border-radius:32px;padding:16px;box-sizing:border-box">' +
         '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
       '</div>' +
