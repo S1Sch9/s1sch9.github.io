@@ -410,6 +410,11 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
   try {
     const list = await candidatesFor(date);
     if (!list.length) throw new Error("На сайте календаря не найдены праздники для этой даты.");
+    // Download the fixed brand assets while text and image AI are running.
+    // The render step reuses this cached promise instead of waiting for assets at the end.
+    void loadHolidayBrandAssets().catch(error => {
+      console.warn("Holiday brand asset prefetch failed; render will retry:", error && error.message ? error.message : "unknown error");
+    });
     const dateLabel = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric", weekday: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
@@ -438,7 +443,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
           },
           { role: "user", content: prompt }
         ],
-        max_tokens: 1100,
+        max_tokens: 850,
         temperature: attempt === 0 ? 0.3 : 0.1
       }), AI_TIMEOUT_MS, "Текстовая AI-модель");
       const generatedText = modelText(answer);
@@ -949,24 +954,6 @@ export async function runDailyHolidayCron(controller, env) {
   if (!env || !env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.DB) return;
   await tables(env);
 
-  // Publish approved future-dated drafts at 06:00 Moscow time.
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  const due = await env.DB.prepare("SELECT date, chat_id, message_id FROM daily_holiday_drafts WHERE status = 'scheduled' AND scheduled_publish_at IS NOT NULL AND scheduled_publish_at <= ? ORDER BY scheduled_publish_at LIMIT 20").bind(nowSeconds).all();
-  for (const draft of (due.results || [])) {
-    const lock = await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'publishing' WHERE date = ? AND status = 'scheduled' AND scheduled_publish_at <= ?").bind(draft.date, nowSeconds).run();
-    if (!lock.meta || !lock.meta.changes) continue;
-    try {
-      await tg(env, "copyMessage", { chat_id: CHANNEL, from_chat_id: String(draft.chat_id), message_id: draft.message_id });
-      await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'published', published_at = ?, scheduled_publish_at = NULL WHERE date = ? AND status = 'publishing'").bind(nowSeconds, draft.date).run();
-      const publishedTime = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(nowSeconds * 1000));
-      await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "📣 Готово! Одобренный пост на " + formatHolidayDate(draft.date) + " опубликован в канале в " + publishedTime + " по Москве." });
-    } catch (error) {
-      await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'scheduled' WHERE date = ? AND status = 'publishing'").bind(draft.date).run();
-      console.error("Scheduled daily holiday publish failed:", error && error.message ? error.message : "unknown error");
-      try { await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Не удалось опубликовать одобренный пост на " + formatHolidayDate(draft.date) + ". Он остался в очереди, бот повторит попытку автоматически." }); } catch {}
-    }
-  }
-
   // Manual requests run from the scheduled Worker invocation, not from
   // webhook waitUntil (whose lifetime is too short for image generation).
   const queued = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_requested'").first();
@@ -1062,6 +1049,24 @@ export async function runDailyHolidayCron(controller, env) {
   // must never hold its progress message at 5% or starve the requested date.
   try { await processQueuedSocialPhotos(env); }
   catch (error) { console.error("Queued social photo processing failed:", error && error.message ? error.message : "unknown error"); }
+
+  // Publish approved future-dated drafts at 06:00 Moscow time.
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const due = await env.DB.prepare("SELECT date, chat_id, message_id FROM daily_holiday_drafts WHERE status = 'scheduled' AND scheduled_publish_at IS NOT NULL AND scheduled_publish_at <= ? ORDER BY scheduled_publish_at LIMIT 20").bind(nowSeconds).all();
+  for (const draft of (due.results || [])) {
+    const lock = await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'publishing' WHERE date = ? AND status = 'scheduled' AND scheduled_publish_at <= ?").bind(draft.date, nowSeconds).run();
+    if (!lock.meta || !lock.meta.changes) continue;
+    try {
+      await tg(env, "copyMessage", { chat_id: CHANNEL, from_chat_id: String(draft.chat_id), message_id: draft.message_id });
+      await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'published', published_at = ?, scheduled_publish_at = NULL WHERE date = ? AND status = 'publishing'").bind(nowSeconds, draft.date).run();
+      const publishedTime = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(nowSeconds * 1000));
+      await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "📣 Готово! Одобренный пост на " + formatHolidayDate(draft.date) + " опубликован в канале в " + publishedTime + " по Москве." });
+    } catch (error) {
+      await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'scheduled' WHERE date = ? AND status = 'publishing'").bind(draft.date).run();
+      console.error("Scheduled daily holiday publish failed:", error && error.message ? error.message : "unknown error");
+      try { await tg(env, "sendMessage", { chat_id: String(env.TELEGRAM_ADMIN_ID), text: "⚠️ Не удалось опубликовать одобренный пост на " + formatHolidayDate(draft.date) + ". Он остался в очереди, бот повторит попытку автоматически." }); } catch {}
+    }
+  }
 
   const moscowTime = moscowTimeParts();
   if (moscowTime.hour === String(DAILY_DRAFT_HOUR).padStart(2, "0") && moscowTime.minute === "00") {
