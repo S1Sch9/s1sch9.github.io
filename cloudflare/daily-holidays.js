@@ -307,7 +307,7 @@ async function loadHolidayBrandAssets() {
     cachedHolidayAssetsPromise = Promise.all([
       holidayBrandAsset("https://s1sch9.github.io/official-logo.svg"),
       holidayBrandAsset("https://s1sch9.github.io/gerb.png"),
-      holidayRobotoBlackFont()
+      holidayRobotoBlackFont().catch(() => null)
     ]).catch(error => { cachedHolidayAssetsPromise = null; throw error; });
   }
   return cachedHolidayAssetsPromise;
@@ -342,7 +342,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
         '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
       '</div>' +
     '</div>';
-  const rendered = new ImageResponse(html, { width: 1280, height: 720, fonts: [{ name: "Roboto", data: robotoBlackFont, weight: 900, style: "normal" }] });
+  const rendered = new ImageResponse(html, { width: 1280, height: 720, fonts: robotoBlackFont ? [{ name: "Roboto", data: robotoBlackFont, weight: 900, style: "normal" }] : [] });
   return new Uint8Array(await rendered.arrayBuffer());
 }
 function escapeHtml(value) {
