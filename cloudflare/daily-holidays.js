@@ -874,10 +874,9 @@ export async function handleDailyWebhook(request, env, context) {
     const inserted = await env.DB.prepare("INSERT OR IGNORE INTO daily_holiday_updates (update_id, created_at) VALUES (?, ?)").bind(update.update_id, Math.floor(Date.now() / 1000)).run();
     if (!inserted.meta || !inserted.meta.changes) return;
     try {
+      // Photo rendering stays on Cron so it is not cut off with the
+      // short-lived Telegram webhook task. The webhook only stores the queue item.
       await processUpdate(env, update, String(env.TELEGRAM_ADMIN_ID));
-      // Start queued social-photo rendering immediately after Telegram accepts
-      // the update. The scheduled Worker remains a recovery fallback.
-      await processQueuedSocialPhotos(env);
     }
     catch (error) {
       const detail = String(error && error.message ? error.message : "unknown error").slice(0, 180);
