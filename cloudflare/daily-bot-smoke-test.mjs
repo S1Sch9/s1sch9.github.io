@@ -32,7 +32,7 @@ const illustrationPrompt = buildHolidayIllustrationPrompt(
   "Праздник семьи",
   "A warm family scene with parents and children spending time together"
 );
-assert.match(illustrationPrompt, /flat 2D editorial illustration/);
+assert.match(illustrationPrompt, /premium editorial illustration asset/);
 assert.match(illustrationPrompt, /OBJECT LIMIT: show exactly the one or two objects/);
 assert.match(illustrationPrompt, /one large central subject/);
 assert.match(illustrationPrompt, /BACKGROUND: absolutely uniform pure white #FFFFFF/);
