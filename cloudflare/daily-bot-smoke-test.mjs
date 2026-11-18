@@ -53,13 +53,16 @@ assert.ok(daily.includes("env.AI.run(IMAGE_MODEL, {"));
 assert.ok(daily.includes("prompt: illustrationPrompt,"));
 assert.ok(daily.includes("steps: 8"));
 assert.ok(daily.includes("buildHolidayIllustrationPrompt(chosen.title, chosen.description, imagePrompt)"));
+assert.ok(daily.includes("fitHolidayTitle(holidayTitle, 700)"));
+assert.ok(daily.includes("ABSOLUTELY NO TEXT OR LETTERING of any kind"));
+assert.ok(daily.includes("crisp medium-thin deep blue outlines"));
 assert.ok(daily.includes('buildHolidayIllustrationPrompt(title, "", subject)'));
-assert.ok(daily.includes('left:800px;top:216px;width:400px;height:400px'));
-assert.ok(daily.includes('border:2px solid rgba(26,11,92,.18)'));
-assert.ok(daily.includes('color:#1a0b5c'));
-assert.ok(daily.includes('width:1124px;height:1px'));
-assert.ok(daily.includes('width:92px;height:3px'));
-assert.ok(daily.includes('left:26px;top:24px;width:1228px;height:672px'));
+assert.ok(daily.includes('left:880px;top:286px;width:278px;height:278px'));
+assert.ok(daily.includes('border:3px solid #2459A6'));
+assert.ok(daily.includes('color:#173F82'));
+assert.ok(daily.includes('width:1116px;height:2px;background:#D6E3F4'));
+assert.ok(daily.includes('width:116px;height:5px;border-radius:3px;background:#2D69BD'));
+assert.ok(daily.includes('left:24px;top:22px;width:1232px;height:676px'));
 
 
 
@@ -84,7 +87,7 @@ assert.ok(daily.includes('Первое предложение сразу и пр
 assert.ok(daily.includes('You are an expert editorial illustrator.'));
 assert.ok(daily.includes('EXACT HOLIDAY TITLE: '));
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
-assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px'));
+assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:30px'));
 assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
 assert.ok(!daily.includes('top:254px;width:660px;height:28px'));
 assert.ok(!daily.includes('function holidayImageDirection(title, description)'));
@@ -94,8 +97,8 @@ assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
 assert.ok(daily.includes('EXACT HOLIDAY TITLE: '));
 assert.ok(!daily.includes('border:3px solid rgba(255,255,255,.85)'));
-assert.ok(daily.includes('border:1.5px solid rgba(26,11,92,.14)'));
-assert.ok(daily.includes('left:78px;top:216px;width:660px;height:36px'));
+assert.ok(daily.includes('border:2px solid #B8CDE9'));
+assert.ok(daily.includes('left:82px;top:232px;width:700px;height:38px'));
 
 assert.ok(daily.includes("DELETE FROM daily_holiday_state WHERE key IN ('awaiting_publish_time', 'awaiting_custom_date')"));
 assert.ok(daily.includes("Все уже созданные черновики и ожидающие подтверждения публикации сохранены."));
