@@ -43,6 +43,11 @@ assert.ok(daily.includes("DELETE FROM daily_holiday_state WHERE key IN ('awaitin
 assert.ok(daily.includes("Все уже созданные черновики и ожидающие подтверждения публикации сохранены."));
 assert.ok(social.includes('normalized === "/start" || normalized.startsWith("/start@")'));
 assert.ok(social.includes('BRAND + "/official-logo.svg"'));
+assert.ok(social.includes('ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div>'));
+assert.ok(social.includes('font-family:Roboto,sans-serif;font-size:26px;line-height:25px;font-weight:900'));
+assert.ok(social.includes('fonts: [{ name: "Roboto", data: robotoBlackFont, weight: 900'));
+assert.ok(daily.includes('Roboto%5Bwdth,wght%5D.ttf'));
+assert.ok(social.includes('Roboto%5Bwdth,wght%5D.ttf'));
 assert.ok(social.includes('BRAND + "/gerb.png"'));
 assert.ok(social.includes("width:1280px;height:720px"));
 assert.ok(social.includes("#a1001f"));
