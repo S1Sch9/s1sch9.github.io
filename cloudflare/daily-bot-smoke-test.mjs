@@ -58,6 +58,8 @@ assert.ok(social.includes('name: "Roboto", data: robotoBlackFont, weight: 900'))
 assert.ok(daily.includes('Roboto%5Bwdth,wght%5D.ttf'));
 assert.ok(daily.includes("retrying holiday card with system font"));
 assert.ok(daily.includes('"▰".repeat(filled) + "▱".repeat(10-filled) + " " + value + "%\\n" + message'));
+assert.ok(daily.includes('Бот работает · «Праздник каждый день»'));
+assert.ok(daily.includes('Could not send fallback daily draft progress message'));
 assert.ok(social.includes('Roboto%5Bwdth,wght%5D.ttf'));
 assert.ok(social.includes('BRAND + "/gerb.png"'));
 assert.ok(social.includes("width:1280px;height:720px"));
