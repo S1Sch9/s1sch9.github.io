@@ -433,44 +433,59 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     stage = "text-ai";
     if (onProgress) await onProgress(stage);
     let draft = null;
-    let lastParseError = null;
-    for (let attempt = 0; attempt < 2 && !draft; attempt++) {
+    let chosen = null;
+    let body = "";
+    let imagePrompt = "";
+    let lastTextError = null;
+    // Validate the content on every attempt, not only the JSON syntax. A short
+    // body is sent back for expansion instead of failing the entire draft.
+    for (let attempt = 0; attempt < 3 && !draft; attempt++) {
+      const repairInstruction = attempt === 0 ? "" :
+        "\\n\\nПРЕДЫДУЩИЙ ОТВЕТ НЕ ПРОШЁЛ ПРОВЕРКУ: " + String(lastTextError || "неполные поля") +
+        ". Сгенерируй заново полноценный ответ. body должен содержать ДВА законченных абзаца и не менее 220 символов суммарно (желательно 300–420). Не сокращай текст до одной фразы. image_prompt — конкретное описание на английском не короче 30 символов. Сохрани выбранный индекс праздника. Верни только JSON.";
       const answer = await withTimeout(env.AI.run(TEXT_MODEL, {
         messages: [
           {
             role: "system",
-            content: attempt === 0
-              ? "Пиши грамотно, не выдумывай факты. Верни только один корректный JSON-объект без Markdown, пояснений и текста до или после него. Обязательные ключи: selected_index (число), body (строка), image_prompt (строка). Строковые значения JSON должны быть корректно экранированы."
-              : "Исправь формат ответа. Верни исключительно один полноценный JSON-объект, без вступления, Markdown и пояснений. Обязательные ключи: selected_index (число), body (строка), image_prompt (строка). Не обрезай JSON и корректно экранируй кавычки и переносы строк."
+            content: "Пиши грамотно, не выдумывай факты. Верни только один корректный JSON-объект без Markdown, пояснений и текста до или после него. Обязательные ключи: selected_index (число), body (строка из двух законченных абзацев, 300–420 символов), image_prompt (строка на английском не короче 30 символов). Не обрезай значения и корректно экранируй кавычки и переносы строк."
           },
-          { role: "user", content: prompt }
+          { role: "user", content: prompt + repairInstruction }
         ],
-        max_tokens: 850,
+        max_tokens: 1000,
         temperature: attempt === 0 ? 0.3 : 0.1
       }), AI_TIMEOUT_MS, "Текстовая AI-модель");
       const generatedText = modelText(answer);
       if (!generatedText) {
         const shape = answer && typeof answer === "object" ? Object.keys(answer).join(", ") : typeof answer;
         const modelError = answer && (answer.error || answer.message || answer.details);
-        lastParseError = new Error("Модель вернула пустой текст. Поля ответа: " + (shape || "нет") + (modelError ? "; " + String(modelError).slice(0, 120) : ""));
+        lastTextError = "Модель вернула пустой текст. Поля ответа: " + (shape || "нет") + (modelError ? "; " + String(modelError).slice(0, 120) : "");
         continue;
       }
       try {
-        draft = parseObject(generatedText);
+        const candidate = parseObject(generatedText);
+        const index = Number(candidate.selected_index);
+        const candidateBody = String(candidate.body || "").replace(/\\r/g, "").split(/\\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\\n\\n");
+        const candidateImagePrompt = String(candidate.image_prompt || "").trim().slice(0, 700);
+        if (!Number.isInteger(index) || index < 0 || index >= list.length) {
+          lastTextError = "модель указала несуществующий индекс праздника";
+          continue;
+        }
+        if (candidateBody.length < 180 || candidateImagePrompt.length < 30) {
+          lastTextError = "body: " + candidateBody.length + " символов; image_prompt: " + candidateImagePrompt.length + " символов";
+          continue;
+        }
+        draft = candidate;
+        chosen = list[index];
+        body = candidateBody;
+        imagePrompt = candidateImagePrompt;
       } catch (error) {
-        lastParseError = error;
+        lastTextError = String(error && error.message || "некорректный JSON");
       }
     }
     if (!draft) {
-      throw new Error("AI не вернула корректный JSON даже после повторной попытки: " +
-        String(lastParseError && lastParseError.message || "пустой ответ").slice(0, 150));
+      throw new Error("Не удалось получить полный текст после 3 попыток. Последняя проверка: " +
+        String(lastTextError || "пустой ответ").slice(0, 150) + ". Черновик не отправлен.");
     }
-    const index = Number(draft.selected_index);
-    if (!Number.isInteger(index) || index < 0 || index >= list.length) throw new Error("Invalid selected holiday");
-    const chosen = list[index];
-    const body = String(draft.body || "").replace(/\r/g, "").split(/\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\n\n");
-    const imagePrompt = String(draft.image_prompt || "").slice(0, 700);
-    if (body.length < 180 || imagePrompt.length < 30) throw new Error("Основной текст праздника неполный. Черновик не отправлен.");
     const dateForPost = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
