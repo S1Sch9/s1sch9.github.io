@@ -61,43 +61,50 @@ async function assetDataUrl(url) {
   }
 }
 
+let cachedBrandAssetsPromise;
+
+async function loadBrandAssets() {
+  if (!cachedBrandAssetsPromise) {
+    cachedBrandAssetsPromise = Promise.all([
+      assetDataUrl(BRAND + "/official-logo.svg"),
+      assetDataUrl(BRAND + "/gerb.png"),
+      assetDataUrl(BRAND + "/vazhen.png")
+    ]).catch(error => {
+      cachedBrandAssetsPromise = null;
+      throw error;
+    });
+  }
+  return cachedBrandAssetsPromise;
+}
+
 async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = async () => {} }) {
-  await onStage("Загружаю логотип Совета…", 58);
-  const councilLogo = await assetDataUrl(BRAND + "/official-logo.svg");
-  await onStage("Загружаю герб школы…", 60);
-  const schoolCrest = await assetDataUrl(BRAND + "/gerb.png");
-  await onStage("Загружаю графику «Важен каждый!»…", 61);
-  const importantLogo = await assetDataUrl(BRAND + "/vazhen.png");
-  await onStage("Фирменные изображения готовы…", 62);
+  await onStage("Подготавливаю фирменные элементы…", 58);
+  const [councilLogo, schoolCrest, importantLogo] = await loadBrandAssets();
+  await onStage("Фирменные элементы готовы…", 62);
   const safeTitle = escapeHtml(title || "Новости и события");
   if (type !== "photo" || !photoDataUrl || !String(photoDataUrl).startsWith("data:image/")) {
     throw new Error("Не удалось подготовить исходную фотографию.");
   }
-
-  // Horizontal 1280x720 card: one compact brand header and a large rounded photo.
-  // The three marks reuse the exact assets shown on the game's start screen.
   const html =
-    '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
-      '<div style="display:flex;position:absolute;left:-115px;top:470px;width:310px;height:310px;border-radius:50%;background:rgba(161,0,31,.045)"></div>' +
-      '<div style="display:flex;position:absolute;right:-115px;top:-145px;width:340px;height:340px;border-radius:50%;background:rgba(240,200,105,.10)"></div>' +
-      '<div style="display:flex;position:absolute;left:44px;top:24px;width:1192px;height:116px;align-items:center;box-sizing:border-box;padding:0 24px;background:#fff;border:3px solid #a1001f;border-radius:26px;box-shadow:0 8px 24px rgba(61,0,13,.07)">' +
-        '<div style="display:flex;align-items:center;width:690px;height:100%;font-size:43px;line-height:1.08;font-weight:800;color:#3d000d;letter-spacing:-.8px;overflow:hidden">' + safeTitle + '</div>' +
-        '<div style="display:flex;align-items:center;justify-content:flex-end;gap:22px;margin-left:auto;width:420px;height:100%">' +
-          '<img src="' + councilLogo + '" style="display:flex;width:76px;height:76px;object-fit:contain"/>' +
-          '<img src="' + schoolCrest + '" style="display:flex;width:72px;height:78px;object-fit:contain"/>' +
-          '<img src="' + importantLogo + '" style="display:flex;width:132px;height:82px;object-fit:contain"/>' +
+    '<div style="display:flex;position:relative;width:960px;height:540px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
+      '<div style="display:flex;position:absolute;left:-86px;top:352px;width:232px;height:232px;border-radius:50%;background:rgba(161,0,31,.045)"></div>' +
+      '<div style="display:flex;position:absolute;right:-86px;top:-109px;width:255px;height:255px;border-radius:50%;background:rgba(240,200,105,.10)"></div>' +
+      '<div style="display:flex;position:absolute;left:33px;top:18px;width:894px;height:87px;align-items:center;box-sizing:border-box;padding:0 18px;background:#fff;border:2px solid #a1001f;border-radius:20px">' +
+        '<div style="display:flex;align-items:center;width:518px;height:100%;font-size:32px;line-height:1.08;font-weight:800;color:#3d000d;letter-spacing:-.6px;overflow:hidden">' + safeTitle + '</div>' +
+        '<div style="display:flex;align-items:center;justify-content:flex-end;gap:16px;margin-left:auto;width:315px;height:100%">' +
+          '<img src="' + councilLogo + '" style="display:flex;width:57px;height:57px;object-fit:contain"/>' +
+          '<img src="' + schoolCrest + '" style="display:flex;width:54px;height:59px;object-fit:contain"/>' +
+          '<img src="' + importantLogo + '" style="display:flex;width:99px;height:62px;object-fit:contain"/>' +
         '</div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:52px;top:164px;width:1176px;height:520px;overflow:hidden;border-radius:30px;background:#fff;box-shadow:0 14px 38px rgba(61,0,13,.12)">' +
-        '<img src="' + photoDataUrl + '" style="display:flex;width:100%;height:100%;box-sizing:border-box;border:5px solid #a1001f;border-radius:30px;object-fit:contain;object-position:center"/>' +
+      '<div style="display:flex;position:absolute;left:39px;top:123px;width:882px;height:390px;overflow:hidden;border-radius:23px;background:#fff">' +
+        '<img src="' + photoDataUrl + '" style="display:flex;width:100%;height:100%;box-sizing:border-box;border:4px solid #a1001f;border-radius:23px;object-fit:contain;object-position:center"/>' +
       '</div>' +
     '</div>';
-
-  await onStage("Запускаю графический движок…", 68);
+  await onStage("Запускаю облегчённую сборку карточки…", 68);
   const { ImageResponse } = await import("workers-og");
-  await onStage("Создаю графический ответ…", 71);
-  const response = new ImageResponse(html, { width:1280, height:720 });
-  await onStage("Макет подготовлен, формирую PNG…", 73);
+  const response = new ImageResponse(html, { width:960, height:540 });
+  await onStage("Формирую изображение…", 73);
   const output = new Uint8Array(await response.arrayBuffer());
   await onStage("Карточка собрана…", 76);
   return output;
@@ -108,7 +115,7 @@ async function telegramImageData(env, fileId) {
   const response = await fetchWithTimeout("https://api.telegram.org/file/bot" + env.SOVETTG_BOT_TOKEN + "/" + info.file_path, {}, "Загрузка оригинала фото");
   if (!response.ok) throw new Error("Не удалось загрузить фотографию из Telegram.");
   const bytes = new Uint8Array(await response.arrayBuffer());
-  if (bytes.length > 2 * 1024 * 1024) throw new Error("Даже уменьшенная версия фото слишком большая для безопасного оформления. Отправь фото как обычное изображение, не как файл.");
+  if (bytes.length > 1024 * 1024) throw new Error("Даже уменьшенная версия фото слишком большая для безопасного оформления. Отправь фото как обычное изображение, не как файл.");
   let binary = "";
   for (let i=0;i<bytes.length;i+=0x8000) binary += String.fromCharCode(...bytes.subarray(i,i+0x8000));
   const headerMime = String(response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
@@ -254,9 +261,9 @@ async function processQueuedSocialPhotos(env) {
     await progress("Загружаю оригинальную фотографию…", 25);
     // Use Telegram's medium rendition (up to 960 px) when available.
     // The output card remains 1280x720; this only avoids decoding an oversized source.
-    const photoChoices = msg.photo.filter(item => !item.file_size || Number(item.file_size) <= 2 * 1024 * 1024);
+    const photoChoices = msg.photo.filter(item => !item.file_size || Number(item.file_size) <= 1024 * 1024);
     const mediumPhoto = photoChoices
-      .filter(item => Math.max(Number(item.width || 0), Number(item.height || 0)) <= 960)
+      .filter(item => Math.max(Number(item.width || 0), Number(item.height || 0)) <= 720)
       .sort((a, b) => Number(b.width || 0) * Number(b.height || 0) - Number(a.width || 0) * Number(a.height || 0))[0];
     const photo = mediumPhoto || photoChoices
       .sort((a, b) => Number(a.width || 0) * Number(a.height || 0) - Number(b.width || 0) * Number(b.height || 0))[0]
