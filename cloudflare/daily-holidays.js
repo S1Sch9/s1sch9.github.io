@@ -389,15 +389,15 @@ export function holidayIllustrationSubjectForTitle(title, description = "", body
 
 export function buildHolidayIllustrationPrompt(title, description, subject) {
   return [
-    "Create a beautiful premium editorial illustration asset for a school holiday poster. Draw ONLY the isolated subject, not a poster, card, banner, infographic or scene.",
+    "Create a premium, beautifully art-directed editorial illustration for a school holiday poster. Draw ONLY the isolated subject, not a poster, card, banner, infographic or full environment.",
     "THE EXACT HOLIDAY IS: " + String(title || "") + ".",
-    "THE ONLY ALLOWED SUBJECT: " + String(subject || "") + ". This is a strict visual brief, not inspiration. Follow it literally. Do not substitute schoolchildren, generic people, a celebration, or any unrelated motif.",
+    "THE ONLY ALLOWED SUBJECT: " + String(subject || "") + ". Follow this brief literally. Do not substitute schoolchildren, generic people, a celebration, or any unrelated motif.",
     "OBJECT LIMIT: show exactly the one or two objects/subjects named in the brief, and absolutely nothing else. No extra people, props, decorations, stars, sparkles, icons, labels or symbols.",
-    "ART STYLE: exceptionally polished hand-drawn 2D editorial illustration, charming and expressive but clean, refined professional children's-book artwork, beautiful natural object colours, precise smooth edges, subtle internal shading. Outlines use only the Council's exact deep navy #21145f. Do not introduce any other blue for outlines or graphic elements.",
-    "BACKGROUND: absolutely uniform pure white #FFFFFF, flat and featureless, edge-to-edge. No cream or beige tint, no panel, no paper texture, no gradient, no environment, no scenery, no floor, no horizon, no frame, no vignette, no cast shadow. The white must match a pure-white poster background exactly.",
-    "TEXT BAN: the image must contain ZERO text. No letters, words, numbers, typography, handwriting, book titles, labels, signs, captions, logos, watermarks, pseudo-writing or decorative marks resembling writing. Any book, page or object surface that could contain writing must be completely blank.",
-    "Composition: one large central subject, fully visible, occupying most of the square canvas, balanced silhouette, ample clean white margin. No cropping.",
-    "No photorealism, no 3D render, no collage, no stock-image look, no generic holiday-party imagery."
+    "ART STYLE: refined semi-realistic hand-painted editorial artwork, like a high-end illustrated magazine or beautiful contemporary children's book. Natural believable proportions, rich but tasteful real-world colours, soft dimensional shading, delicate painterly texture, carefully rendered materials, elegant light and depth. NOT a flat vector icon, NOT clip-art, NOT a cartoon sticker, NOT a geometric pictogram. Avoid thick black outlines; if an outline is essential, use only the Council's deep navy #21145f. No electric or unrelated blue.",
+    "BACKGROUND: isolated cut-out subject on transparent background if supported; otherwise perfectly pure white #FFFFFF. No cream, beige, coloured panel, paper texture, gradient, room, landscape, scenery, floor, horizon, frame, vignette or cast shadow.",
+    "TEXT BAN: ZERO text of any kind. No letters, words, numbers, typography, handwriting, book titles, labels, signs, captions, logos, watermarks, pseudo-writing or marks resembling writing. Any book, page or object surface that could contain writing must be completely blank.",
+    "COMPOSITION: one large central subject, fully visible, occupying most of the square canvas, balanced silhouette, enough clean margin, no cropping.",
+    "No collage, no poster layout, no generic holiday-party imagery."
   ].join(" ").slice(0, 2048);
 }
 
@@ -433,15 +433,78 @@ function holidaySvgDataUrl(svg) {
   return "data:image/svg+xml;base64," + btoa(binary);
 }
 
-async function generateVerifiedHolidayIllustration(env, title, description, subject) {
-  if (/гиннесс|рекорд/i.test(String(title || ""))) {
-    return holidaySvgDataUrl(guinnessIllustrationSvg());
+async function reviewHolidayIllustration(env, dataUrl, title, subject) {
+  const review = await withTimeout(env.AI.run(TEXT_MODEL, {
+    messages: [
+      {
+        role: "system",
+        content: "You are a strict visual quality-control inspector. Inspect the actual supplied image. Return ONLY one JSON object with boolean fields relevant, text_free, background_clean, within_object_limit, and a short reason. Approve background_clean only if the subject is isolated on transparency or a perfectly plain pure-white background. Any coloured/cream background, panel, texture, gradient, scenery, floor or strong cast shadow means false. Any visible text or pseudo-writing means text_free false. More than two distinct foreground objects or people means within_object_limit false. The subject must clearly match the exact holiday. Never approve uncertainty."
+      },
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Exact holiday: " + String(title || "") + ". Required subject: " + String(subject || "") + ". Inspect this actual image, not just the brief. Return JSON only." },
+          { type: "image_url", image_url: { url: dataUrl, detail: "high" } }
+        ]
+      }
+    ],
+    max_tokens: 180,
+    temperature: 0
+  }), AI_TIMEOUT_MS, "Проверка качества иллюстрации");
+  let verdict;
+  try { verdict = parseObject(modelText(review)); } catch { verdict = null; }
+  return verdict && verdict.relevant === true && verdict.text_free === true &&
+    verdict.background_clean === true && verdict.within_object_limit === true
+    ? { approved: true, reason: "" }
+    : { approved: false, reason: verdict && verdict.reason ? String(verdict.reason).slice(0, 180) : "проверка не подтвердила соответствие сюжета, отсутствие текста и чистый фон" };
+}
+
+async function findCommonsHolidayIllustration(env, title, description, subject) {
+  const query = /гиннесс|рекорд/i.test(String(title || ""))
+    ? "Guinness World Records trophy book"
+    : [title, description].filter(Boolean).join(" ").replace(/[^\\p{L}\\p{N} ]/gu, " ").replace(/\\s+/g, " ").slice(0, 110);
+  const api = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=10&gsrsearch=" +
+    encodeURIComponent(query) + "&prop=imageinfo&iiprop=url|size|mime|extmetadata&iiurlwidth=1200&format=json";
+  try {
+    const response = await fetchWithTimeout(api, { headers: { Accept: "application/json" } }, REQUEST_TIMEOUT_MS, "Поиск иллюстрации в Wikimedia Commons");
+    if (!response.ok) return null;
+    const payload = await response.json();
+    const pages = Object.values(payload && payload.query && payload.query.pages || {});
+    for (const page of pages.slice(0, 8)) {
+      const info = page.imageinfo && page.imageinfo[0];
+      if (!info || !info.thumburl || !["image/png", "image/jpeg", "image/webp"].includes(info.thumbmime || info.mime)) continue;
+      if (Number(info.thumbwidth || info.width || 0) < 500 || Number(info.thumbheight || info.height || 0) < 500) continue;
+      if (Number(info.size || 0) > 12000000) continue;
+      const metadata = info.extmetadata || {};
+      const license = String(metadata.LicenseShortName && metadata.LicenseShortName.value || "").toLowerCase();
+      if (!/(public domain|cc0|creative commons zero)/i.test(license)) continue;
+      const imageResponse = await fetchWithTimeout(info.thumburl, {}, REQUEST_TIMEOUT_MS, "Загрузка иллюстрации Wikimedia Commons");
+      if (!imageResponse.ok) continue;
+      const contentType = String(imageResponse.headers.get("content-type") || info.thumbmime || info.mime || "");
+      if (!/^image\\/(png|jpeg|webp)/i.test(contentType)) continue;
+      const bytes = new Uint8Array(await imageResponse.arrayBuffer());
+      if (!bytes.length || bytes.length > 5000000) continue;
+      let binary = "";
+      for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      const dataUrl = "data:" + contentType.split(";")[0] + ";base64," + btoa(binary);
+      const review = await reviewHolidayIllustration(env, dataUrl, title, subject);
+      if (review.approved) return dataUrl;
+    }
+  } catch (error) {
+    console.warn("Wikimedia Commons image search unavailable; using generated artwork:", error && error.message ? error.message : "unknown error");
   }
+  return null;
+}
+
+async function generateVerifiedHolidayIllustration(env, title, description, subject) {
+  const commonsImage = await findCommonsHolidayIllustration(env, title, description, subject);
+  if (commonsImage) return commonsImage;
+
   const basePrompt = buildHolidayIllustrationPrompt(title, description, subject);
   let lastReason = "не удалось подтвердить соответствие иллюстрации";
   for (let attempt = 0; attempt < 2; attempt++) {
     const prompt = attempt === 0 ? basePrompt : basePrompt +
-      " FINAL STRICT RETRY: remove every trace of lettering and all background colour. Draw only the exact named subject on pure white. Do not add any human figure or extra object.";
+      " FINAL STRICT RETRY: use a refined semi-realistic hand-painted editorial style, not a flat icon. Remove every trace of lettering and all background colour. Draw only the exact named subject on transparent or pure white. Do not add any human figure or extra object.";
     const form = new FormData();
     form.append("prompt", prompt);
     form.append("width", "1024");
@@ -463,32 +526,9 @@ async function generateVerifiedHolidayIllustration(env, title, description, subj
       throw new Error("Модель изображений вернула файл не в PNG-формате. Черновик не отправлен.");
     }
     const dataUrl = "data:image/png;base64," + base64;
-    const review = await withTimeout(env.AI.run(TEXT_MODEL, {
-      messages: [
-        {
-          role: "system",
-          content: "You are a strict visual quality-control inspector. Inspect the supplied image, not the text brief. Return ONLY one JSON object with boolean fields relevant, text_free, pure_white_background, within_object_limit, and a short reason string. Be strict: any visible text or pseudo-writing makes text_free false; any cream/beige tint, panel, texture, gradient, scenery, floor or shadow makes pure_white_background false; more than two distinct foreground objects or people makes within_object_limit false; a subject unrelated to the exact holiday makes relevant false. Never approve an uncertain image."
-        },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Exact holiday: " + String(title || "") + ". Required subject: " + String(subject || "") + ". Check this actual generated image. Return JSON only." },
-            { type: "image_url", image_url: { url: dataUrl, detail: "high" } }
-          ]
-        }
-      ],
-      max_tokens: 180,
-      temperature: 0
-    }), AI_TIMEOUT_MS, "Проверка качества иллюстрации");
-    let verdict;
-    try { verdict = parseObject(modelText(review)); } catch { verdict = null; }
-    const approved = verdict &&
-      verdict.relevant === true &&
-      verdict.text_free === true &&
-      verdict.pure_white_background === true &&
-      verdict.within_object_limit === true;
-    if (approved) return dataUrl;
-    lastReason = verdict && verdict.reason ? String(verdict.reason).slice(0, 180) : "проверка не подтвердила отсутствие текста, фона и лишних предметов";
+    const review = await reviewHolidayIllustration(env, dataUrl, title, subject);
+    if (review.approved) return dataUrl;
+    lastReason = review.reason || lastReason;
   }
   throw new Error("Иллюстрация отклонена автоматической проверкой: " + lastReason + ". Черновик с плохой картинкой не отправлен.");
 }
