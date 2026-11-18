@@ -877,13 +877,25 @@ async function callback(env, item, adminId) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Создаю новую картинку. Текст и шаблон не меняю." });
     try {
       const title = String(row.holiday_title || "Праздник");
-      const prompt = "Create a fresh small standalone friendly flat 2D hand-drawn cartoon illustration for the right-side illustration area of a clean Russian school holiday card. Warm school storybook style, rounded shapes, confident deep indigo-blue outlines, solid cheerful colors, minimal soft shading. Holiday subject: " + title + ". Make a different visual interpretation. One compact centered fully visible subject, pure white background, generous white margins. No text, letters, numbers, logos, watermarks, poster layout, gradients, photorealism or 3D.";
-      const result = await withTimeout(env.AI.run(IMAGE_MODEL, { prompt: prompt.slice(0, 1800), steps: 4 }), AI_TIMEOUT_MS, "Генерация новой иллюстрации");
-      if (!result || typeof result.image !== "string" || result.image.length < 4000) throw new Error("Модель не вернула готовую иллюстрацию.");
-      const imageBase64 = result.image.replace(/\s/g, "");
-      if (!imageBase64.startsWith("/9j/")) throw new Error("Иллюстрация пришла не в JPEG-формате.");
+      let illustrationDataUrl = holidaySvgIllustration(title);
+      if (!illustrationDataUrl) {
+        const subject = holidayVisualConcept(title) || title;
+        const prompt = [
+          "Create one premium hand-drawn 2D editorial storybook illustration for the existing school holiday series.",
+          "EXACT HOLIDAY: " + title + ".",
+          "ONE SUBJECT: " + subject + ". Draw one coherent, physically correct object with a single complete silhouette. Do not combine incompatible states or duplicate parts.",
+          "STYLE: confident dark indigo outlines, rich restrained burgundy, navy, warm gold and soft sky-blue palette, controlled shapes, subtle paper-like texture and gentle cel shading. Match a carefully illustrated children's book, not generic AI clipart.",
+          "COMPOSITION: one large centered subject, fully visible, occupying around 78% of the square. Pure white background.",
+          "STRICTLY NO: text, letters, numbers, logos, watermarks, collage, extra objects, gradients, photorealism or 3D."
+        ].join(" ").slice(0, 1800);
+        const result = await withTimeout(env.AI.run(IMAGE_MODEL, { prompt, steps: 4 }), AI_TIMEOUT_MS, "Генерация новой иллюстрации");
+        if (!result || typeof result.image !== "string" || result.image.length < 4000) throw new Error("Модель не вернула готовую иллюстрацию.");
+        const imageBase64 = result.image.replace(/\s/g, "");
+        if (!imageBase64.startsWith("/9j/")) throw new Error("Иллюстрация пришла не в JPEG-формате.");
+        illustrationDataUrl = "data:image/jpeg;charset=utf-8;base64," + imageBase64;
+      }
       const dateLabel = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric" }).format(new Date(date + "T12:00:00+03:00"));
-      const bytes = await withTimeout(renderHolidayTemplate(null, dateLabel, title, imageBase64), 45000, "Сборка изображения");
+      const bytes = await withTimeout(renderHolidayTemplate(null, dateLabel, title, illustrationDataUrl), 45000, "Сборка изображения");
       const form = new FormData();
       form.append("chat_id", adminId);
       form.append("message_id", String(row.message_id));
