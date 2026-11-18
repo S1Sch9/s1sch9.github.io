@@ -1156,10 +1156,13 @@ export async function runDailyHolidayCron(controller, env) {
         }
       };
       try {
+        const chosenRow = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = ?").bind("manual_holiday:" + requestedDate).first();
+        let manualHoliday = null;
+        try { manualHoliday = JSON.parse(String(chosenRow && chosenRow.value || "null")); } catch {}
         result = await makeDraft(env, true, requestedDate, async stage => {
           const step = progressText[stage] || { percent: 15, label: "⏳ Выполняю следующий этап…" };
           await updateStatus(step.label, step.percent);
-        });
+        }, manualHoliday);
         const message = result && result.ok
           ? "✅ Черновик готов и отправлен выше. Проверь текст и картинку — в канал он попадёт только после нажатия «Опубликовать»."
           : result && result.stage === "already-processed"
@@ -1174,6 +1177,7 @@ export async function runDailyHolidayCron(controller, env) {
       } finally {
         await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_requested' AND value = ?").bind(processingValue).run();
         await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'manual_draft_status_message_id'").run();
+        await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = ?").bind("manual_holiday:" + requestedDate).run();
       }
     }
   }
