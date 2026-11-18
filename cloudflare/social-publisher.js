@@ -50,28 +50,29 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
   await onStage("Загружаю фирменные изображения…", 58);
   const councilLogo = await assetDataUrl(BRAND + "/official-logo.svg");
   const schoolCrest = await assetDataUrl(BRAND + "/gerb.png");
+  const importantLogo = await assetDataUrl(BRAND + "/vazhen.png");
   await onStage("Фирменные изображения готовы…", 62);
   const safeTitle = escapeHtml(title || "Новости и события");
   if (type !== "photo" || !photoDataUrl || !String(photoDataUrl).startsWith("data:image/")) {
     throw new Error("Не удалось подготовить исходную фотографию.");
   }
 
-  // Keep the approved 1280x720 composition, but use a deliberately simple,
-  // absolutely positioned layout. This avoids expensive flex layout work in
-  // the Workers OG renderer while preserving the card's visual structure.
+  // Horizontal 1280x720 card: one compact brand header and a large rounded photo.
+  // The three marks reuse the exact assets shown on the game's start screen.
   const html =
     '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
-      '<div style="display:flex;position:absolute;left:-115px;top:445px;width:310px;height:310px;border-radius:50%;background:rgba(161,0,31,.045)"></div>' +
+      '<div style="display:flex;position:absolute;left:-115px;top:470px;width:310px;height:310px;border-radius:50%;background:rgba(161,0,31,.045)"></div>' +
       '<div style="display:flex;position:absolute;right:-115px;top:-145px;width:340px;height:340px;border-radius:50%;background:rgba(240,200,105,.10)"></div>' +
-      '<div style="display:flex;position:absolute;left:64px;top:28px;width:1152px;height:104px;font-size:46px;line-height:1.08;font-weight:800;color:#3d000d;letter-spacing:-1px">' + safeTitle + '</div>' +
-      '<div style="display:flex;position:absolute;left:52px;top:148px;width:1176px;height:426px;overflow:hidden;background:#fff;border:4px solid #a1001f;border-radius:28px;box-shadow:0 14px 38px rgba(61,0,13,.12)">' +
-        '<img src="' + photoDataUrl + '" style="display:flex;position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;object-position:center"/>' +
+      '<div style="display:flex;position:absolute;left:44px;top:24px;width:1192px;height:116px;align-items:center;box-sizing:border-box;padding:0 24px;background:#fff;border:3px solid #a1001f;border-radius:26px;box-shadow:0 8px 24px rgba(61,0,13,.07)">' +
+        '<div style="display:flex;align-items:center;width:690px;height:100%;font-size:43px;line-height:1.08;font-weight:800;color:#3d000d;letter-spacing:-.8px;overflow:hidden">' + safeTitle + '</div>' +
+        '<div style="display:flex;align-items:center;justify-content:flex-end;gap:22px;margin-left:auto;width:420px;height:100%">' +
+          '<img src="' + councilLogo + '" style="display:flex;width:76px;height:76px;object-fit:contain"/>' +
+          '<img src="' + schoolCrest + '" style="display:flex;width:72px;height:78px;object-fit:contain"/>' +
+          '<img src="' + importantLogo + '" style="display:flex;width:132px;height:82px;object-fit:contain"/>' +
+        '</div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:52px;top:596px;width:1176px;height:76px;background:#fff;border-top:2px solid rgba(161,0,31,.18)">' +
-        '<div style="display:flex;position:absolute;left:22px;top:25px;font-size:25px;line-height:1;font-weight:800;letter-spacing:-.35px;color:#3d000d;white-space:nowrap">СОВЕТ ПЕРВЫХ ШКОЛЫ №9</div>' +
-        '<img src="' + councilLogo + '" style="display:flex;position:absolute;right:190px;top:14px;width:48px;height:48px;object-fit:contain"/>' +
-        '<img src="' + schoolCrest + '" style="display:flex;position:absolute;right:128px;top:14px;width:48px;height:48px;object-fit:contain"/>' +
-        '<div style="display:flex;position:absolute;right:20px;top:27px;font-size:22px;line-height:1;font-weight:800;color:#a1001f;white-space:nowrap">Важен каждый!</div>' +
+      '<div style="display:flex;position:absolute;left:52px;top:164px;width:1176px;height:520px;overflow:hidden;border-radius:30px;background:#fff;box-shadow:0 14px 38px rgba(61,0,13,.12)">' +
+        '<img src="' + photoDataUrl + '" style="display:flex;width:100%;height:100%;box-sizing:border-box;border:5px solid #a1001f;border-radius:30px;object-fit:contain;object-position:center"/>' +
       '</div>' +
     '</div>';
 
