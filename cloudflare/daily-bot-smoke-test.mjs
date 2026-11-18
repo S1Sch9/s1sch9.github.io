@@ -67,7 +67,9 @@ assert.ok(daily.includes("СОВЕТ ПЕРВЫХ</div><div style=\"display:flex
 assert.ok(daily.includes("ПРАЗДНИК</div><div style=\"display:flex\">КАЖДЫЙ ДЕНЬ"));
 assert.ok(daily.includes("official-logo.svg"));
 assert.ok(daily.includes("gerb.png"));
-assert.ok(daily.includes("border:2px solid #21145f;border-radius:31px"));
+assert.ok(daily.includes("border:2px solid #d9d9e2;border-radius:31px"));
+assert.ok(daily.includes("left:488px;top:23px;width:334px;height:3px;background:#21145f"));
+assert.ok(daily.includes("left:26px;top:162px;width:3px;height:503px;background:#21145f"));
 assert.ok(daily.includes("background:#f7f7fa"));
 assert.ok(!daily.includes("ВАЖЕН</div>"));
 assert.ok(!daily.includes("СОВЕТ ПЕРВЫХ · ШКОЛЫ №9"));
