@@ -55,29 +55,31 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
   if (type !== "photo" || !photoDataUrl || !String(photoDataUrl).startsWith("data:image/")) {
     throw new Error("Не удалось подготовить исходную фотографию.");
   }
+
+  // Keep the approved 1280x720 composition, but use a deliberately simple,
+  // absolutely positioned layout. This avoids expensive flex layout work in
+  // the Workers OG renderer while preserving the card's visual structure.
   const html =
-    '<div style="display:flex;position:relative;flex-direction:column;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
-      '<div style="display:flex;position:absolute;left:-115px;top:445px;width:310px;height:310px;border-radius:50%;background:rgba(161,0,31,.045)"></div>' +
-      '<div style="display:flex;position:absolute;right:-115px;top:-145px;width:340px;height:340px;border-radius:50%;background:rgba(240,200,105,.10)"></div>' +
-      '<div style="display:flex;position:absolute;left:64px;top:28px;width:1152px;height:104px;align-items:center;justify-content:flex-start;box-sizing:border-box">' +
-        '<div style="display:flex;width:100%;font-size:46px;line-height:1.08;font-weight:800;color:#3d000d;letter-spacing:-1px">' + safeTitle + '</div>' +
+    '<div style="position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
+      '<div style="position:absolute;left:-115px;top:445px;width:310px;height:310px;border-radius:50%;background:rgba(161,0,31,.045)"></div>' +
+      '<div style="position:absolute;right:-115px;top:-145px;width:340px;height:340px;border-radius:50%;background:rgba(240,200,105,.10)"></div>' +
+      '<div style="position:absolute;left:64px;top:28px;width:1152px;height:104px;font-size:46px;line-height:1.08;font-weight:800;color:#3d000d;letter-spacing:-1px">' + safeTitle + '</div>' +
+      '<div style="position:absolute;left:52px;top:148px;width:1176px;height:426px;overflow:hidden;background:#fff;border:4px solid #a1001f;border-radius:28px;box-shadow:0 14px 38px rgba(61,0,13,.12)">' +
+        '<img src="' + photoDataUrl + '" style="position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;object-position:center"/>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:52px;top:148px;width:1176px;height:426px;box-sizing:border-box;overflow:hidden;background:#fff;border:4px solid #a1001f;border-radius:28px;box-shadow:0 14px 38px rgba(61,0,13,.12)">' +
-        '<img src="' + photoDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;object-position:center;border-radius:23px"/>' +
-      '</div>' +
-      '<div style="display:flex;position:absolute;left:52px;top:596px;width:1176px;height:76px;align-items:center;box-sizing:border-box;padding:0 22px;background:#fff;border-top:2px solid rgba(161,0,31,.18)">' +
-        '<div style="display:flex;align-items:center;white-space:nowrap;font-size:25px;line-height:1;font-weight:800;letter-spacing:-.35px;color:#3d000d">СОВЕТ ПЕРВЫХ ШКОЛЫ №9</div>' +
-        '<div style="display:flex;align-items:center;margin-left:auto;gap:13px">' +
-          '<img src="' + councilLogo + '" style="display:flex;width:48px;height:48px;object-fit:contain"/>' +
-          '<img src="' + schoolCrest + '" style="display:flex;width:48px;height:48px;object-fit:contain"/>' +
-          '<div style="display:flex;align-items:center;font-size:22px;line-height:1;font-weight:800;color:#a1001f;white-space:nowrap">Важен каждый!</div>' +
-        '</div>' +
+      '<div style="position:absolute;left:52px;top:596px;width:1176px;height:76px;background:#fff;border-top:2px solid rgba(161,0,31,.18)">' +
+        '<div style="position:absolute;left:22px;top:25px;font-size:25px;line-height:1;font-weight:800;letter-spacing:-.35px;color:#3d000d;white-space:nowrap">СОВЕТ ПЕРВЫХ ШКОЛЫ №9</div>' +
+        '<img src="' + councilLogo + '" style="position:absolute;right:190px;top:14px;width:48px;height:48px;object-fit:contain"/>' +
+        '<img src="' + schoolCrest + '" style="position:absolute;right:128px;top:14px;width:48px;height:48px;object-fit:contain"/>' +
+        '<div style="position:absolute;right:20px;top:27px;font-size:22px;line-height:1;font-weight:800;color:#a1001f;white-space:nowrap">Важен каждый!</div>' +
       '</div>' +
     '</div>';
+
   await onStage("Запускаю графический движок…", 68);
   const { ImageResponse } = await import("workers-og");
-  await onStage("Собираю горизонтальную карточку…", 72);
+  await onStage("Создаю графический ответ…", 71);
   const response = new ImageResponse(html, { width:1280, height:720 });
+  await onStage("Макет подготовлен, формирую PNG…", 73);
   const output = new Uint8Array(await response.arrayBuffer());
   await onStage("Карточка собрана…", 76);
   return output;
