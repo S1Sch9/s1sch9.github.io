@@ -79,6 +79,8 @@ assert.ok(daily.includes('width:1124px;height:1px;background:rgba(26,11,92,.16)'
 assert.ok(daily.includes('left:78px;top:188px;width:92px;height:3px;border-radius:3px;background:#a1001f'));
 assert.ok(daily.includes('left:800px;top:216px;width:400px;height:400px'));
 assert.ok(daily.includes('holidaySvgIllustration(chosen.title, chosen.description)'));
+assert.ok(daily.includes('let illustrationDataUrl = holidaySvgIllustration(title)'));
+assert.ok(daily.includes('renderHolidayTemplate(null, dateLabel, title, illustrationDataUrl)'));
 assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
 
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
