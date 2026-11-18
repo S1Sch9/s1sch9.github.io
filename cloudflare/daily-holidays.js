@@ -677,12 +677,13 @@ async function processUpdate(env, item, adminId) {
 
   // Refresh the chat menu on /start without touching already-created drafts,
   // queued photos, or publication approvals.
-  if (/^\\/start(?:@[A-Za-z0-9_]+)?(?:\\s|$)/i.test(incomingText)) {
+  const startCommand = incomingText.split(/\s/)[0].toLowerCase();
+  if (startCommand === "/start" || startCommand.startsWith("/start@")) {
     await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key IN ('awaiting_publish_time', 'awaiting_custom_date')").run();
     await env.DB.prepare("DELETE FROM social_publication_state WHERE key IN ('compose_type', 'compose_title')").run();
     await tg(env, "sendMessage", {
       chat_id: adminId,
-      text: "🔄 Бот обновлён!\\n\\nМеню и режимы работы обновлены. Можно снова создавать черновики «Праздник каждый день» и готовить обычные публикации.\\n\\nВсе уже созданные черновики и ожидающие подтверждения публикации сохранены. В канал ничего не отправляется без твоего нажатия «Опубликовать».",
+      text: "🔄 Бот обновлён!\n\nМеню и режимы работы обновлены. Можно снова создавать черновики «Праздник каждый день» и готовить обычные публикации.\n\nВсе уже созданные черновики и ожидающие подтверждения публикации сохранены. В канал ничего не отправляется без твоего нажатия «Опубликовать».",
       reply_markup: dailyMenuMarkup()
     });
     return;
