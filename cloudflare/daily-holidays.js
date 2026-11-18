@@ -665,6 +665,32 @@ async function callback(env, item, adminId) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Недоступно." });
     return;
   }
+  const holidayPick = String(q.data || "").match(/^holidaypick:(\d{4}-\d{2}-\d{2}):(\d{1,2})$/);
+  if (holidayPick) {
+    const date = holidayPick[1], index = Number(holidayPick[2]);
+    const stored = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = ?").bind("holiday_choices:" + date).first();
+    let choices = [];
+    try { choices = JSON.parse(String(stored && stored.value || "[]")); } catch {}
+    const selected = Array.isArray(choices) ? choices[index] : null;
+    if (!selected || !selected.title || !selected.url) {
+      await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Список устарел. Выбери дату заново.", show_alert: true });
+      return;
+    }
+    await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
+      .bind("manual_holiday:" + date, JSON.stringify(selected)).run();
+    await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = ?").bind("holiday_choices:" + date).run();
+    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Выбран праздник: " + selected.title.slice(0, 80) });
+    await tg(env, "sendMessage", { chat_id: adminId, text: "✅ Ты выбрал: " + selected.title + "\nГотовлю пост именно об этом празднике." });
+    await queueManualDraft(env, adminId, date);
+    return;
+  }
+  const holidayCancel = String(q.data || "").match(/^holidaycancel:(\d{4}-\d{2}-\d{2})$/);
+  if (holidayCancel) {
+    await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = ?").bind("holiday_choices:" + holidayCancel[1]).run();
+    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Выбор отменён." });
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Хорошо, ничего не запускаю.", reply_markup: dailyMenuMarkup() });
+    return;
+  }
   const draftChoice = String(q.data || "").match(/^draft:(today|tomorrow|custom|cancel)$/);
   if (draftChoice) {
     const choice = draftChoice[1];
@@ -685,8 +711,8 @@ async function callback(env, item, adminId) {
       return;
     }
     const date = choice === "tomorrow" ? shiftDate(localDate(), 1) : localDate();
-    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Запускаю подготовку." });
-    await queueManualDraft(env, adminId, date);
+    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Загружаю праздники." });
+    await showHolidayChoices(env, adminId, date);
     return;
   }
   const match = String(q.data || "").match(/^(publish|skip|schedule|redoimage):(\d{4}-\d{2}-\d{2})$/);
@@ -901,7 +927,7 @@ async function processUpdate(env, item, adminId) {
         return;
       }
       await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'awaiting_custom_date'").run();
-      await queueManualDraft(env, adminId, selectedDate);
+      await showHolidayChoices(env, adminId, selectedDate);
       return;
     }
     await env.DB.prepare("DELETE FROM daily_holiday_state WHERE key = 'awaiting_custom_date'").run();
@@ -986,7 +1012,7 @@ async function processUpdate(env, item, adminId) {
     return;
   }
   if (text === "/draft" || text.startsWith("/draft@")) {
-    await queueManualDraft(env, adminId, localDate());
+    await showHolidayChoices(env, adminId, localDate());
     return;
   }
   if (text === "/start" || text === "/help") {
