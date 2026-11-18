@@ -57,7 +57,7 @@ assert.ok(daily.includes('const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schn
 assert.ok(daily.includes("env.AI.run(IMAGE_MODEL, {"));
 assert.ok(daily.includes("prompt: illustrationPrompt,"));
 assert.ok(daily.includes("steps: 8"));
-assert.ok(!/env\\.AI\\.run\\(IMAGE_MODEL,\\s*\\{[^}]*\\bseed\\s*:/s.test(daily));
+assert.ok(!daily.includes("seed:"));
 assert.ok(daily.includes("buildHolidayIllustrationPrompt(chosen.title, chosen.description, imagePrompt)"));
 assert.ok(daily.includes("renderHolidayTemplate(null, dateForImage, chosen.title, illustrationDataUrl, body)"));
 assert.ok(daily.includes("left:820px;top:205px;width:360px;height:360px"));
