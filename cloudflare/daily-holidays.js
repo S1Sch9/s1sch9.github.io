@@ -376,7 +376,7 @@ export function fallbackHolidayIllustrationSubject(title, description, body = ""
 }
 
 export function holidayIllustrationSubjectForTitle(title, description = "", body = "", aiSubject = "") {
-  const clean = value => String(value || "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim();
+  const clean = value => String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   const name = clean(title).toLocaleLowerCase("ru");
   if (/гиннесс|рекорд/.test(name)) {
     return "Exactly two objects and nothing else: one elegant golden trophy standing beside one open, deep-navy record book. The book cover and all pages are completely blank, with absolutely no writing, lettering, symbols or numbers. No people.";
@@ -462,7 +462,7 @@ async function reviewHolidayIllustration(env, dataUrl, title, subject) {
 async function findCommonsHolidayIllustration(env, title, description, subject) {
   const query = /гиннесс|рекорд/i.test(String(title || ""))
     ? "Guinness World Records trophy book"
-    : [title, description].filter(Boolean).join(" ").replace(/[^\\p{L}\\p{N} ]/gu, " ").replace(/\\s+/g, " ").slice(0, 110);
+    : [title, description].filter(Boolean).join(" ").replace(/[^\p{L}\p{N} ]/gu, " ").replace(/\s+/g, " ").slice(0, 110);
   const api = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=10&gsrsearch=" +
     encodeURIComponent(query) + "&prop=imageinfo&iiprop=url|size|mime|extmetadata&iiurlwidth=1200&format=json";
   try {
@@ -521,7 +521,7 @@ async function generateVerifiedHolidayIllustration(env, title, description, subj
     if (!generated || typeof generated.image !== "string" || generated.image.length < 4000) {
       throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
     }
-    const base64 = generated.image.replace(/\\s/g, "");
+    const base64 = generated.image.replace(/\s/g, "");
     if (!base64.startsWith("iVBORw0KGgo")) {
       throw new Error("Модель изображений вернула файл не в PNG-формате. Черновик не отправлен.");
     }
@@ -754,7 +754,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       } catch (error) {
         console.warn("Could not expand holiday text from its source page:", error && error.message ? error.message : "unknown error");
       }
-      const sourceText = sourceParts.join(" ").replace(/\\s+/g, " ").trim().slice(0, 900);
+      const sourceText = sourceParts.join(" ").replace(/\s+/g, " ").trim().slice(0, 900);
       if (sourceText.length >= 120) {
         const sentences = sourceText.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [sourceText];
         const midpoint = Math.ceil(sentences.length / 2);
