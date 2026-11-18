@@ -263,8 +263,8 @@ function wrapHolidayTitle(value, maxWidth = 430, fontSize = 76) {
   return lines;
 }
 function fitHolidayTitle(value) {
-  for (let fontSize = 76; fontSize >= 42; fontSize -= 2) {
-    const lines = wrapHolidayTitle(value, 430, fontSize);
+  for (let fontSize = 66; fontSize >= 38; fontSize -= 2) {
+    const lines = wrapHolidayTitle(value, 660, fontSize);
     if (lines.length <= 4) return { lines, fontSize };
   }
   throw new Error("Название праздника слишком длинное для исходного шаблона. Черновик не отправлен.");
@@ -312,7 +312,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const fontSize = Math.min(66, fittedTitle.fontSize);
   const lineHeight = Math.round(fontSize * 1.12);
   const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
-  const safeBody = escapeHtml(bodyText || "");
+  const safeBody = escapeHtml(String(bodyText || "").slice(0, 180));
   const titleMarkup = lines.map((line, index) =>
     '<div style="display:flex;position:absolute;left:78px;top:' + (290 + index * lineHeight) + 'px;width:680px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
@@ -329,7 +329,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
       '<div style="display:flex;position:absolute;left:790px;top:88px;width:650px;height:74px;align-items:center;justify-content:flex-end;color:#1a0b5c;font-family:Roboto Black,sans-serif;font-size:34px;font-weight:900;text-align:right">' + escapeHtml(dateText) + '</div>' +
       '<div style="display:flex;position:absolute;left:80px;top:228px;width:650px;height:48px;align-items:center;color:#655b91;font-size:26px;font-weight:800;letter-spacing:1px">ПРАЗДНИК КАЖДЫЙ ДЕНЬ</div>' +
       titleMarkup +
-      '<div style="display:flex;position:absolute;left:82px;top:545px;width:660px;height:118px;overflow:hidden;color:#40395d;font-size:24px;line-height:1.35">' + safeBody + '</div>' +
+      '<div style="display:flex;position:absolute;left:82px;top:590px;width:660px;height:105px;overflow:hidden;color:#40395d;font-size:18px;line-height:1.35">' + safeBody + '</div>' +
       '<div style="display:flex;position:absolute;left:830px;top:198px;width:590px;height:450px;align-items:center;justify-content:center;background:#fff;border:5px solid #1a0b5c;border-radius:34px;padding:18px;box-sizing:border-box;box-shadow:0 16px 40px rgba(26,11,92,.10)">' +
         '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
       '</div>' +
