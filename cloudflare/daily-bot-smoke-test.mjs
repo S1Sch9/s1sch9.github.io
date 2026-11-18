@@ -42,7 +42,7 @@ assert.ok(daily.includes('result.image.replace(/\\s/g, "")'));
 
 assert.ok(daily.includes('🔄 Бот обновлён!'));
 assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
-assert.ok(daily.includes('font-size:12px;line-height:15px;font-weight:700;letter-spacing:1.05px'));
+assert.ok(daily.includes('font-size:12px;line-height:16px;font-weight:700;letter-spacing:1.05px'));
 assert.ok(daily.includes('border:2px solid rgba(26,11,92,.18)'));
 assert.ok(!daily.includes('font-size:27px;line-height:29px;font-weight:900'));
 
@@ -50,12 +50,12 @@ assert.ok(daily.includes('Первое предложение сразу и пр
 assert.ok(daily.includes('MAIN SUBJECT: [one unmistakable subject and action]'));
 assert.ok(daily.includes('RECOGNITION CLUE: [one essential visual detail]'));
 assert.ok(daily.includes('occupying about 70% of the illustration area'));
-assert.ok(daily.includes('guess the holiday. Do not substitute a generic party'));
+assert.ok(daily.includes('guess the exact holiday without reading the title. Never invent a different subject.'));
 
 assert.ok(!daily.includes('border:1.5px solid rgba(26,11,92,.35)'));
 assert.ok(daily.includes('ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div>'));
-assert.ok(daily.includes('text-align:right'));
-assert.ok(daily.includes('align-items:flex-end'));
+assert.ok(daily.includes('text-align:left'));
+assert.ok(daily.includes('align-items:flex-start'));
 assert.ok(daily.includes('const safeList = list.filter'));
 assert.ok(daily.includes('calendarHeading[1].toLocaleLowerCase("ru").includes(expectedCalendarDate)'));
 assert.ok(daily.includes("async function showHolidayChoices(env, adminId, date)"));
@@ -71,7 +71,7 @@ assert.ok(daily.includes('Не меняй тему, не упоминай дру
 assert.ok(daily.includes('You are a visual concept artist creating instantly recognizable holiday illustrations.'));
 assert.ok(daily.includes('EXACT HOLIDAY: '));
 assert.ok(daily.includes('THE ONE THING THAT MUST BE RIGHT: '));
-assert.ok(daily.includes('A person who sees only the picture should be able to guess the holiday.'));
+assert.ok(daily.includes('A person who sees only the picture should be able to guess the exact holiday without reading the title.'));
 assert.ok(daily.includes('If it is a gift-giving holiday'));
 assert.ok(daily.includes('do not add gifts to unrelated holidays'));
 
