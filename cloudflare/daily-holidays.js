@@ -574,7 +574,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
         }, REQUEST_TIMEOUT_MS, "Страница выбранного праздника");
         if (detailResponse.ok) {
           const detailHtml = await detailResponse.text();
-          const paragraphs = Array.from(detailHtml.matchAll(/<p\\b[^>]*>([\\s\\S]*?)<\\/p>/gi))
+          const paragraphs = Array.from(detailHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi))
             .map(match => plain(match[1]))
             .filter(value => value.length >= 45 && !/читать далее|поделиться|комментар|реклама/i.test(value))
             .slice(0, 8);
