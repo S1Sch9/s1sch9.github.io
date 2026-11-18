@@ -425,7 +425,7 @@ function escapeHtml(value) {
   return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-async function makeDraft(env, force = false, requestedDate = null, onProgress = null) {
+async function makeDraft(env, force = false, requestedDate = null, onProgress = null, manualHoliday = null) {
   if (!env.SOVETTG_BOT_TOKEN || !env.TELEGRAM_ADMIN_ID || !env.AI || !env.DB) {
     return { ok: false, stage: "configuration", error: "Не настроены обязательные параметры Worker." };
   }
@@ -488,43 +488,45 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       !/войск|артиллер|оруж|военн|войн|трагед|смерт|болезн|медицин|курен|туалет|алкогол|вин[оа]|наркот|террор/i.test(item.title + " " + item.description)
     );
     if (!safeList.length) throw new Error("На эту дату не найдено подходящего для школьной рубрики праздника.");
-    const prompt = [
-      "Выбери РОВНО ОДИН праздник ИЗ ПЕРЕДАННОГО СПИСКА для школьной рубрики.",
-      "Дата публикации: " + dateLabel + ". Выбирай только событие, которое прямо указано в списке на эту дату.",
-      "Приоритет: образование, культура, наука, творчество, природа, добрые и позитивные поводы.",
-      "Не выбирай военные, политические, трагические, медицинские темы, курение, алкоголь или спорные поводы.",
-      "Верни только JSON с одним полем selected_index — точный индекс выбранного события с нуля. Не придумывай новые праздники и не меняй название.",
-      "Список событий: " + JSON.stringify(safeList)
-    ].join("\n");
     stage = "text-ai";
     if (onProgress) await onProgress(stage);
     let chosen = null;
-    let lastTextError = null;
-    for (let attempt = 0; attempt < 3 && !chosen; attempt++) {
-      const answer = await withTimeout(env.AI.run(TEXT_MODEL, {
-        messages: [
-          {
-            role: "system",
-            content: "Выбери один пункт из списка и верни только корректный JSON с числовым полем selected_index. Не добавляй текст и не меняй индекс."
-          },
-          { role: "user", content: prompt + (attempt ? "\nПредыдущий ответ был некорректным. Верни точный индекс одного пункта списка." : "") }
-        ],
-        max_tokens: 100,
-        temperature: 0.1
-      }), AI_TIMEOUT_MS, "Выбор праздника");
-      try {
-        const selected = parseObject(modelText(answer));
-        const index = Number(selected.selected_index);
-        if (!Number.isInteger(index) || index < 0 || index >= safeList.length) {
-          lastTextError = "модель выбрала несуществующий индекс праздника";
-          continue;
+    if (manualHoliday && typeof manualHoliday.title === "string") {
+      chosen = safeList.find(item => item.title === manualHoliday.title && item.url === manualHoliday.url) || null;
+      if (!chosen) throw new Error("Выбранный праздник больше не найден в календаре. Выбери его заново.");
+    } else {
+      const prompt = [
+        "Выбери РОВНО ОДИН праздник ИЗ ПЕРЕДАННОГО СПИСКА для школьной рубрики.",
+        "Дата публикации: " + dateLabel + ". Выбирай только событие, которое прямо указано в списке на эту дату.",
+        "Приоритет: образование, культура, наука, творчество, природа, добрые и позитивные поводы.",
+        "Не выбирай военные, политические, трагические, медицинские темы, курение, алкоголь или спорные поводы.",
+        "Верни только JSON с одним полем selected_index — точный индекс выбранного события с нуля. Не придумывай новые праздники и не меняй название.",
+        "Список событий: " + JSON.stringify(safeList)
+      ].join("\n");
+      let lastTextError = null;
+      for (let attempt = 0; attempt < 3 && !chosen; attempt++) {
+        const answer = await withTimeout(env.AI.run(TEXT_MODEL, {
+          messages: [
+            { role: "system", content: "Выбери один пункт из списка и верни только корректный JSON с числовым полем selected_index. Не добавляй текст и не меняй индекс." },
+            { role: "user", content: prompt + (attempt ? "\nПредыдущий ответ был некорректным. Верни точный индекс одного пункта списка." : "") }
+          ],
+          max_tokens: 100,
+          temperature: 0.1
+        }), AI_TIMEOUT_MS, "Выбор праздника");
+        try {
+          const selected = parseObject(modelText(answer));
+          const index = Number(selected.selected_index);
+          if (!Number.isInteger(index) || index < 0 || index >= safeList.length) {
+            lastTextError = "модель выбрала несуществующий индекс праздника";
+            continue;
+          }
+          chosen = safeList[index];
+        } catch (error) {
+          lastTextError = String(error && error.message || "не удалось разобрать выбранный праздник");
         }
-        chosen = safeList[index];
-      } catch (error) {
-        lastTextError = String(error && error.message || "не удалось разобрать выбранный праздник");
       }
+      if (!chosen) throw new Error("Не удалось надёжно выбрать праздник из календаря: " + String(lastTextError || "пустой ответ"));
     }
-    if (!chosen) throw new Error("Не удалось надёжно выбрать праздник из календаря: " + String(lastTextError || "пустой ответ"));
     let body = "";
     let imagePrompt = "";
     const bodyPrompt = [
