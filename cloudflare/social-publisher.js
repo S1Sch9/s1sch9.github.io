@@ -175,7 +175,21 @@ async function processQueuedSocialPhotos(env) {
   if (!lock.meta || !lock.meta.changes) return;
   let stage = "чтение задания из очереди";
   const adminId = String(env.TELEGRAM_ADMIN_ID);
+  const progress = async (label, percent) => {
+    const filled = Math.max(0, Math.min(10, Math.round(percent / 10)));
+    const bar = "▰".repeat(filled) + "▱".repeat(10 - filled);
+    try {
+      await tg(env, "editMessageText", {
+        chat_id: adminId,
+        message_id: next.notice_message_id,
+        text: "⚙️ Бот работает · подготовка фотопоста\\n\\n" + bar + " " + percent + "%\\n" + label + "\\n\\nНе закрывай диалог — я сообщу, когда предпросмотр будет готов."
+      });
+    } catch (error) {
+      console.warn("Could not update social photo progress:", error && error.message ? error.message : "unknown error");
+    }
+  };
   try {
+    await progress("Проверяю задание…", 5);
     const payload = JSON.parse(next.payload);
     const msg = payload.message;
     if (!msg || !Array.isArray(msg.photo) || !msg.photo.length) throw new Error("В очереди не найдено исходное фото.");
@@ -185,18 +199,23 @@ async function processQueuedSocialPhotos(env) {
     const title = rawCaption;
     const caption = captionFor("photo", template.id, rawCaption);
     stage = "загрузка оригинала фото";
+    await progress("Загружаю оригинальную фотографию…", 25);
     const photo = msg.photo[msg.photo.length - 1];
     const dataUrl = await telegramImageData(env, photo.file_id);
     stage = "сборка горизонтальной карточки";
+    await progress("Оформляю карточку Совета…", 55);
     const card = await renderBrandCard({ type:"photo", title, subtitle:rawCaption || "События и инициативы Совета", photoDataUrl:dataUrl });
     stage = "отправка предпросмотра";
+    await progress("Отправляю тебе предпросмотр…", 78);
     const preview = await sendBrandedPhoto(env, adminId, card, caption);
     stage = "сохранение черновика";
+    await progress("Сохраняю черновик и кнопки подтверждения…", 92);
     const inserted = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?)")
       .bind("photo", msg.message_id, preview.message_id, template.id, "pending", now).run();
     const draftId = inserted.meta && inserted.meta.last_row_id;
     if (!draftId) throw new Error("Не удалось сохранить черновик в базе данных.");
     stage = "обновление статуса";
+    await progress("Завершаю подготовку…", 98);
     await tg(env, "editMessageText", {
       chat_id: adminId,
       message_id: next.notice_message_id,
@@ -329,11 +348,17 @@ async function handleSocialUpdate(env, item, adminId) {
     try {
       processingNotice = await tg(env, "sendMessage", {
         chat_id: adminId,
-        text: type === "photo"
-          ? "📥 Фото получил! Загружаю оригинал и собираю горизонтальную карточку Совета. Скоро пришлю предпросмотр."
-          : "📥 Текст получил! Готовлю предпросмотр публикации."
+        text: "⚙️ Бот работает · подготовка публикации\\n\\n▰▱▱▱▱▱▱▱▱▱ 5%\\nПроверяю входные данные…\\n\\nЯ буду обновлять это сообщение по мере выполнения."
       });
+      const updateProgress = async (label, percent) => {
+        const filled = Math.max(0, Math.min(10, Math.round(percent / 10)));
+        try {
+          await tg(env, "editMessageText", { chat_id: adminId, message_id: processingNotice.message_id,
+            text: "⚙️ Бот работает · подготовка публикации\\n\\n" + "▰".repeat(filled) + "▱".repeat(10-filled) + " " + percent + "%\\n" + label + "\\n\\nЯ продолжаю работу — скоро пришлю результат." });
+        } catch (error) { console.warn("Could not update social progress:", error && error.message ? error.message : "unknown error"); }
+      };
       stage = "чтение настроек оформления";
+      await updateProgress("Читаю настройки оформления…", 15);
       const template = await selectedTemplate(env, type);
       const rawCaption = String(msg.caption || text || "").trim();
       const caption = captionFor(type, template.id, rawCaption);
@@ -341,17 +366,22 @@ async function handleSocialUpdate(env, item, adminId) {
       const title = rawCaption.split(/[.!?\n]/)[0].slice(0, 58) || "Новости и события";
       if (type === "post") {
         stage = "отправка текстового предпросмотра";
+        await updateProgress("Готовлю текстовый предпросмотр…", 65);
         preview = await tg(env, "sendMessage", { chat_id: adminId, text: caption });
       } else if (type === "photo") {
         stage = "загрузка оригинала фото";
+        await updateProgress("Загружаю оригинальную фотографию…", 30);
         const photo = msg.photo[msg.photo.length - 1];
         const dataUrl = await telegramImageData(env, photo.file_id);
         stage = "сборка карточки";
+        await updateProgress("Собираю фирменную карточку…", 60);
         const card = await renderBrandCard({ type, title, subtitle:rawCaption || "События и инициативы Совета", photoDataUrl:dataUrl });
         stage = "отправка предпросмотра";
+        await updateProgress("Отправляю предпросмотр…", 82);
         preview = await sendBrandedPhoto(env, adminId, card, caption);
       }
       stage = "сохранение черновика";
+      await updateProgress("Сохраняю черновик…", 94);
       const id = await env.DB.prepare("INSERT INTO social_publication_drafts (type,source_message_id,preview_message_id,template_id,status,created_at) VALUES (?,?,?,?,?,?)")
         .bind(type, msg.message_id, preview.message_id, template.id, "pending", Math.floor(Date.now()/1000)).run();
       const draftId = id.meta && id.meta.last_row_id;
