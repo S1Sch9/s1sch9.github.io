@@ -342,8 +342,25 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
         '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
       '</div>' +
     '</div>';
-  const rendered = new ImageResponse(html, { width: 1280, height: 720, fonts: robotoBlackFont ? [{ name: "Roboto", data: robotoBlackFont, weight: 900, style: "normal" }] : [] });
-  return new Uint8Array(await rendered.arrayBuffer());
+  // Some workers-og/fontkit builds cannot parse this variable Roboto font and
+  // fail while reading a missing glyph table entry (for example index 256).
+  // Keep the preferred Roboto Black render, but retry without the custom font
+  // so a font parser issue never blocks draft creation.
+  if (robotoBlackFont) {
+    try {
+      const rendered = new ImageResponse(html, {
+        width: 1280, height: 720,
+        fonts: [{ name: "Roboto", data: robotoBlackFont, weight: 900, style: "normal" }]
+      });
+      return new Uint8Array(await rendered.arrayBuffer());
+    } catch (fontError) {
+      console.warn("Roboto font render failed; retrying holiday card with system font:",
+        fontError && fontError.message ? fontError.message : "unknown font error");
+    }
+  }
+  const fallbackHtml = html.replace(/font-family:Roboto,sans-serif/g, "font-family:Arial,sans-serif");
+  const fallbackRendered = new ImageResponse(fallbackHtml, { width: 1280, height: 720 });
+  return new Uint8Array(await fallbackRendered.arrayBuffer());
 }
 function escapeHtml(value) {
   return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
@@ -984,7 +1001,7 @@ export async function runDailyHolidayCron(controller, env) {
         const value = isProgress ? Math.max(0, Math.min(100, percent)) : 100;
         const filled = Math.round(value / 10);
         const rendered = isProgress
-          ? "⚙️ Бот работает · «Праздник каждый день»\\n\\n" + "▰".repeat(filled) + "▱".repeat(10-filled) + " " + value + "%\\n" + message + "\\n\\nЭто не зависание — задача выполняется. Я сообщу, когда черновик будет готов."
+          ? "⚙️ Бот работает · «Праздник каждый день»\n\n" + "▰".repeat(filled) + "▱".repeat(10-filled) + " " + value + "%\n" + message + "\n\nЭто не зависание — задача выполняется. Я сообщу, когда черновик будет готов."
           : message;
         try {
           await tg(env, "editMessageText", {
@@ -1050,7 +1067,7 @@ export async function runDailyHolidayCron(controller, env) {
         await tg(env, "editMessageText", {
           chat_id: String(env.TELEGRAM_ADMIN_ID),
           message_id: automaticStatusId,
-          text: "⚙️ Бот работает · автоматическая подготовка\\n\\n" + "▰".repeat(filled) + "▱".repeat(10-filled) + " " + step[0] + "%\\n" + step[1] + "\\n\\nЯ продолжаю работу."
+          text: "⚙️ Бот работает · автоматическая подготовка\n\n" + "▰".repeat(filled) + "▱".repeat(10-filled) + " " + step[0] + "%\n" + step[1] + "\n\nЯ продолжаю работу."
         });
       } catch {}
     };
