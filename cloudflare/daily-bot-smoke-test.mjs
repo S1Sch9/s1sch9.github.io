@@ -18,7 +18,7 @@ assert.equal(fitTelegramCaptionBody("Короткий текст", 100), "Кор
 const sharedPrompt = buildHolidayIllustrationPrompt("Международный день семьи", "Праздник семьи", "A warm family scene with parents and children spending time together");
 assert.match(sharedPrompt, /flat 2D hand-drawn cartoon/);
 assert.match(sharedPrompt, /Consistent visual style across the series/);
-assert.match(sharedPrompt, /one main subject and only the few details needed/);
+assert.match(sharedPrompt, /One main subject and only the few details needed/);
 const longCaptionBody = "Это первое предложение о празднике. ".repeat(50);
 const fittedCaptionBody = fitTelegramCaptionBody(longCaptionBody, 180);
 assert.ok(fittedCaptionBody.length <= 180);
