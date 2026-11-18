@@ -672,22 +672,19 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
 
     stage = "image-ai";
     if (onProgress) await onProgress(stage);
-    let illustrationDataUrl = holidaySvgIllustration(chosen.title, chosen.description);
-    if (!illustrationDataUrl) {
-      const illustrationPrompt = buildHolidayIllustrationPrompt(chosen.title, chosen.description, imagePrompt);
-      const illustrationResult = await withTimeout(env.AI.run(IMAGE_MODEL, {
-        prompt: illustrationPrompt,
-        steps: 8
-      }), AI_TIMEOUT_MS, "Генерация тематической иллюстрации");
-      if (!illustrationResult || typeof illustrationResult.image !== "string" || illustrationResult.image.length < 4000) {
-        throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
-      }
-      const illustrationBase64 = illustrationResult.image.replace(/\s/g, "");
-      if (!illustrationBase64.startsWith("/9j/")) {
-        throw new Error("Иллюстрация пришла не в ожидаемом JPEG-формате. Черновик не отправлен.");
-      }
-      illustrationDataUrl = "data:image/jpeg;charset=utf-8;base64," + illustrationBase64;
+    const illustrationPrompt = buildHolidayIllustrationPrompt(chosen.title, chosen.description, imagePrompt);
+    const illustrationResult = await withTimeout(env.AI.run(IMAGE_MODEL, {
+      prompt: illustrationPrompt,
+      steps: 8
+    }), AI_TIMEOUT_MS, "Генерация тематической иллюстрации");
+    if (!illustrationResult || typeof illustrationResult.image !== "string" || illustrationResult.image.length < 4000) {
+      throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
     }
+    const illustrationBase64 = illustrationResult.image.replace(/\s/g, "");
+    if (!illustrationBase64.startsWith("/9j/")) {
+      throw new Error("Иллюстрация пришла не в ожидаемом JPEG-формате. Черновик не отправлен.");
+    }
+    const illustrationDataUrl = "data:image/jpeg;charset=utf-8;base64," + illustrationBase64;
 
     stage = "template-render";
     if (onProgress) await onProgress(stage);
