@@ -67,7 +67,7 @@ assert.ok(daily.includes("retrying holiday card with system font"));
 assert.ok(daily.includes('"▰".repeat(filled) + "▱".repeat(10-filled) + " " + value + "%\\n" + message'));
 assert.ok(daily.includes('Бот работает · «Праздник каждый день»'));
 assert.ok(daily.includes('Could not edit the single daily draft progress message'));
-assert.ok(daily.includes('attempt < 2 && !draft'));
+assert.ok(daily.includes("attempt < 3 && !draft"));
 assert.ok(daily.includes('AI не вернула корректный JSON даже после повторной попытки'));
 assert.ok(!daily.includes('Could not send fallback daily draft progress message'));
 assert.ok(!daily.includes('const sent = await tg(env, "sendMessage"'));
