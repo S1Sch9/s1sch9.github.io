@@ -105,8 +105,16 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
   const { ImageResponse } = await import("workers-og");
   const response = new ImageResponse(html, { width:1280, height:720 });
   await onStage("Формирую изображение…", 73);
-  const renderTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Сборка карточки заняла больше 60 секунд. Попробуй отправить фотографию меньшего размера.")), 60000));
-  const output = new Uint8Array(await Promise.race([response.arrayBuffer(), renderTimeout]));
+  let renderTimer;
+  const renderTimeout = new Promise((_, reject) => {
+    renderTimer = setTimeout(() => reject(new Error("Сборка карточки заняла больше 60 секунд. Попробуй отправить фотографию меньшего размера.")), 60000);
+  });
+  let output;
+  try {
+    output = new Uint8Array(await Promise.race([response.arrayBuffer(), renderTimeout]));
+  } finally {
+    clearTimeout(renderTimer);
+  }
   await onStage("Карточка собрана…", 76);
   return output;
 }
