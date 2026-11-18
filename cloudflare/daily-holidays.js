@@ -6,7 +6,7 @@ import { handleSocialUpdate, processQueuedSocialPhotos } from "./social-publishe
 const API = "https://api.telegram.org/bot";
 const CHANNEL = "@dvizhenieschool9";
 const TEXT_MODEL = "@cf/google/gemma-4-26b-a4b-it";
-const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
+const IMAGE_MODEL = "@cf/black-forest-labs/flux-2-dev";
 const POLL_CRON = "* * * * *";
 const DAILY_DRAFT_HOUR = 17;
 const REQUEST_TIMEOUT_MS = 25000;
@@ -375,18 +375,89 @@ export function fallbackHolidayIllustrationSubject(title, description, body = ""
     .slice(0, 420);
 }
 
+export function holidayIllustrationSubjectForTitle(title, description = "", body = "", aiSubject = "") {
+  const clean = value => String(value || "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim();
+  const name = clean(title).toLocaleLowerCase("ru");
+  if (/гиннесс|рекорд/.test(name)) {
+    return "Exactly two objects and nothing else: one elegant golden trophy standing beside one open, deep-navy record book. The book cover and all pages are completely blank, with absolutely no writing, lettering, symbols or numbers. No people.";
+  }
+  const source = [clean(description), clean(body)].filter(Boolean).join(" ");
+  const subject = clean(aiSubject);
+  if (subject.length >= 20) return subject.slice(0, 420);
+  return fallbackHolidayIllustrationSubject(title, source);
+}
+
 export function buildHolidayIllustrationPrompt(title, description, subject) {
   return [
-    "Create a single isolated cut-out editorial illustration asset for a school holiday poster. This is ONLY the pictured subject, never a poster, greeting card, banner, collage, infographic or full scene.",
-    "EXACT HOLIDAY: " + String(title || "") + ". VERIFIED CALENDAR CONTEXT: " + String(description || "") + ".",
-    "SUBJECT: " + String(subject || "") + ". Choose the one most instantly recognizable real object, animal or person performing the defining action for this exact holiday. Interpret literally and simply. If two things are essential to identify it, show only those two; otherwise show one object. Do not add supporting props.",
-    "STYLE: beautiful, polished, friendly flat 2D editorial illustration, refined hand-drawn character, clear silhouette, smooth clean shapes, subtle internal shading, crisp outlines in the Council's exact deep navy #21145f only. Use natural, restrained object colors; do not use other blue shades for outlines or decoration.",
-    "COMPOSITION: one large central subject, maximum TWO visible objects or beings in total. The subject occupies about 70 percent of the canvas, fully visible, with clear silhouette and no cropping. No decorative stars, confetti, sparkles, frames, badges or extra objects.",
-    "BACKGROUND MUST BE EMPTY: isolated subject on a completely plain pure-white #FFFFFF background, with no environment, landscape, room, scenery, pattern, gradient, backdrop, platform, ground, cast shadow or vignette. The white background must visually disappear into the white poster card.",
-    "ABSOLUTELY NO TEXT: no words, letters, numbers, typography, labels, signs, captions, logos, watermarks, symbols that resemble writing or pseudo-text.",
-    "No photorealism, no 3D, no stock-image appearance, no generic birthday or party scene. The subject alone must immediately communicate the exact holiday."
+    "Create a beautiful premium editorial illustration asset for a school holiday poster. Draw ONLY the isolated subject, not a poster, card, banner, infographic or scene.",
+    "THE EXACT HOLIDAY IS: " + String(title || "") + ".",
+    "THE ONLY ALLOWED SUBJECT: " + String(subject || "") + ". This is a strict visual brief, not inspiration. Follow it literally. Do not substitute schoolchildren, generic people, a celebration, or any unrelated motif.",
+    "OBJECT LIMIT: show exactly the one or two objects/subjects named in the brief, and absolutely nothing else. No extra people, props, decorations, stars, sparkles, icons, labels or symbols.",
+    "ART STYLE: exceptionally polished hand-drawn 2D editorial illustration, charming and expressive but clean, refined professional children's-book artwork, beautiful natural object colours, precise smooth edges, subtle internal shading. Outlines use only the Council's exact deep navy #21145f. Do not introduce any other blue for outlines or graphic elements.",
+    "BACKGROUND: absolutely uniform pure white #FFFFFF, flat and featureless, edge-to-edge. No cream or beige tint, no panel, no paper texture, no gradient, no environment, no scenery, no floor, no horizon, no frame, no vignette, no cast shadow. The white must match a pure-white poster background exactly.",
+    "TEXT BAN: the image must contain ZERO text. No letters, words, numbers, typography, handwriting, book titles, labels, signs, captions, logos, watermarks, pseudo-writing or decorative marks resembling writing. Any book, page or object surface that could contain writing must be completely blank.",
+    "Composition: one large central subject, fully visible, occupying most of the square canvas, balanced silhouette, ample clean white margin. No cropping.",
+    "No photorealism, no 3D render, no collage, no stock-image look, no generic holiday-party imagery."
   ].join(" ").slice(0, 2048);
 }
+
+async function generateVerifiedHolidayIllustration(env, title, description, subject) {
+  const basePrompt = buildHolidayIllustrationPrompt(title, description, subject);
+  let lastReason = "не удалось подтвердить соответствие иллюстрации";
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const prompt = attempt === 0 ? basePrompt : basePrompt +
+      " FINAL STRICT RETRY: remove every trace of lettering and all background colour. Draw only the exact named subject on pure white. Do not add any human figure or extra object.";
+    const form = new FormData();
+    form.append("prompt", prompt);
+    form.append("width", "1024");
+    form.append("height", "1024");
+    form.append("steps", "20");
+    form.append("guidance", "4");
+    const formRequest = new Request("http://dummy", { method: "POST", body: form });
+    const generated = await withTimeout(env.AI.run(IMAGE_MODEL, {
+      multipart: {
+        body: formRequest.body,
+        contentType: formRequest.headers.get("content-type") || "multipart/form-data"
+      }
+    }), AI_TIMEOUT_MS, "Генерация тематической иллюстрации");
+    if (!generated || typeof generated.image !== "string" || generated.image.length < 4000) {
+      throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
+    }
+    const base64 = generated.image.replace(/\\s/g, "");
+    if (!base64.startsWith("iVBORw0KGgo")) {
+      throw new Error("Модель изображений вернула файл не в PNG-формате. Черновик не отправлен.");
+    }
+    const dataUrl = "data:image/png;base64," + base64;
+    const review = await withTimeout(env.AI.run(TEXT_MODEL, {
+      messages: [
+        {
+          role: "system",
+          content: "You are a strict visual quality-control inspector. Inspect the supplied image, not the text brief. Return ONLY one JSON object with boolean fields relevant, text_free, pure_white_background, within_object_limit, and a short reason string. Be strict: any visible text or pseudo-writing makes text_free false; any cream/beige tint, panel, texture, gradient, scenery, floor or shadow makes pure_white_background false; more than two distinct foreground objects or people makes within_object_limit false; a subject unrelated to the exact holiday makes relevant false. Never approve an uncertain image."
+        },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Exact holiday: " + String(title || "") + ". Required subject: " + String(subject || "") + ". Check this actual generated image. Return JSON only." },
+            { type: "image_url", image_url: { url: dataUrl, detail: "high" } }
+          ]
+        }
+      ],
+      max_tokens: 180,
+      temperature: 0
+    }), AI_TIMEOUT_MS, "Проверка качества иллюстрации");
+    let verdict;
+    try { verdict = parseObject(modelText(review)); } catch { verdict = null; }
+    const approved = verdict &&
+      verdict.relevant === true &&
+      verdict.text_free === true &&
+      verdict.pure_white_background === true &&
+      verdict.within_object_limit === true;
+    if (approved) return dataUrl;
+    lastReason = verdict && verdict.reason ? String(verdict.reason).slice(0, 180) : "проверка не подтвердила отсутствие текста, фона и лишних предметов";
+  }
+  throw new Error("Иллюстрация отклонена автоматической проверкой: " + lastReason + ". Черновик с плохой картинкой не отправлен.");
+}
+
 
 let cachedHolidayAssetsPromise;
 async function holidayBrandAsset(url) {
@@ -679,19 +750,8 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
 
     stage = "image-ai";
     if (onProgress) await onProgress(stage);
-    const illustrationPrompt = buildHolidayIllustrationPrompt(chosen.title, chosen.description, imagePrompt);
-    const illustrationResult = await withTimeout(env.AI.run(IMAGE_MODEL, {
-      prompt: illustrationPrompt,
-      steps: 8
-    }), AI_TIMEOUT_MS, "Генерация тематической иллюстрации");
-    if (!illustrationResult || typeof illustrationResult.image !== "string" || illustrationResult.image.length < 4000) {
-      throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
-    }
-    const illustrationBase64 = illustrationResult.image.replace(/\s/g, "");
-    if (!illustrationBase64.startsWith("/9j/")) {
-      throw new Error("Иллюстрация пришла не в ожидаемом JPEG-формате. Черновик не отправлен.");
-    }
-    const illustrationDataUrl = "data:image/jpeg;charset=utf-8;base64," + illustrationBase64;
+    const illustrationSubject = holidayIllustrationSubjectForTitle(chosen.title, chosen.description, body, imagePrompt);
+    const illustrationDataUrl = await generateVerifiedHolidayIllustration(env, chosen.title, chosen.description, illustrationSubject);
 
     stage = "template-render";
     if (onProgress) await onProgress(stage);
@@ -825,12 +885,8 @@ async function callback(env, item, adminId) {
       }), AI_TIMEOUT_MS, "Выбор сюжета новой иллюстрации");
       const subject = String(modelText(subjectAnswer) || "").trim().replace(/\s+/g, " ").slice(0, 420);
       if (subject.length < 20) throw new Error("Не удалось определить сюжет иллюстрации.");
-      const prompt = buildHolidayIllustrationPrompt(title, "", subject);
-      const result = await withTimeout(env.AI.run(IMAGE_MODEL, { prompt, steps: 8 }), AI_TIMEOUT_MS, "Генерация новой иллюстрации");
-      if (!result || typeof result.image !== "string" || result.image.length < 4000) throw new Error("Модель не вернула готовую иллюстрацию.");
-      const imageBase64 = result.image.replace(/\s/g, "");
-      if (!imageBase64.startsWith("/9j/")) throw new Error("Иллюстрация пришла не в JPEG-формате.");
-      const illustrationDataUrl = "data:image/jpeg;charset=utf-8;base64," + imageBase64;
+      const illustrationSubject = holidayIllustrationSubjectForTitle(title, "", "", subject);
+      const illustrationDataUrl = await generateVerifiedHolidayIllustration(env, title, "", illustrationSubject);
       const dateLabel = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric" }).format(new Date(date + "T12:00:00+03:00"));
       const bytes = await withTimeout(renderHolidayTemplate(null, dateLabel, title, illustrationDataUrl), 45000, "Сборка изображения");
       const form = new FormData();
