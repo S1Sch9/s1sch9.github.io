@@ -41,7 +41,10 @@ assert.ok(!daily.includes('response_format: { type: "json_object" }'));
 assert.ok(daily.includes('result.image.replace(/\\s/g, "")'));
 
 assert.ok(daily.includes('🔄 Бот обновлён!'));
-assert.ok(daily.includes('СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ ДЕВЯТЬ</div>'));
+assert.ok(daily.includes('СОВЕТ ПЕРВЫХ'));
+assert.ok(daily.includes('ШКОЛЫ ДЕВЯТЬ'));
+assert.ok(daily.includes('position:absolute;left:78px;top:180px;width:430px;height:48px'));
+assert.ok(!daily.includes('border:1.5px solid rgba(26,11,92,.35)'));
 assert.ok(daily.includes('ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div>'));
 assert.ok(daily.includes('text-align:right'));
 assert.ok(daily.includes('align-items:flex-end'));
