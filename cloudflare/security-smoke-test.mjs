@@ -4,7 +4,7 @@ import { modelText } from "./daily-holidays.js";
 
 const structuredResponse = {
   selected_index: 1,
-  body: "Первый абзац.\\n\\nВторой абзац.",
+  body: "Первый абзац.\n\nВторой абзац.",
   image_prompt: "A cheerful student celebrating a school holiday"
 };
 assert.equal(
@@ -24,7 +24,7 @@ assert.equal(
 );
 assert.equal(
   modelText({ response: [{ text: "first" }, { text: "second" }] }),
-  "first\\nsecond",
+  "first\nsecond",
   "Array-based text responses must be joined with real newlines"
 );
 
