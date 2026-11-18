@@ -14,6 +14,8 @@ assert.equal(modelText({ choices: [{ message: { content: [{ type: "text", text: 
 assert.equal(modelText({ output: [{ content: [{ type: "output_text", text: JSON.stringify(sample) }] }] }), JSON.stringify(sample));
 assert.equal(modelText(JSON.stringify(sample)), JSON.stringify(sample));
 assert.equal(modelText({ response: null, choices: [] }), "");
+assert.equal(modelText({ result: { generated_text: JSON.stringify(sample) } }), JSON.stringify(sample));
+assert.equal(modelText({ response: { result: JSON.stringify(sample) } }), JSON.stringify(sample));
 
 const daily = fs.readFileSync(new URL("./daily-holidays.js", import.meta.url), "utf8");
 const social = fs.readFileSync(new URL("./social-publisher.js", import.meta.url), "utf8");
@@ -59,7 +61,12 @@ assert.ok(daily.includes('Roboto%5Bwdth,wght%5D.ttf'));
 assert.ok(daily.includes("retrying holiday card with system font"));
 assert.ok(daily.includes('"▰".repeat(filled) + "▱".repeat(10-filled) + " " + value + "%\\n" + message'));
 assert.ok(daily.includes('Бот работает · «Праздник каждый день»'));
-assert.ok(daily.includes('Could not send fallback daily draft progress message'));
+assert.ok(daily.includes('Could not edit the single daily draft progress message'));
+assert.ok(daily.includes('attempt < 2 && !draft'));
+assert.ok(daily.includes('AI не вернула корректный JSON даже после повторной попытки'));
+assert.ok(!daily.includes('Could not send fallback daily draft progress message'));
+assert.ok(!daily.includes('const sent = await tg(env, "sendMessage"'));
+assert.ok(daily.includes('await updateStatus(message);'));
 assert.ok(social.includes('Roboto%5Bwdth,wght%5D.ttf'));
 assert.ok(social.includes('BRAND + "/gerb.png"'));
 assert.ok(social.includes("width:1280px;height:720px"));
