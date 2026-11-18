@@ -50,7 +50,7 @@ assert.ok(daily.includes('🔄 Бот обновлён!'));
 assert.ok(daily.includes('СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ ДЕВЯТЬ</div>'));
 assert.ok(!daily.includes('ШКОЛЫ №9'));
 assert.ok(daily.includes('text-align:left'));
-assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:23px;line-height:26px;font-weight:900'));
+assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900'));
 assert.ok(daily.includes('width:1124px;height:2px;background:rgba(26,11,92,.14)'));
 assert.ok(daily.includes('left:820px;top:226px;width:360px;height:360px'));
 assert.ok(daily.includes('EXACT HOLIDAY: '));
