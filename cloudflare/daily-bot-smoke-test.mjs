@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
+import { fitTelegramCaptionBody, holidayVisualConcept, modelText } from "./daily-holidays.js";
 
 const sample = {
   selected_index: 1,
@@ -15,6 +15,10 @@ assert.equal(modelText({ output: [{ content: [{ type: "output_text", text: JSON.
 assert.equal(modelText(JSON.stringify(sample)), JSON.stringify(sample));
 assert.equal(modelText({ response: null, choices: [] }), "");
 assert.equal(fitTelegramCaptionBody("Короткий текст", 100), "Короткий текст");
+assert.match(holidayVisualConcept("Всемирный день рекордов Гиннесса"), /deep-blue hardcover record book/i);
+assert.match(holidayVisualConcept("Пасха"), /single large.*Easter egg/i);
+assert.match(holidayVisualConcept("Международный день блина"), /stack of golden Russian pancakes/i);
+assert.equal(holidayVisualConcept("Неизвестный праздник"), "");
 const longCaptionBody = "Это первое предложение о празднике. ".repeat(50);
 const fittedCaptionBody = fitTelegramCaptionBody(longCaptionBody, 180);
 assert.ok(fittedCaptionBody.length <= 180);
