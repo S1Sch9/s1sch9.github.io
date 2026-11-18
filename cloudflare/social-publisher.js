@@ -81,27 +81,28 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
   await onStage("Подготавливаю фирменные элементы…", 58);
   const [councilLogo, schoolCrest, importantLogo] = await loadBrandAssets();
   await onStage("Фирменные элементы готовы…", 62);
-  const safeTitle = escapeHtml(title || "Новости и события");
+  const safeTitle = escapeHtml(title || "События и инициативы");
   if (type !== "photo" || !photoDataUrl || !String(photoDataUrl).startsWith("data:image/")) {
     throw new Error("Не удалось подготовить исходную фотографию.");
   }
   const html =
-    '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fffdfc;font-family:Arial,sans-serif">' +
-      '<div style="display:flex;position:absolute;left:-112px;top:470px;width:310px;height:310px;border-radius:50%;background:rgba(161,0,31,.045)"></div>' +
-      '<div style="display:flex;position:absolute;right:-112px;top:-145px;width:340px;height:340px;border-radius:50%;background:rgba(240,200,105,.10)"></div>' +
-      '<div style="display:flex;position:absolute;left:44px;top:24px;width:1192px;height:116px;align-items:center;box-sizing:border-box;padding:0 24px;background:#fff;border:3px solid #a1001f;border-radius:24px;box-shadow:0 10px 28px rgba(61,0,13,.12),0 2px 7px rgba(161,0,31,.08)">' +
-        '<div style="display:flex;align-items:center;width:650px;height:100%;font-size:42px;line-height:1.08;font-weight:800;color:#3d000d;letter-spacing:-.8px;overflow:hidden;text-shadow:0 1px 1px rgba(61,0,13,.08)">' + safeTitle + '</div>' +
-        '<div style="display:flex;align-items:center;justify-content:flex-end;gap:20px;margin-left:auto;width:420px;height:100%">' +
-          '<img src="' + councilLogo + '" style="display:flex;width:76px;height:80px;object-fit:contain;"/>' +
-          '<img src="' + schoolCrest + '" style="display:flex;width:76px;height:80px;object-fit:contain;"/>' +
-          '<img src="' + importantLogo + '" style="display:flex;width:76px;height:80px;object-fit:contain;filter:brightness(0) saturate(100%) invert(12%) sepia(98%) saturate(5365%) hue-rotate(337deg) brightness(82%) contrast(111%)"/>' +
+    '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
+      '<div style="display:flex;position:absolute;left:-120px;bottom:-180px;width:340px;height:340px;border-radius:50%;background:rgba(161,0,31,.045)"></div>' +
+      '<div style="display:flex;position:absolute;right:-130px;top:-170px;width:380px;height:380px;border-radius:50%;background:rgba(161,0,31,.035)"></div>' +
+      '<div style="display:flex;position:absolute;left:28px;top:24px;width:1224px;height:672px;border:3px solid #a1001f;border-radius:28px;box-sizing:border-box"></div>' +
+      '<div style="display:flex;position:absolute;left:58px;top:46px;width:1164px;height:112px;align-items:center;box-sizing:border-box;padding:0 16px">' +
+        '<div style="display:flex;align-items:center;gap:15px;width:790px;height:100%">' +
+          '<img src="' + councilLogo + '" style="display:flex;width:82px;height:82px;object-fit:contain"/>' +
+          '<img src="' + schoolCrest + '" style="display:flex;width:82px;height:82px;object-fit:contain"/>' +
+          '<img src="' + importantLogo + '" style="display:flex;width:82px;height:82px;object-fit:contain;filter:brightness(0) saturate(100%) invert(12%) sepia(98%) saturate(5365%) hue-rotate(337deg) brightness(82%) contrast(111%)"/>' +
         '</div>' +
+        '<div style="display:flex;align-items:center;justify-content:flex-end;margin-left:auto;width:350px;height:100%;color:#3d000d;font-size:31px;line-height:1.12;font-weight:800;text-align:right;overflow:hidden">' + safeTitle + '</div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:52px;top:164px;width:1176px;height:520px;overflow:hidden;border-radius:30px;background:#fff;box-shadow:0 12px 30px rgba(61,0,13,.13)">' +
-        '<img src="' + photoDataUrl + '" style="display:flex;width:100%;height:100%;box-sizing:border-box;border:5px solid #a1001f;border-radius:30px;object-fit:contain;object-position:center;"/>' +
+      '<div style="display:flex;position:absolute;left:54px;top:178px;width:1172px;height:488px;overflow:hidden;border-radius:24px;background:#fff;border:4px solid #a1001f;box-sizing:border-box">' +
+        '<img src="' + photoDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;object-position:center"/>' +
       '</div>' +
     '</div>';
-  await onStage("Запускаю облегчённую сборку карточки…", 68);
+  await onStage("Собираю горизонтальную карточку…", 68);
   const { ImageResponse } = await import("workers-og");
   const response = new ImageResponse(html, { width:1280, height:720 });
   await onStage("Формирую изображение…", 73);
@@ -195,8 +196,7 @@ function captionFor(type, templateId, raw) {
     if (templateId === "editorial") return "◆  СОВЕТ ПЕРВЫХ · ШКОЛА №9\n\n" + text + "\n\n" + footer;
     return text + "\n\n" + footer;
   }
-  const prefix = "●  СОВЕТ ПЕРВЫХ · ШКОЛА №9";
-  return [prefix, text, footer].filter(Boolean).join("\n\n").slice(0, 1024);
+  return text.slice(0, 1024);
 }
 
 async function sendTypeMenu(env, adminId) {
