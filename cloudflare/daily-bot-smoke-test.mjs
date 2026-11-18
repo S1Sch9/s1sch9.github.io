@@ -40,6 +40,15 @@ for (const phrase of [
 
 assert.ok(daily.includes("env.AI.run(IMAGE_MODEL, {"));
 assert.ok(daily.includes("prompt: illustrationPrompt,"));
+assert.ok(daily.includes("steps: 8"));
+assert.ok(daily.includes("buildHolidayIllustrationPrompt(chosen.title, chosen.description, imagePrompt)"));
+assert.ok(daily.includes('buildHolidayIllustrationPrompt(title, "", subject)'));
+assert.ok(daily.includes('left:820px;top:226px;width:360px;height:360px'));
+assert.ok(!daily.includes('width:1124px;height:1px'));
+assert.ok(!daily.includes('width:92px;height:3px'));
+assert.ok(!daily.includes('left:26px;top:24px;width:1228px;height:672px'));
+assert.ok(daily.includes('color:#3d000d'));
+
 assert.doesNotMatch(daily, /env\.AI\.run\(IMAGE_MODEL,\s*\{[^}]*\bseed\s*:/s);
 assert.ok(daily.includes('const TEXT_MODEL = "@cf/google/gemma-4-26b-a4b-it"'));
 assert.ok(daily.includes("Создание тематического описания иллюстрации"));
@@ -59,7 +68,6 @@ assert.ok(daily.includes('Первое предложение сразу и пр
 assert.ok(daily.includes('You are an expert editorial illustrator.'));
 assert.ok(daily.includes('EXACT HOLIDAY TITLE: '));
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
-assert.ok(daily.includes('STRICTLY NO: text, lettering, numbers'));
 assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px'));
 assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
 assert.ok(!daily.includes('top:254px;width:660px;height:28px'));
