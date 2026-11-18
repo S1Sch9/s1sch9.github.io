@@ -808,26 +808,25 @@ async function callback(env, item, adminId) {
     return;
   }
   if (action === "redoimage") {
-    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Создаю новую картинку. Текст и шаблон не меняю." });
+    await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Готовлю новую иллюстрацию в общем стиле рубрики. Макет и текст не меняю." });
     try {
       const title = String(row.holiday_title || "Праздник");
-      let illustrationDataUrl = holidaySvgIllustration(title);
-      if (!illustrationDataUrl) {
-        const subject = holidayVisualConcept(title) || title;
-        const prompt = [
-          "Create one premium hand-drawn 2D editorial storybook illustration for the existing school holiday series.",
-          "EXACT HOLIDAY: " + title + ".",
-          "ONE SUBJECT: " + subject + ". Draw one coherent, physically correct object with a single complete silhouette. Do not combine incompatible states or duplicate parts.",
-          "STYLE: confident dark indigo outlines, rich restrained burgundy, navy, warm gold and soft sky-blue palette, controlled shapes, subtle paper-like texture and gentle cel shading. Match a carefully illustrated children's book, not generic AI clipart.",
-          "COMPOSITION: one large centered subject, fully visible, occupying around 78% of the square. Pure white background.",
-          "STRICTLY NO: text, letters, numbers, logos, watermarks, collage, extra objects, gradients, photorealism or 3D."
-        ].join(" ").slice(0, 1800);
-        const result = await withTimeout(env.AI.run(IMAGE_MODEL, { prompt, steps: 4 }), AI_TIMEOUT_MS, "Генерация новой иллюстрации");
-        if (!result || typeof result.image !== "string" || result.image.length < 4000) throw new Error("Модель не вернула готовую иллюстрацию.");
-        const imageBase64 = result.image.replace(/\s/g, "");
-        if (!imageBase64.startsWith("/9j/")) throw new Error("Иллюстрация пришла не в JPEG-формате.");
-        illustrationDataUrl = "data:image/jpeg;charset=utf-8;base64," + imageBase64;
-      }
+      const subjectAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
+        messages: [
+          { role: "system", content: "You are an expert editorial illustrator. Think carefully about the exact holiday and return ONLY one concrete visual subject or short scene in 1–2 short English sentences. Do not use a generic symbol or reuse an unrelated holiday motif. No style, background, lighting, text, lettering or logos." },
+          { role: "user", content: "EXACT HOLIDAY TITLE: " + title + ". Choose the clearest, most recognizable visual for this exact holiday. Be literal and specific; a small scene is allowed if it communicates the holiday better than a single object." }
+        ],
+        max_tokens: 180,
+        temperature: 0.15
+      }), AI_TIMEOUT_MS, "Выбор сюжета новой иллюстрации");
+      const subject = String(modelText(subjectAnswer) || "").trim().replace(/\s+/g, " ").slice(0, 420);
+      if (subject.length < 20) throw new Error("Не удалось определить сюжет иллюстрации.");
+      const prompt = buildHolidayIllustrationPrompt(title, "", subject);
+      const result = await withTimeout(env.AI.run(IMAGE_MODEL, { prompt, steps: 8 }), AI_TIMEOUT_MS, "Генерация новой иллюстрации");
+      if (!result || typeof result.image !== "string" || result.image.length < 4000) throw new Error("Модель не вернула готовую иллюстрацию.");
+      const imageBase64 = result.image.replace(/\s/g, "");
+      if (!imageBase64.startsWith("/9j/")) throw new Error("Иллюстрация пришла не в JPEG-формате.");
+      const illustrationDataUrl = "data:image/jpeg;charset=utf-8;base64," + imageBase64;
       const dateLabel = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric" }).format(new Date(date + "T12:00:00+03:00"));
       const bytes = await withTimeout(renderHolidayTemplate(null, dateLabel, title, illustrationDataUrl), 45000, "Сборка изображения");
       const form = new FormData();
