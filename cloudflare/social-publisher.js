@@ -1,3 +1,5 @@
+import { ImageResponse } from "workers-og";
+
 const API = "https://api.telegram.org/bot";
 const BRAND = "https://s1sch9.github.io";
 const CHANNEL = "@dvizhenieschool9";
@@ -67,7 +69,6 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
         '<img src="' + photoDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;object-position:center;border-radius:18px"/>' +
       '</div>' +
     '</div>';
-  const { ImageResponse } = await import("workers-og");
   const response = new ImageResponse(html, { width:1280, height:720 });
   return new Uint8Array(await response.arrayBuffer());
 }
