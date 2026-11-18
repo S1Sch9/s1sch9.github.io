@@ -422,7 +422,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
     '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Georgia,Times New Roman,serif">' +
       '<div style="display:flex;position:absolute;left:-110px;top:495px;width:390px;height:390px;border-radius:50%;background:#f7f7fa"></div>' +
       '<div style="display:flex;position:absolute;right:-115px;top:-145px;width:420px;height:420px;border-radius:50%;background:#f8f8fb"></div>' +
-      '<div style="display:flex;position:absolute;left:26px;top:22px;width:1228px;height:674px;border:2px solid #21145f;border-radius:31px;box-sizing:border-box"></div>' +
+      '<div style="display:flex;position:absolute;left:26px;top:22px;width:1228px;height:674px;border:2px solid #d9d9e2;border-radius:31px;box-sizing:border-box"></div><div style="display:flex;position:absolute;left:488px;top:23px;width:334px;height:3px;background:#21145f"></div><div style="display:flex;position:absolute;left:26px;top:162px;width:3px;height:503px;background:#21145f"></div><div style="display:flex;position:absolute;left:1251px;top:162px;width:3px;height:503px;background:#21145f"></div><div style="display:flex;position:absolute;left:55px;top:693px;width:1170px;height:3px;background:#21145f"></div>' +
       '<div style="display:flex;position:absolute;left:29px;top:25px;width:455px;height:132px;background:#fff"></div>' +
       '<div style="display:flex;position:absolute;right:29px;top:25px;width:426px;height:132px;background:#fff"></div>' +
       '<div style="display:flex;position:absolute;left:72px;top:54px;width:405px;height:78px;align-items:center;justify-content:flex-start">' +
