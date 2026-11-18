@@ -73,7 +73,7 @@ assert.ok(!daily.includes('top:254px;width:660px;height:28px'));
 assert.ok(!daily.includes('function holidayImageDirection(title, description)'));
 assert.ok(daily.includes('deep-blue hardcover record book'));
 assert.ok(daily.includes('width:1124px;height:2px;background:rgba(26,11,92,.14)'));
-assert.ok(daily.includes('right:78px;top:206px;width:400px;height:400px'));
+assert.ok(daily.includes('left:800px;top:206px;width:400px;height:400px'));
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
 assert.ok(daily.includes('EXACT HOLIDAY TITLE: '));
 assert.ok(!daily.includes('border:3px solid rgba(255,255,255,.85)'));
