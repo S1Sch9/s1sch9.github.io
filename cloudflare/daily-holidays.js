@@ -328,7 +328,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const lineHeight = Math.round(fontSize * 1.08);
   const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:78px;top:' + (316 + index * lineHeight) + 'px;width:660px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:78px;top:' + (338 + index * lineHeight) + 'px;width:660px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
   const html =
     '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
@@ -338,14 +338,15 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
       '<div style="display:flex;position:absolute;left:78px;top:58px;width:650px;height:92px;align-items:center;justify-content:flex-start">' +
         '<img src="' + councilLogo + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:14px"/>' +
         '<img src="' + schoolCrest + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:20px"/>' +
-        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;color:#1a0b5c;font-family:Roboto,Arial,sans-serif;font-size:25px;line-height:29px;font-weight:900;letter-spacing:-.3px;text-align:left"><div style="display:flex">СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ ДЕВЯТЬ</div></div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;color:#1a0b5c;font-family:Roboto,Arial,sans-serif;font-size:27px;line-height:29px;font-weight:900;letter-spacing:-.4px;text-align:left"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;right:78px;top:55px;width:360px;height:96px;align-items:center;justify-content:center;box-sizing:border-box;color:#1a0b5c">' +
-        '<div style="display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;text-align:center;width:100%"><div style="display:flex;font-family:Arial,sans-serif;font-size:32px;line-height:36px;font-weight:900;letter-spacing:.2px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900;letter-spacing:.25px">КАЖДЫЙ ДЕНЬ</div></div>' +
+      '<div style="display:flex;position:absolute;right:78px;top:55px;width:360px;height:96px;align-items:center;justify-content:flex-end;box-sizing:border-box;color:#1a0b5c">' +
+        '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;justify-content:center;text-align:right;width:100%"><div style="display:flex;font-family:Arial,sans-serif;font-size:32px;line-height:36px;font-weight:900;letter-spacing:.2px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900;letter-spacing:.25px">КАЖДЫЙ ДЕНЬ</div></div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:178px;width:1124px;height:2px;background:rgba(26,11,92,.14)"></div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:230px;width:660px;height:38px;align-items:center;color:#655b91;font-size:23px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:282px;width:92px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:180px;width:430px;height:48px;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;color:#1a0b5c;font-family:Roboto,Arial,sans-serif;font-size:23px;line-height:25px;font-weight:900;letter-spacing:-.3px;text-align:left"><div style="display:flex">СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ ДЕВЯТЬ</div></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:238px;width:1124px;height:2px;background:rgba(26,11,92,.14)"></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:258px;width:660px;height:38px;align-items:center;color:#655b91;font-size:23px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:310px;width:92px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
       titleMarkup +
       '<div style="display:flex;position:absolute;left:820px;top:226px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:3px solid #1a0b5c;border-radius:32px;padding:16px;box-sizing:border-box">' +
         '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
@@ -414,6 +415,18 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
   try {
     const list = await candidatesFor(date);
     if (!list.length) throw new Error("На сайте календаря не найдены праздники для этой даты.");
+    const calendarPage = await fetchWithTimeout("https://www.calend.ru/holidays/" + date + "/", {
+      headers: { "Accept": "text/html", "Accept-Language": "ru-RU,ru;q=0.9" }
+    }, REQUEST_TIMEOUT_MS, "Проверка даты календаря");
+    if (!calendarPage.ok) throw new Error("Не удалось подтвердить дату в календаре.");
+    const calendarHtml = await calendarPage.text();
+    const calendarHeading = calendarHtml.match(/<meta property="og:title" content="([^"]+)"/i);
+    const expectedCalendarDate = new Intl.DateTimeFormat("ru-RU", {
+      timeZone: "Europe/Moscow", day: "numeric", month: "long"
+    }).format(new Date(date + "T12:00:00+03:00")).toLocaleLowerCase("ru");
+    if (!calendarHeading || !calendarHeading[1].toLocaleLowerCase("ru").includes(expectedCalendarDate)) {
+      throw new Error("Календарь вернул другую дату. Черновик не создан, чтобы не перепутать праздник.");
+    }
     // Download the fixed brand assets while text and image AI are running.
     // The render step reuses this cached promise instead of waiting for assets at the end.
     void loadHolidayBrandAssets().catch(error => {
@@ -422,97 +435,91 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     const dateLabel = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric", weekday: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
+    const safeList = list.filter(item =>
+      !/войск|артиллер|оруж|военн|войн|трагед|смерт|болезн|медицин|курен|туалет|алкогол|вин[оа]|наркот|террор/i.test(item.title + " " + item.description)
+    );
+    if (!safeList.length) throw new Error("На эту дату не найдено подходящего для школьной рубрики праздника.");
     const prompt = [
-      "Ты — автор ТОЛЬКО основной информационной части ежедневной рубрики школьного сообщества «Совет Первых школы № 9».",
-      "Дата публикации: " + dateLabel + ". Выбери один позитивный, интересный и уместный для школьников праздник из списка.",
-      "Не выбирай политику, войну, трагедии, медицину или спорные темы. Предпочитай образование, культуру, науку, творчество и добрые поводы.",
-      "Строго: не пиши приветствие, название рубрики, дату, название праздника, пожелание, подпись, ссылки, хэштеги и источники. Эти элементы добавит программа по неизменному шаблону.",
-      "Создай только body: 2 коротких содержательных абзаца на русском (примерно 350–500 знаков суммарно). Первый — история/происхождение или значение праздника; второй — как его отмечают или интересный факт. Не выдумывай факты, используй только сведения из описания. Не добавляй заголовки и эмодзи.",
-      "Верни строго JSON с полями: selected_index (индекс события с нуля), body (только два абзаца основного текста), image_prompt (короткое описание только предмета/персонажа/действия иллюстрации на английском; не описывай стиль, технику, фон, освещение или реализм).",
-      "Для image_prompt опиши только конкретный предмет, персонажа или действие, связанное с праздником. Стиль и белый фон будут заданы отдельно программой.",
-      "Список событий: " + JSON.stringify(list)
-    ].join("\n");
+      "Выбери РОВНО ОДИН праздник ИЗ ПЕРЕДАННОГО СПИСКА для школьной рубрики.",
+      "Дата публикации: " + dateLabel + ". Выбирай только событие, которое прямо указано в списке на эту дату.",
+      "Приоритет: образование, культура, наука, творчество, природа, добрые и позитивные поводы.",
+      "Не выбирай военные, политические, трагические, медицинские темы, курение, алкоголь или спорные поводы.",
+      "Верни только JSON с одним полем selected_index — точный индекс выбранного события с нуля. Не придумывай новые праздники и не меняй название.",
+      "Список событий: " + JSON.stringify(safeList)
+    ].join("\\n");
     stage = "text-ai";
     if (onProgress) await onProgress(stage);
-    let draft = null;
     let chosen = null;
-    let body = "";
-    let imagePrompt = "";
     let lastTextError = null;
-    // Validate the content on every attempt, not only the JSON syntax. A short
-    // body is sent back for expansion instead of failing the entire draft.
-    for (let attempt = 0; attempt < 3 && !draft; attempt++) {
-      const repairInstruction = attempt === 0 ? "" :
-        "\\n\\nПРЕДЫДУЩИЙ ОТВЕТ НЕ ПРОШЁЛ ПРОВЕРКУ: " + String(lastTextError || "неполные поля") +
-        ". Сгенерируй заново полноценный ответ. body должен содержать ДВА законченных абзаца и не менее 220 символов суммарно (желательно 300–420). Не сокращай текст до одной фразы. image_prompt — конкретное описание на английском не короче 30 символов. Сохрани выбранный индекс праздника. Верни только JSON.";
+    for (let attempt = 0; attempt < 3 && !chosen; attempt++) {
       const answer = await withTimeout(env.AI.run(TEXT_MODEL, {
         messages: [
           {
             role: "system",
-            content: "Пиши грамотно, не выдумывай факты. Верни только один корректный JSON-объект без Markdown, пояснений и текста до или после него. Обязательные ключи: selected_index (число), body (строка из двух законченных абзацев, 300–420 символов), image_prompt (строка на английском не короче 30 символов). Не обрезай значения и корректно экранируй кавычки и переносы строк."
+            content: "Выбери один пункт из списка и верни только корректный JSON вида {\\"selected_index\\": 0}. Не добавляй текст и не меняй индекс."
           },
-          { role: "user", content: prompt + repairInstruction }
+          { role: "user", content: prompt + (attempt ? "\\nПредыдущий ответ был некорректным. Верни точный индекс одного пункта списка." : "") }
         ],
-        max_tokens: 1000,
-        temperature: attempt === 0 ? 0.3 : 0.1
-      }), AI_TIMEOUT_MS, "Текстовая AI-модель");
-      const generatedText = modelText(answer);
-      if (!generatedText) {
-        const shape = answer && typeof answer === "object" ? Object.keys(answer).join(", ") : typeof answer;
-        const modelError = answer && (answer.error || answer.message || answer.details);
-        lastTextError = "Модель вернула пустой текст. Поля ответа: " + (shape || "нет") + (modelError ? "; " + String(modelError).slice(0, 120) : "");
-        continue;
-      }
+        max_tokens: 100,
+        temperature: 0.1
+      }), AI_TIMEOUT_MS, "Выбор праздника");
       try {
-        const candidate = parseObject(generatedText);
-        const index = Number(candidate.selected_index);
-        const candidateBody = String(candidate.body || "").replace(/\\r/g, "").split(/\\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\\n\\n");
-        const candidateImagePrompt = String(candidate.image_prompt || "").trim().slice(0, 700);
-        if (!Number.isInteger(index) || index < 0 || index >= list.length) {
-          lastTextError = "модель указала несуществующий индекс праздника";
+        const selected = parseObject(modelText(answer));
+        const index = Number(selected.selected_index);
+        if (!Number.isInteger(index) || index < 0 || index >= safeList.length) {
+          lastTextError = "модель выбрала несуществующий индекс праздника";
           continue;
         }
-        if (candidateBody.length < 180) {
-          lastTextError = "основной текст слишком короткий: " + candidateBody.length + " символов";
-          continue;
-        }
-        // Keep a valid holiday text even if the image description is missing.
-        // Never ask the model to rewrite the body just to repair image_prompt.
-        chosen = list[index];
-        body = candidateBody;
-        // Always build the visual brief independently from the finished body.
-        // The initial JSON image_prompt is not trusted: it can be generic or unrelated.
-        const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
-          messages: [
-            {
-              role: "system",
-              content: "You are an art director creating a holiday-specific illustration brief. Return ONLY English, 2–3 sentences, 35–90 words. Identify the holiday's central, recognizable subject or symbolic scene. Use the supplied holiday title and calendar description as the primary source; the body is supporting context only. The scene must visibly communicate THIS exact holiday, not a generic cheerful school, child, gift, star, envelope, or celebration. If the holiday is about a profession, depict its real tools and activity; if about nature, depict the named natural subject; if historical or commemorative, depict a respectful, specific symbol from the supplied context. Do not invent symbols or events. No art style, background, lighting, text, or logos."
-            },
-            {
-              role: "user",
-              content: "EXACT HOLIDAY TITLE: " + chosen.title + "\\nCALENDAR DESCRIPTION: " + chosen.description + "\\nAPPROVED POST TEXT FOR CONTEXT: " + body + "\\nWrite a concrete, unmistakable visual scene for this holiday only."
-            }
-          ],
-          max_tokens: 180,
-          temperature: 0.1
-        }), AI_TIMEOUT_MS, "Создание тематического описания иллюстрации");
-        imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
-          .replace(/^["'`]+|["'`]+$/g, "")
-          .replace(/\\s+/g, " ")
-          .slice(0, 900);
-        if (imagePrompt.length < 45) {
-          lastTextError = "не удалось получить достаточно конкретное описание иллюстрации (" + imagePrompt.length + " символов)";
-          continue;
-        }
-        draft = candidate;
+        chosen = safeList[index];
       } catch (error) {
-        lastTextError = String(error && error.message || "некорректный JSON");
+        lastTextError = String(error && error.message || "не удалось разобрать выбранный праздник");
       }
     }
-    if (!draft) {
-      throw new Error("Не удалось получить полный текст после 3 попыток. Последняя проверка: " +
-        String(lastTextError || "пустой ответ").slice(0, 150) + ". Черновик не отправлен.");
+    if (!chosen) throw new Error("Не удалось надёжно выбрать праздник из календаря: " + String(lastTextError || "пустой ответ"));
+    const bodyPrompt = [
+      "Напиши только основной информационный текст для школьной рубрики «Праздник каждый день».",
+      "СТРОГО выбранный праздник: " + chosen.title,
+      "Описание именно этого праздника из календаря: " + chosen.description,
+      "Не меняй тему, не упоминай другие праздники и не подменяй событие.",
+      "Напиши два коротких содержательных абзаца на русском, примерно 300–420 символов суммарно. Первый — значение или происхождение; второй — интересный факт или как отмечают.",
+      "Не выдумывай факты: используй только сведения из описания. Не добавляй заголовок, дату, приветствие, пожелание, подпись, ссылки, хэштеги или эмодзи."
+    ].join("\\n");
+    body = "";
+    for (let attempt = 0; attempt < 3 && body.length < 180; attempt++) {
+      const bodyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
+        messages: [
+          {
+            role: "system",
+            content: "Пиши только два законченных абзаца на русском языке строго об указанном празднике. Не меняй тему. Не добавляй ничего кроме этих двух абзацев."
+          },
+          { role: "user", content: bodyPrompt + (attempt ? "\\nПредыдущий текст был слишком коротким. Напиши два полноценных абзаца только об этом же празднике." : "") }
+        ],
+        max_tokens: 700,
+        temperature: attempt ? 0.1 : 0.2
+      }), AI_TIMEOUT_MS, "Текстовая AI-модель");
+      body = String(modelText(bodyAnswer) || "").replace(/\\r/g, "")
+        .split(/\\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\\n\\n");
     }
+    if (body.length < 180) throw new Error("Не удалось получить полный текст именно о выбранном празднике. Черновик не отправлен.");
+    const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
+      messages: [
+        {
+          role: "system",
+          content: "You are an art director. Return ONLY English, 2–3 concise sentences describing one clear, elegant, instantly recognizable illustration subject for the exact holiday. Prefer one iconic object or a simple meaningful scene, not a busy collage. Do not invent symbols. No style, background, lighting, text, or logos."
+        },
+        {
+          role: "user",
+          content: "EXACT HOLIDAY TITLE: " + chosen.title + "\\nCALENDAR DESCRIPTION: " + chosen.description + "\\nAPPROVED POST TEXT: " + body + "\\nDescribe one concise visual subject that unmistakably represents this exact holiday."
+        }
+      ],
+      max_tokens: 140,
+      temperature: 0.1
+    }), AI_TIMEOUT_MS, "Создание тематического описания иллюстрации");
+    imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
+      .replace(/^["'`]+|["'`]+$/g, "")
+      .replace(/\\s+/g, " ")
+      .slice(0, 700);
+    if (imagePrompt.length < 35) throw new Error("Не удалось получить точное описание иллюстрации к выбранному празднику.");
     const dateForPost = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
@@ -540,9 +547,8 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       "Create one small standalone illustration for the right-side illustration area of a clean Russian school holiday card.",
       "LOCKED ART STYLE: friendly flat 2D hand-drawn cartoon, like a warm illustrated school storybook: simple rounded shapes, clean confident deep indigo-blue outlines, solid cheerful color fills, minimal soft shading, slightly playful proportions and expressive friendly details.",
       "It must look unmistakably DRAWN and ILLUSTRATED, not like a photograph. Keep the same simple cartoon visual language for every holiday so the series looks consistent.",
-      "EXACT HOLIDAY: " + chosen.title + ". CALENDAR CONTEXT: " + chosen.description,
-      "REQUIRED HOLIDAY-SPECIFIC SCENE: " + imagePrompt,
-      "The illustration must unmistakably depict the required scene and communicate the exact holiday above. Do not replace it with a generic schoolchild, star, gift, envelope, smiling people, or random celebration. If the required scene contains a named object, profession, activity, or symbol, make that the central and largest recognizable subject.",
+      "Holiday subject: " + imagePrompt,
+      "Make the central subject instantly recognizable as the exact holiday: " + chosen.title + ". Use the calendar description only to clarify the subject: " + chosen.description + ". Do not substitute an unrelated celebration or generic school scene.",
       "COMPOSITION: one compact centered scene, fully visible, with generous pure-white empty margin on every side. Keep all important parts well away from the image edges; nothing may touch or cross the edge.",
       "BACKGROUND: perfectly clean solid white (#FFFFFF), no frame, no border, no cast shadow outside the subject.",
       "STRICTLY AVOID: photorealism, realistic photography, 3D render, realistic skin or material textures, cinematic lighting, gradients, glossy effects, watercolor realism, text, letters, numbers, logos, watermarks, poster layout."
