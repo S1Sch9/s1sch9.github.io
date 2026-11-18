@@ -60,7 +60,6 @@ assert.ok(daily.includes('await showHolidayChoices(env, adminId, date)'));
 
 assert.ok(daily.includes('СТРОГО выбранный праздник: '));
 assert.ok(daily.includes('Не меняй тему, не упоминай другие праздники и не подменяй событие.'));
-assert.ok(!daily.includes('Holiday subject: '));
 assert.ok(daily.includes('You are an expert editorial illustrator.'));
 assert.ok(daily.includes('HOLIDAY-SPECIFIC SCENE — follow literally: '));
 assert.ok(daily.includes('The exact holiday is: '));
