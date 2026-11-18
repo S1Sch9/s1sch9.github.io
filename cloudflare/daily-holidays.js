@@ -558,7 +558,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       messages: [
         {
           role: "system",
-          content: "You are an art director. Return ONLY English, 2–3 concise sentences describing one clear, elegant, instantly recognizable illustration subject for the exact holiday. Prefer one iconic object or a simple meaningful scene, not a busy collage. Do not invent symbols. No style, background, lighting, text, or logos."
+          content: "You are an expert editorial illustrator. Return ONLY English, 3–4 concise sentences describing a specific, unmistakable scene for the exact named holiday. State the central real-world subject, what it is visibly doing or what is happening, and one or two distinctive objects/details that make this holiday recognizable rather than a generic celebration. Treat the holiday title and calendar description as hard constraints. Do not use generic stars, balloons, gifts, schoolchildren, flags, or random festive decorations unless they are genuinely central to this exact holiday. Never replace the holiday with a loosely related theme. No style, background, lighting, text, or logos."
         },
         {
           role: "user",
@@ -600,8 +600,8 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       "Create one small standalone illustration for the right-side illustration area of a clean Russian school holiday card.",
       "LOCKED ART STYLE: friendly flat 2D hand-drawn cartoon, like a warm illustrated school storybook: simple rounded shapes, clean confident deep indigo-blue outlines, solid cheerful color fills, minimal soft shading, slightly playful proportions and expressive friendly details.",
       "It must look unmistakably DRAWN and ILLUSTRATED, not like a photograph. Keep the same simple cartoon visual language for every holiday so the series looks consistent.",
-      "Holiday subject: " + imagePrompt,
-      "Make the central subject instantly recognizable as the exact holiday: " + chosen.title + ". Use the calendar description only to clarify the subject: " + chosen.description + ". Do not substitute an unrelated celebration or generic school scene.",
+      "HOLIDAY-SPECIFIC SCENE — follow literally: " + imagePrompt,
+      "The exact holiday is: " + chosen.title + ". Calendar facts: " + chosen.description + ". Depict the defining activity, object, or tradition of THIS holiday, not merely its broad topic. The main subject should occupy most of the illustration area and be recognizable at a glance. Include the distinctive details from the art direction above. No generic school scene and no generic celebration symbols.",
       "COMPOSITION: one compact centered scene, fully visible, with generous pure-white empty margin on every side. Keep all important parts well away from the image edges; nothing may touch or cross the edge.",
       "BACKGROUND: perfectly clean solid white (#FFFFFF), no frame, no border, no cast shadow outside the subject.",
       "STRICTLY AVOID: photorealism, realistic photography, 3D render, realistic skin or material textures, cinematic lighting, gradients, glossy effects, watercolor realism, text, letters, numbers, logos, watermarks, poster layout."
