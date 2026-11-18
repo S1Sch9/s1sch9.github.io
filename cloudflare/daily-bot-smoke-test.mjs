@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, holidayIllustrationSubjectForTitle, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
+import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, holidayIllustrationSubjectForTitle, guinnessIllustrationSvg, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
 
 const sample = {
   selected_index: 1,
@@ -64,6 +64,12 @@ assert.ok(daily.includes('form.append("steps", "20")'));
 assert.ok(daily.includes('form.append("guidance", "4")'));
 assert.ok(daily.includes("generateVerifiedHolidayIllustration"));
 assert.ok(daily.includes("pure_white_background"));
+assert.ok(daily.includes("return holidaySvgDataUrl(guinnessIllustrationSvg())"));
+assert.ok(daily.includes("background:#fbfaff"));
+assert.ok(daily.includes("background:#f0eef8"));
+assert.ok(daily.includes("background:#f8edf1"));
+assert.ok(daily.includes("opacity:.045"));
+assert.ok(daily.includes("opacity:.055"));
 assert.ok(daily.includes("text_free"));
 assert.ok(daily.includes("within_object_limit"));
 assert.ok(!daily.includes("seed:"));
@@ -73,6 +79,14 @@ assert.match(recordsSubject, /golden trophy/);
 assert.match(recordsSubject, /open, deep-navy record book/);
 assert.match(recordsSubject, /No people/);
 assert.ok(!recordsSubject.includes("children"));
+const guinnessSvg = guinnessIllustrationSvg();
+assert.match(guinnessSvg, /<svg xmlns="http:\/\/www.w3.org\/2000\/svg"/);
+assert.match(guinnessSvg, /linearGradient id="gold"/);
+assert.match(guinnessSvg, /linearGradient id="cover"/);
+assert.doesNotMatch(guinnessSvg, /<text\b|<foreignObject\b|letter|Guinness|World Records/i);
+assert.match(guinnessSvg, /M178 91/);
+assert.match(guinnessSvg, /M91 333/);
+
 assert.ok(daily.includes("renderHolidayTemplate(null, dateForImage, chosen.title, illustrationDataUrl, body)"));
 assert.ok(daily.includes("left:820px;top:205px;width:360px;height:360px"));
 assert.ok(daily.includes("left:72px;top:' + (346 + index * lineHeight)"));
