@@ -947,19 +947,25 @@ export async function runDailyHolidayCron(controller, env) {
       const statusRow = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = 'manual_draft_status_message_id'").first();
       const statusMessageId = Number(statusRow && statusRow.value || 0);
       const progressText = {
-        calendar: "📅 Ищу праздники и проверяю календарь…",
-        "text-ai": "✍️ Выбираю подходящий праздник и готовлю текст…",
-        "image-ai": "🎨 Создаю тематическую иллюстрацию…",
-        "template-render": "🖼 Собираю изображение по твоему оригинальному шаблону…",
-        "telegram-sendPhoto": "📨 Отправляю готовый черновик…"
+        calendar: { percent: 8, label: "📅 Проверяю календарь и ищу праздники…" },
+        "text-ai": { percent: 28, label: "✍️ Выбираю подходящий праздник и пишу текст…" },
+        "image-ai": { percent: 52, label: "🎨 Создаю тематическую иллюстрацию…" },
+        "template-render": { percent: 78, label: "🖼 Собираю фирменное изображение…" },
+        "telegram-sendPhoto": { percent: 92, label: "📨 Отправляю готовый черновик тебе в Telegram…" }
       };
-      const updateStatus = async (message) => {
+      const updateStatus = async (message, percent = null) => {
         if (!statusMessageId) return false;
+        const isProgress = Number.isFinite(percent);
+        const value = isProgress ? Math.max(0, Math.min(100, percent)) : 100;
+        const filled = Math.round(value / 10);
+        const rendered = isProgress
+          ? "⚙️ Бот работает · «Праздник каждый день»\\n\\n" + "▰".repeat(filled) + "▱".repeat(10-filled) + " " + value + "%\\n" + message + "\\n\\nЭто не зависание — задача выполняется. Я сообщу, когда черновик будет готов."
+          : message;
         try {
           await tg(env, "editMessageText", {
             chat_id: String(env.TELEGRAM_ADMIN_ID),
             message_id: statusMessageId,
-            text: message
+            text: rendered
           });
           return true;
         } catch (error) {
@@ -969,7 +975,8 @@ export async function runDailyHolidayCron(controller, env) {
       };
       try {
         result = await makeDraft(env, true, requestedDate, async stage => {
-          await updateStatus(progressText[stage] || "⏳ Готовлю черновик…");
+          const step = progressText[stage] || { percent: 15, label: "⏳ Выполняю следующий этап…" };
+          await updateStatus(step.label, step.percent);
         });
         const message = result && result.ok
           ? "✅ Черновик готов и отправлен выше. Проверь текст и картинку — в канал он попадёт только после нажатия «Опубликовать»."
@@ -995,7 +1002,45 @@ export async function runDailyHolidayCron(controller, env) {
 
   const moscowTime = moscowTimeParts();
   if (moscowTime.hour === String(DAILY_DRAFT_HOUR).padStart(2, "0") && moscowTime.minute === "00") {
-    const automaticDraft = await makeDraft(env, false, shiftDate(localDate(), 1));
+    let automaticStatusId = 0;
+    try {
+      const status = await tg(env, "sendMessage", {
+        chat_id: String(env.TELEGRAM_ADMIN_ID),
+        text: "⚙️ Бот работает · автоматическая подготовка «Праздник каждый день»\\n\\n▰▱▱▱▱▱▱▱▱▱ 5%\\nЗапускаю проверку календаря…"
+      });
+      automaticStatusId = Number(status && status.message_id || 0);
+    } catch {}
+    const automaticProgress = async (stage) => {
+      if (!automaticStatusId) return;
+      const steps = {
+        calendar: [8, "📅 Проверяю календарь…"],
+        "text-ai": [28, "✍️ Готовлю текст праздника…"],
+        "image-ai": [52, "🎨 Создаю иллюстрацию…"],
+        "template-render": [78, "🖼 Собираю фирменную карточку…"],
+        "telegram-sendPhoto": [92, "📨 Отправляю черновик…"]
+      };
+      const step = steps[stage] || [15, "⏳ Выполняю задачу…"];
+      const filled = Math.round(step[0] / 10);
+      try {
+        await tg(env, "editMessageText", {
+          chat_id: String(env.TELEGRAM_ADMIN_ID),
+          message_id: automaticStatusId,
+          text: "⚙️ Бот работает · автоматическая подготовка\\n\\n" + "▰".repeat(filled) + "▱".repeat(10-filled) + " " + step[0] + "%\\n" + step[1] + "\\n\\nЯ продолжаю работу."
+        });
+      } catch {}
+    };
+    const automaticDraft = await makeDraft(env, false, shiftDate(localDate(), 1), automaticProgress);
+    if (automaticStatusId) {
+      try {
+        await tg(env, "editMessageText", {
+          chat_id: String(env.TELEGRAM_ADMIN_ID),
+          message_id: automaticStatusId,
+          text: automaticDraft.ok
+            ? "✅ Автоматический черновик готов и отправлен выше. В канал он попадёт только после твоего подтверждения."
+            : "ℹ️ Автоматическая подготовка завершена. " + (automaticDraft.stage === "already-processed" || automaticDraft.stage === "cooldown" ? "Повторная генерация не потребовалась." : "Проверь сообщение об ошибке ниже.")
+        });
+      } catch {}
+    }
     if (!automaticDraft.ok && !["already-processed", "cooldown"].includes(automaticDraft.stage)) {
       const detail = String(automaticDraft.error || "Неизвестная ошибка").slice(0, 220);
       try {
