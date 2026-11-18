@@ -282,10 +282,6 @@ export function modelText(result) {
   };
   return visit(result).trim();
 }
-function holidayImageDirection(title, description) {
-  return "";
-}
-
 function parseObject(value) {
   const s = String(value || "").replace(/^\s*\x60{3}(?:json)?/i, "").replace(/\x60{3}\s*$/, "").trim();
   const a = s.indexOf("{"), b = s.lastIndexOf("}");
