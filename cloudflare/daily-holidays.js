@@ -664,7 +664,16 @@ async function processUpdate(env, item, adminId) {
   if (item.callback_query) return callback(env, item, adminId);
   const msg = item.message;
   if (!msg || !msg.chat || msg.chat.type !== "private" || String(msg.chat.id) !== adminId || String(msg.from && msg.from.id) !== adminId) return;
-  if (msg.document || msg.photo) { await saveTemplateFromTelegram(env, msg, adminId); return; }
+  // Photos belong to the social publisher. Never treat an ordinary incoming
+  // photo as a replacement daily-holiday template.
+  if (msg.document) { await saveTemplateFromTelegram(env, msg, adminId); return; }
+  if (msg.photo) {
+    await tg(env, "sendMessage", {
+      chat_id: adminId,
+      text: "📷 Фото получил, но сейчас не выбран режим фотопубликации. Нажми «✍️ Публикация», выбери «🖼 Фото» и отправь фотографию ещё раз — тогда я поставлю её в обработку и пришлю предпросмотр."
+    });
+    return;
+  }
   const incomingText = String(msg.text || "").trim();
   const normalizedIncoming = incomingText.toLocaleLowerCase("ru");
   const text = ({
