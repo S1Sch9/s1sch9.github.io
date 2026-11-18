@@ -55,7 +55,7 @@ assert.ok(daily.includes('one clear recognizable scene, centered, fully visible,
 assert.ok(daily.includes('no words, no letters, no numbers, no typography'));
 assert.ok(daily.includes('right:78px;top:55px;width:360px;height:96px'));
 assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px'));
-assert.ok(daily.includes('top:338 + index * lineHeight'));
+assert.ok(daily.includes("(338 + index * lineHeight)"));
 assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
 assert.ok(!daily.includes('top:254px;width:660px;height:28px'));
 assert.ok(!daily.includes('function holidayImageDirection(title, description)'));
