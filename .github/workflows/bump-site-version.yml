@@ -20,6 +20,10 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+      - name: Sync with latest main
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
       - name: Increment build number
         run: |
           node <<'NODE'
