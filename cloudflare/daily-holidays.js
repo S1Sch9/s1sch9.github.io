@@ -470,14 +470,40 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
           lastTextError = "модель указала несуществующий индекс праздника";
           continue;
         }
-        if (candidateBody.length < 180 || candidateImagePrompt.length < 30) {
-          lastTextError = "body: " + candidateBody.length + " символов; image_prompt: " + candidateImagePrompt.length + " символов";
+        if (candidateBody.length < 180) {
+          lastTextError = "основной текст слишком короткий: " + candidateBody.length + " символов";
           continue;
         }
-        draft = candidate;
+        // Keep a valid holiday text even if the image description is missing.
+        // Never ask the model to rewrite the body just to repair image_prompt.
         chosen = list[index];
         body = candidateBody;
         imagePrompt = candidateImagePrompt;
+        if (imagePrompt.length < 30) {
+          const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
+            messages: [
+              {
+                role: "system",
+                content: "Return only one concise English image subject description, 8–20 words. No JSON, no quotes, no style, no background, no lighting. Describe a concrete visual subject related to the holiday."
+              },
+              {
+                role: "user",
+                content: "Holiday: " + chosen.title + "\\nHoliday facts and context: " + body + "\\nGive only the visual subject for an illustration."
+              }
+            ],
+            max_tokens: 120,
+            temperature: 0.2
+          }), AI_TIMEOUT_MS, "Создание описания иллюстрации");
+          imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
+            .replace(/^["'`]+|["'`]+$/g, "")
+            .replace(/\\s+/g, " ")
+            .slice(0, 700);
+        }
+        if (imagePrompt.length < 30) {
+          lastTextError = "не удалось отдельно получить описание иллюстрации (" + imagePrompt.length + " символов)";
+          continue;
+        }
+        draft = candidate;
       } catch (error) {
         lastTextError = String(error && error.message || "некорректный JSON");
       }
