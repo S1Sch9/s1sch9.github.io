@@ -70,7 +70,11 @@ assert.ok(!redoBlock.includes('env.AI.run(TEXT_MODEL'));
 assert.ok(!redoBlock.includes('Не удалось определить сюжет иллюстрации'));
 
 assert.ok(daily.includes("background_clean"));
-assert.ok(daily.includes("findCommonsHolidayIllustration(env, title, description, subject)"));\nassert.ok(daily.includes("Wikimedia Commons"));\nassert.ok(daily.includes("public domain|cc0|creative commons zero"));\nassert.ok(daily.includes("background_clean"));\nassert.ok(daily.includes("semi-realistic hand-painted editorial artwork"));
+assert.ok(daily.includes("findCommonsHolidayIllustration(env, title, description, subject)"));
+assert.ok(daily.includes("Wikimedia Commons"));
+assert.ok(daily.includes("public domain|cc0|creative commons zero"));
+assert.ok(daily.includes("background_clean"));
+assert.ok(daily.includes("semi-realistic hand-painted editorial artwork"));
 assert.ok(daily.includes("background:#fbfaff"));
 assert.ok(daily.includes("background:#f0eef8"));
 assert.ok(daily.includes("background:#f8edf1"));
