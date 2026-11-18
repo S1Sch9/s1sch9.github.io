@@ -327,7 +327,6 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
       '<div style="display:flex;position:absolute;left:820px;top:205px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:3px solid #1a0b5c;border-radius:32px;padding:16px;box-sizing:border-box">' +
         '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:820px;top:588px;width:360px;height:28px;align-items:center;justify-content:center;color:#655b91;font-size:16px;font-weight:700;letter-spacing:1px">НАШ ДЕНЬ · НАША ИСТОРИЯ</div>' +
     '</div>';
   const rendered = new ImageResponse(html, { width: 1280, height: 720 });
   return new Uint8Array(await rendered.arrayBuffer());
@@ -416,24 +415,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     const dateForPost = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
-    const footerPlain = "👉 С1Шк9.Сайт | TGK | MAX";
-    const post = [
-      "Доброе утро! ☀️",
-      "Наша ежедневная рубрика «Праздник каждый день»!",
-      dateForPost + "\n" + chosen.title,
-      body,
-      "Желаем вам отличного дня! 😊",
-      footerPlain
-    ].join("\n\n");
-    if (post.length > 1024) throw new Error("Текст по утверждённому шаблону превышает лимит Telegram. Черновик не отправлен.");
-    const postHtml = [
-      escapeHtml("Доброе утро! ☀️"),
-      escapeHtml("Наша ежедневная рубрика «Праздник каждый день»!"),
-      escapeHtml(dateForPost + "\n" + chosen.title),
-      escapeHtml(body),
-      escapeHtml("Желаем вам отличного дня! 😊"),
-      '👉 <a href="https://s1sch9.github.io/">С1Шк9.Сайт</a> | <a href="https://t.me/dvizhenieschool9">TGK</a> | <a href="https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI">MAX</a>'
-    ].join("\n\n");
+    const postHtml = escapeHtml(body);
 
     stage = "image-ai";
     if (onProgress) await onProgress(stage);
@@ -559,8 +541,8 @@ async function callback(env, item, adminId) {
       if (!result || typeof result.image !== "string" || result.image.length < 4000) throw new Error("Модель не вернула готовую иллюстрацию.");
       const imageBase64 = result.image.replace(/\s/g, "");
       if (!imageBase64.startsWith("/9j/")) throw new Error("Иллюстрация пришла не в JPEG-формате.");
-      const dateLabel = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "numeric", month: "long" }).format(new Date(date + "T12:00:00+03:00"));
-      const bytes = await withTimeout(renderHolidayTemplate(template, dateLabel, title, imageBase64), REQUEST_TIMEOUT_MS, "Сборка изображения");
+      const dateLabel = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric" }).format(new Date(date + "T12:00:00+03:00"));
+      const bytes = await withTimeout(renderHolidayTemplate(null, dateLabel, title, imageBase64), REQUEST_TIMEOUT_MS, "Сборка изображения");
       const form = new FormData();
       form.append("chat_id", adminId);
       form.append("message_id", String(row.message_id));
