@@ -1,6 +1,7 @@
 import { handleSocialUpdate, processQueuedSocialPhotos } from "./social-publisher.js";
 
 // Deploy trigger: holiday-specific illustration prompts are now active.
+// Deploy trigger: recognizable single-symbol holiday artwork and refined school branding.
 
 const API = "https://api.telegram.org/bot";
 const CHANNEL = "@dvizhenieschool9";
