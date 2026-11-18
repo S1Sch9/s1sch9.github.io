@@ -540,22 +540,62 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       "Не выдумывай факты: используй только сведения из описания. Не добавляй заголовок, дату, приветствие, пожелание, подпись, ссылки, хэштеги или эмодзи."
     ].join("\n");
     body = "";
-    for (let attempt = 0; attempt < 3 && body.length < 180; attempt++) {
-      const bodyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
-        messages: [
-          {
-            role: "system",
-            content: "Пиши только два законченных абзаца на русском языке строго об указанном празднике. Первое предложение должно сразу объяснить читателю, что это за праздник и чему он посвящён. Не меняй тему. Не добавляй ничего кроме этих двух абзацев."
-          },
-          { role: "user", content: bodyPrompt + (attempt ? "\nПредыдущий текст был слишком коротким. Напиши два полноценных абзаца только об этом же празднике." : "") }
-        ],
-        max_tokens: 700,
-        temperature: attempt ? 0.1 : 0.2
-      }), AI_TIMEOUT_MS, "Текстовая AI-модель");
-      body = String(modelText(bodyAnswer) || "").replace(/\r/g, "")
-        .split(/\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\n\n");
+    let bestAiBody = "";
+    let textAiError = "";
+    for (let attempt = 0; attempt < 3 && bestAiBody.length < 180; attempt++) {
+      try {
+        const bodyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
+          messages: [
+            {
+              role: "system",
+              content: "Пиши два законченных абзаца на русском языке строго об указанном празднике. Первое предложение сразу объясняет, что это за праздник. Не меняй тему. Верни только текст."
+            },
+            { role: "user", content: bodyPrompt + (attempt ? "\\nНапиши полный текст двумя абзацами. Не обрывай предложения." : "") }
+          ],
+          max_tokens: 700,
+          temperature: attempt ? 0.1 : 0.2
+        }), AI_TIMEOUT_MS, "Текстовая AI-модель");
+        const candidate = String(modelText(bodyAnswer) || "").replace(/\\r/g, "")
+          .split(/\\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\\n\\n");
+        if (candidate.length > bestAiBody.length) bestAiBody = candidate;
+      } catch (error) {
+        textAiError = String(error && error.message || "ошибка текстовой модели");
+      }
     }
-    if (body.length < 180) throw new Error("Не удалось получить полный текст именно о выбранном празднике. Черновик не отправлен.");
+    body = bestAiBody;
+    // AI may occasionally return a short/truncated answer. In that case use
+    // the calendar's own description (and, if needed, the holiday detail page)
+    // rather than discarding an otherwise valid draft or inventing facts.
+    if (body.length < 180) {
+      let sourceParts = [chosen.description];
+      try {
+        const detailResponse = await fetchWithTimeout(chosen.url, {
+          headers: { "Accept": "text/html", "Accept-Language": "ru-RU,ru;q=0.9" }
+        }, REQUEST_TIMEOUT_MS, "Страница выбранного праздника");
+        if (detailResponse.ok) {
+          const detailHtml = await detailResponse.text();
+          const paragraphs = Array.from(detailHtml.matchAll(/<p\\b[^>]*>([\\s\\S]*?)<\\/p>/gi))
+            .map(match => plain(match[1]))
+            .filter(value => value.length >= 45 && !/читать далее|поделиться|комментар|реклама/i.test(value))
+            .slice(0, 8);
+          if (paragraphs.join(" ").length > sourceParts.join(" ").length) sourceParts = paragraphs;
+        }
+      } catch (error) {
+        console.warn("Could not expand holiday text from its source page:", error && error.message ? error.message : "unknown error");
+      }
+      const sourceText = sourceParts.join(" ").replace(/\\s+/g, " ").trim().slice(0, 900);
+      if (sourceText.length >= 120) {
+        const sentences = sourceText.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [sourceText];
+        const midpoint = Math.ceil(sentences.length / 2);
+        const first = sentences.slice(0, midpoint).join(" ").trim();
+        const second = sentences.slice(midpoint).join(" ").trim();
+        body = second ? first + "\\n\\n" + second : first;
+      }
+    }
+    if (body.length < 120) {
+      throw new Error("Не удалось получить достаточно сведений о выбранном празднике из календаря." +
+        (textAiError ? " " + textAiError.slice(0, 100) : ""));
+    }
     const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
       messages: [
         {
