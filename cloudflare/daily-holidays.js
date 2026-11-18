@@ -340,8 +340,8 @@ function wrapHolidayTitle(value, maxWidth = 430, fontSize = 76) {
   if (line) lines.push(line);
   return lines;
 }
-function fitHolidayTitle(value, maxWidth = 700) {
-  for (let fontSize = 66; fontSize >= 38; fontSize -= 2) {
+function fitHolidayTitle(value, maxWidth = 690) {
+  for (let fontSize = 58; fontSize >= 34; fontSize -= 2) {
     const lines = wrapHolidayTitle(value, maxWidth, fontSize);
     if (lines.length <= 4) return { lines, fontSize };
   }
@@ -398,75 +398,54 @@ async function holidayBrandAsset(url) {
   for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return "data:" + (response.headers.get("content-type") || "image/png") + ";base64," + btoa(binary);
 }
-async function holidayRobotoBlackFont() {
-  const response = await fetchWithTimeout("https://raw.githubusercontent.com/google/fonts/main/ofl/roboto/Roboto%5Bwdth,wght%5D.ttf", {}, REQUEST_TIMEOUT_MS, "Загрузка шрифта Roboto");
-  if (!response.ok) throw new Error("Не удалось загрузить фирменный шрифт Roboto Black.");
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (!bytes.length || bytes.length > 2000000) throw new Error("Файл шрифта Roboto повреждён или слишком большой.");
-  return bytes;
-}
 async function loadHolidayBrandAssets() {
   if (!cachedHolidayAssetsPromise) {
     cachedHolidayAssetsPromise = Promise.all([
       holidayBrandAsset("https://s1sch9.github.io/official-logo.svg"),
-      holidayBrandAsset("https://s1sch9.github.io/gerb.png"),
-      holidayRobotoBlackFont().catch(() => null)
+      holidayBrandAsset("https://s1sch9.github.io/gerb.png")
     ]).catch(error => { cachedHolidayAssetsPromise = null; throw error; });
   }
   return cachedHolidayAssetsPromise;
 }
 async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationDataUrl, bodyText = "") {
-  const [councilLogo, schoolCrest, robotoBlackFont] = await loadHolidayBrandAssets();
+  const [councilLogo, schoolCrest] = await loadHolidayBrandAssets();
   const { ImageResponse } = await import("workers-og");
-  const fittedTitle = fitHolidayTitle(holidayTitle, 700);
+  const fittedTitle = fitHolidayTitle(holidayTitle, 690);
   const lines = fittedTitle.lines;
-  const fontSize = Math.min(62, fittedTitle.fontSize);
+  const fontSize = Math.min(58, fittedTitle.fontSize);
   const lineHeight = Math.round(fontSize * 1.08);
   const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:82px;top:' + (328 + index * lineHeight) + 'px;width:700px;height:' + lineHeight + 'px;color:#173F82;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:78px;top:' + (346 + index * lineHeight) + 'px;width:690px;height:' + lineHeight + 'px;color:#1b145b;font-family:Georgia,Times New Roman,serif;font-size:' + fontSize + 'px;font-weight:700;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1.2px">' + escapeHtml(line) + '</div>'
   ).join("");
   const html =
-    '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
-      '<div style="display:flex;position:absolute;left:24px;top:22px;width:1232px;height:676px;border:3px solid #2459A6;border-radius:26px;box-sizing:border-box"></div>' +
-      '<div style="display:flex;position:absolute;left:31px;top:29px;width:1218px;height:662px;border:1px solid #D7E4F5;border-radius:20px;box-sizing:border-box"></div>' +
-      '<div style="display:flex;position:absolute;left:82px;top:52px;width:650px;height:112px;align-items:center;justify-content:flex-start">' +
-        '<img src="' + councilLogo + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:15px"/>' +
-        '<img src="' + schoolCrest + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:20px"/>' +
-        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:7px;color:#173F82;text-align:left">' +
-          '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;font-family:Roboto,Arial,sans-serif;font-size:28px;line-height:29px;font-weight:900;letter-spacing:-.45px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div>' +
-          '<div style="display:flex;font-family:Arial,sans-serif;font-size:13px;line-height:16px;font-weight:800;letter-spacing:1px;color:#456A9F;white-space:nowrap">СОВЕТ ПЕРВЫХ · ШКОЛЫ №9</div>' +
+    '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Georgia,Times New Roman,serif">' +
+      '<div style="display:flex;position:absolute;left:-110px;top:495px;width:390px;height:390px;border-radius:50%;background:#f7f7fa"></div>' +
+      '<div style="display:flex;position:absolute;right:-115px;top:-145px;width:420px;height:420px;border-radius:50%;background:#f8f8fb"></div>' +
+      '<div style="display:flex;position:absolute;left:26px;top:22px;width:1228px;height:674px;border:2px solid #21145f;border-radius:31px;box-sizing:border-box"></div>' +
+      '<div style="display:flex;position:absolute;left:29px;top:25px;width:455px;height:132px;background:#fff"></div>' +
+      '<div style="display:flex;position:absolute;right:29px;top:25px;width:426px;height:132px;background:#fff"></div>' +
+      '<div style="display:flex;position:absolute;left:72px;top:54px;width:405px;height:78px;align-items:center;justify-content:flex-start">' +
+        '<img src="' + councilLogo + '" style="display:flex;width:70px;height:70px;object-fit:contain;margin-right:18px"/>' +
+        '<img src="' + schoolCrest + '" style="display:flex;width:68px;height:76px;object-fit:contain;margin-right:24px"/>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;color:#21145f;text-align:left;font-family:Georgia,Times New Roman,serif;font-size:27px;line-height:31px;font-weight:700;letter-spacing:-.55px;white-space:nowrap">' +
+          '<div style="display:flex">СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ №9</div>' +
         '</div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;right:82px;top:62px;width:390px;height:92px;align-items:center;justify-content:flex-end;box-sizing:border-box;color:#173F82">' +
-        '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;justify-content:center;text-align:right;width:100%"><div style="display:flex;font-family:Arial,sans-serif;font-size:34px;line-height:38px;font-weight:900;letter-spacing:.1px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:30px;line-height:34px;font-weight:900;letter-spacing:.15px">КАЖДЫЙ ДЕНЬ</div></div>' +
+      '<div style="display:flex;position:absolute;right:82px;top:72px;width:340px;height:82px;align-items:center;justify-content:flex-end;color:#21145f">' +
+        '<div style="display:flex;flex-direction:column;gap:0;align-items:flex-end;justify-content:center;text-align:right;width:100%;font-family:Georgia,Times New Roman,serif;font-size:34px;line-height:39px;font-weight:700;letter-spacing:-.5px">' +
+          '<div style="display:flex">ПРАЗДНИК</div><div style="display:flex">КАЖДЫЙ ДЕНЬ</div>' +
+        '</div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:82px;top:190px;width:1116px;height:2px;background:#D6E3F4"></div>' +
-      '<div style="display:flex;position:absolute;left:82px;top:188px;width:116px;height:5px;border-radius:3px;background:#2D69BD"></div>' +
-      '<div style="display:flex;position:absolute;left:82px;top:232px;width:700px;height:38px;align-items:center;color:#5275A5;font-size:21px;font-weight:800;letter-spacing:1.1px">' + escapeHtml(dateText) + '</div>' +
-      '<div style="display:flex;position:absolute;left:82px;top:291px;width:76px;height:5px;border-radius:4px;background:#2D69BD"></div>' +
+      '<div style="display:flex;position:absolute;left:72px;top:205px;width:680px;height:62px;align-items:center;color:#777394;font-family:Georgia,Times New Roman,serif;font-size:47px;font-weight:700;line-height:58px;letter-spacing:.2px;white-space:nowrap">' + escapeHtml(dateText) + '</div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:306px;width:112px;height:5px;border-radius:4px;background:#21145f"></div>' +
       titleMarkup +
-      '<div style="display:flex;position:absolute;left:880px;top:286px;width:278px;height:278px;align-items:center;justify-content:center;background:#fff;border:2px solid #B8CDE9;border-radius:24px;padding:12px;box-sizing:border-box">' +
-        '<img src="' + illustrationDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:14px"/>' +
+      '<div style="display:flex;position:absolute;left:820px;top:205px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:2.5px solid #21145f;border-radius:31px;padding:20px;box-sizing:border-box">' +
+        '<img src="' + illustrationDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:12px"/>' +
       '</div>' +
     '</div>';
-  // Keep the preferred Roboto Black render, but retry without the custom font
-  // so a font parser issue never blocks draft creation.
-  if (robotoBlackFont) {
-    try {
-      const rendered = new ImageResponse(html, {
-        width: 1280, height: 720,
-        fonts: [{ name: "Roboto", data: robotoBlackFont, weight: 900, style: "normal" }]
-      });
-      return new Uint8Array(await rendered.arrayBuffer());
-    } catch (fontError) {
-      console.warn("Roboto font render failed; retrying holiday card with system font:",
-        fontError && fontError.message ? fontError.message : "unknown font error");
-    }
-  }
-  const fallbackHtml = html.replace(/font-family:Roboto,sans-serif/g, "font-family:Arial,sans-serif");
-  const fallbackRendered = new ImageResponse(fallbackHtml, { width: 1280, height: 720 });
-  return new Uint8Array(await fallbackRendered.arrayBuffer());
+  const rendered = new ImageResponse(html, { width: 1280, height: 720 });
+  return new Uint8Array(await rendered.arrayBuffer());
 }
 function escapeHtml(value) {
   return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
