@@ -3,9 +3,9 @@ const BRAND = "https://s1sch9.github.io";
 const CHANNEL = "@dvizhenieschool9";
 const REQUEST_TIMEOUT_MS = 25000;
 
-async function fetchWithTimeout(url, options = {}, label = "Запрос") {
+async function fetchWithTimeout(url, options = {}, label = "Запрос", timeoutMs = REQUEST_TIMEOUT_MS) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     return await fetch(url, { ...options, signal: controller.signal });
   } catch (error) {
@@ -16,12 +16,12 @@ async function fetchWithTimeout(url, options = {}, label = "Запрос") {
   }
 }
 
-async function tg(env, method, payload) {
+async function tg(env, method, payload, timeoutMs = REQUEST_TIMEOUT_MS) {
   const response = await fetchWithTimeout(API + env.SOVETTG_BOT_TOKEN + "/" + method, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload || {})
-  }, "Telegram " + method);
+  }, "Telegram " + method, timeoutMs);
   const data = await response.json();
   if (!response.ok || !data.ok) throw new Error("Telegram " + method + ": " + String(data.description || response.status));
   return data.result;
@@ -74,7 +74,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
   return new Uint8Array(await response.arrayBuffer());
 }
 async function telegramImageData(env, fileId) {
-  const info = await tg(env, "getFile", { file_id:fileId });
+  const info = await tg(env, "getFile", { file_id:fileId }, 60000);
   if (!info || !info.file_path) throw new Error("Telegram не вернул путь к фотографии.");
   const response = await fetchWithTimeout("https://api.telegram.org/file/bot" + env.SOVETTG_BOT_TOKEN + "/" + info.file_path, {}, "Загрузка оригинала фото");
   if (!response.ok) throw new Error("Не удалось загрузить фотографию из Telegram.");
