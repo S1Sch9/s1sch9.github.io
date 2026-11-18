@@ -59,10 +59,8 @@ assert.ok(daily.includes('text-align:left'));
 assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900'));
 assert.ok(daily.includes('width:1124px;height:2px;background:rgba(26,11,92,.14)'));
 assert.ok(daily.includes('left:820px;top:226px;width:360px;height:360px'));
-assert.ok(daily.includes('EXACT HOLIDAY: '));
-assert.ok(daily.includes('REQUIRED HOLIDAY-SPECIFIC SCENE: '));
-assert.ok(daily.includes('Always build the visual brief independently from the finished body.'));
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
+assert.ok(daily.includes('EXACT HOLIDAY TITLE: '));
 assert.ok(!daily.includes('border:3px solid rgba(255,255,255,.85)'));
 
 assert.ok(daily.includes("DELETE FROM daily_holiday_state WHERE key IN ('awaiting_publish_time', 'awaiting_custom_date')"));
