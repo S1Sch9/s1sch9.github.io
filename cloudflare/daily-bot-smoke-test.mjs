@@ -63,6 +63,12 @@ assert.ok(daily.includes("multipart: {"));
 assert.ok(daily.includes('form.append("steps", "20")'));
 assert.ok(daily.includes('form.append("guidance", "4")'));
 assert.ok(daily.includes("generateVerifiedHolidayIllustration"));
+assert.ok(daily.includes("const illustrationSubject = holidayIllustrationSubjectForTitle("));
+const redoBlock = daily.slice(daily.indexOf('if (action === "redoimage")'), daily.indexOf('if (action === "skip")'));
+assert.ok(redoBlock.includes('holidayIllustrationSubjectForTitle('));
+assert.ok(!redoBlock.includes('env.AI.run(TEXT_MODEL'));
+assert.ok(!redoBlock.includes('Не удалось определить сюжет иллюстрации'));
+
 assert.ok(daily.includes("pure_white_background"));
 assert.ok(daily.includes("return holidaySvgDataUrl(guinnessIllustrationSvg())"));
 assert.ok(daily.includes("background:#fbfaff"));
