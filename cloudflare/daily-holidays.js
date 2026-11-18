@@ -438,7 +438,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
       '<div style="display:flex;position:absolute;left:78px;top:258px;width:660px;height:38px;align-items:center;color:#655b91;font-size:23px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
       '<div style="display:flex;position:absolute;left:78px;top:310px;width:92px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
       titleMarkup +
-      '<div style="display:flex;position:absolute;left:820px;top:226px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:2px solid rgba(26,11,92,.18);border-radius:30px;padding:14px;box-sizing:border-box">' +
+      '<div style="display:flex;position:absolute;left:800px;top:206px;width:400px;height:400px;align-items:center;justify-content:center;background:#fff;border:2px solid rgba(26,11,92,.18);border-radius:30px;padding:10px;box-sizing:border-box">' +
         '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
       '</div>' +
     '</div>';
