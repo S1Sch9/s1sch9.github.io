@@ -50,7 +50,6 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
   const councilLogo = await assetDataUrl(BRAND + "/official-logo.svg");
   const schoolCrest = await assetDataUrl(BRAND + "/gerb.png");
   const safeTitle = escapeHtml(title || "Новости и события");
-  const safeSubtitle = escapeHtml(subtitle || "");
   if (type !== "photo" || !photoDataUrl || !String(photoDataUrl).startsWith("data:image/")) {
     throw new Error("Не удалось подготовить исходную фотографию.");
   }
@@ -67,7 +66,6 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
       '<div style="display:flex;position:absolute;left:52px;top:184px;width:1176px;height:452px;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;background:#fff;border:4px solid #a1001f;border-radius:30px;box-shadow:0 16px 42px rgba(61,0,13,.10)">' +
         '<img src="' + photoDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;object-position:center;border-radius:18px"/>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:72px;bottom:20px;max-width:1120px;font-size:18px;font-weight:600;color:#745b65">' + safeSubtitle + '</div>' +
     '</div>';
   const { ImageResponse } = await import("workers-og");
   const response = new ImageResponse(html, { width:1280, height:720 });
