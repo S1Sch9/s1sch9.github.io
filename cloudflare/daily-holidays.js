@@ -324,28 +324,30 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const { ImageResponse } = await import("workers-og");
   const fittedTitle = fitHolidayTitle(holidayTitle);
   const lines = fittedTitle.lines;
-  const fontSize = Math.min(62, fittedTitle.fontSize);
+  const fontSize = Math.min(60, fittedTitle.fontSize);
   const lineHeight = Math.round(fontSize * 1.08);
   const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:76px;top:' + (344 + index * lineHeight) + 'px;width:650px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:78px;top:' + (316 + index * lineHeight) + 'px;width:660px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
   const html =
     '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
       '<div style="display:flex;position:absolute;left:-150px;bottom:-210px;width:430px;height:430px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
       '<div style="display:flex;position:absolute;right:-120px;top:-170px;width:390px;height:390px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
       '<div style="display:flex;position:absolute;left:26px;top:24px;width:1228px;height:672px;border:3px solid #1a0b5c;border-radius:30px;box-sizing:border-box"></div>' +
-      '<div style="display:flex;position:absolute;left:70px;top:58px;width:540px;height:110px;align-items:center">' +
-        '<img src="' + councilLogo + '" style="display:flex;width:88px;height:88px;object-fit:contain;margin-right:18px"/>' +
-        '<img src="' + schoolCrest + '" style="display:flex;width:88px;height:88px;object-fit:contain;margin-right:22px"/>' +
-        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;color:#1a0b5c;font-family:Roboto,Arial,sans-serif;font-size:27px;line-height:29px;font-weight:900;letter-spacing:-.4px;text-align:left"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:58px;width:650px;height:92px;align-items:center;justify-content:flex-start">' +
+        '<img src="' + councilLogo + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:14px"/>' +
+        '<img src="' + schoolCrest + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:20px"/>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;color:#1a0b5c;font-family:Roboto,Arial,sans-serif;font-size:25px;line-height:29px;font-weight:900;letter-spacing:-.3px;text-align:left"><div style="display:flex">СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ ДЕВЯТЬ</div></div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;right:70px;top:58px;width:550px;height:110px;align-items:center;justify-content:center;box-sizing:border-box;padding:12px 22px"><div style="display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;text-align:center;padding:13px 26px;border-radius:16px;background:rgba(26,11,92,.07);border:1px solid rgba(26,11,92,.16);color:#1a0b5c"><div style="display:flex;font-family:Arial,sans-serif;font-size:30px;line-height:33px;font-weight:900;letter-spacing:.1px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:27px;line-height:30px;font-weight:900;letter-spacing:.2px">КАЖДЫЙ ДЕНЬ</div></div></div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:252px;width:640px;height:40px;align-items:center;color:#655b91;font-size:24px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
+      '<div style="display:flex;position:absolute;right:78px;top:63px;width:330px;height:82px;align-items:center;justify-content:center;box-sizing:border-box;padding:10px 18px;border-radius:17px;background:rgba(26,11,92,.07);border:1px solid rgba(26,11,92,.16);color:#1a0b5c">' +
+        '<div style="display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;text-align:center"><div style="display:flex;font-family:Arial,sans-serif;font-size:26px;line-height:29px;font-weight:900;letter-spacing:.1px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:23px;line-height:26px;font-weight:900;letter-spacing:.2px">КАЖДЫЙ ДЕНЬ</div></div>' +
+      '</div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:178px;width:1124px;height:2px;background:rgba(26,11,92,.14)"></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:230px;width:660px;height:38px;align-items:center;color:#655b91;font-size:23px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:282px;width:92px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
       titleMarkup +
-      '<div style="display:flex;position:absolute;left:78px;top:178px;width:430px;height:58px;align-items:center;justify-content:flex-start;background:#fff;border:1.5px solid rgba(26,11,92,.35);border-radius:14px;box-sizing:border-box;padding:5px 18px;color:#1a0b5c;font-family:Roboto,Arial,sans-serif;font-size:23px;line-height:25px;font-weight:900;letter-spacing:-.3px;text-align:left"><div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0"><div style="display:flex">СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ ДЕВЯТЬ</div></div></div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:306px;width:112px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
-      '<div style="display:flex;position:absolute;left:820px;top:205px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:3px solid #1a0b5c;border-radius:32px;padding:16px;box-sizing:border-box">' +
+      '<div style="display:flex;position:absolute;left:820px;top:226px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:3px solid #1a0b5c;border-radius:32px;padding:16px;box-sizing:border-box">' +
         '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
       '</div>' +
     '</div>';
@@ -478,29 +480,28 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
         // Never ask the model to rewrite the body just to repair image_prompt.
         chosen = list[index];
         body = candidateBody;
-        imagePrompt = candidateImagePrompt;
-        if (imagePrompt.length < 30) {
-          const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
-            messages: [
-              {
-                role: "system",
-                content: "Return only one concise English image subject description, 8–20 words. No JSON, no quotes, no style, no background, no lighting. Describe a concrete visual subject related to the holiday."
-              },
-              {
-                role: "user",
-                content: "Holiday: " + chosen.title + "\\nHoliday facts and context: " + body + "\\nGive only the visual subject for an illustration."
-              }
-            ],
-            max_tokens: 120,
-            temperature: 0.2
-          }), AI_TIMEOUT_MS, "Создание описания иллюстрации");
-          imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
-            .replace(/^["'`]+|["'`]+$/g, "")
-            .replace(/\\s+/g, " ")
-            .slice(0, 700);
-        }
-        if (imagePrompt.length < 30) {
-          lastTextError = "не удалось отдельно получить описание иллюстрации (" + imagePrompt.length + " символов)";
+        // Always build the visual brief independently from the finished body.
+        // The initial JSON image_prompt is not trusted: it can be generic or unrelated.
+        const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
+          messages: [
+            {
+              role: "system",
+              content: "You are an art director creating a holiday-specific illustration brief. Return ONLY English, 2–3 sentences, 35–90 words. Identify the holiday's central, recognizable subject or symbolic scene. Use the supplied holiday title and calendar description as the primary source; the body is supporting context only. The scene must visibly communicate THIS exact holiday, not a generic cheerful school, child, gift, star, envelope, or celebration. If the holiday is about a profession, depict its real tools and activity; if about nature, depict the named natural subject; if historical or commemorative, depict a respectful, specific symbol from the supplied context. Do not invent symbols or events. No art style, background, lighting, text, or logos."
+            },
+            {
+              role: "user",
+              content: "EXACT HOLIDAY TITLE: " + chosen.title + "\\nCALENDAR DESCRIPTION: " + chosen.description + "\\nAPPROVED POST TEXT FOR CONTEXT: " + body + "\\nWrite a concrete, unmistakable visual scene for this holiday only."
+            }
+          ],
+          max_tokens: 180,
+          temperature: 0.1
+        }), AI_TIMEOUT_MS, "Создание тематического описания иллюстрации");
+        imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
+          .replace(/^["'`]+|["'`]+$/g, "")
+          .replace(/\\s+/g, " ")
+          .slice(0, 900);
+        if (imagePrompt.length < 45) {
+          lastTextError = "не удалось получить достаточно конкретное описание иллюстрации (" + imagePrompt.length + " символов)";
           continue;
         }
         draft = candidate;
@@ -539,8 +540,10 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       "Create one small standalone illustration for the right-side illustration area of a clean Russian school holiday card.",
       "LOCKED ART STYLE: friendly flat 2D hand-drawn cartoon, like a warm illustrated school storybook: simple rounded shapes, clean confident deep indigo-blue outlines, solid cheerful color fills, minimal soft shading, slightly playful proportions and expressive friendly details.",
       "It must look unmistakably DRAWN and ILLUSTRATED, not like a photograph. Keep the same simple cartoon visual language for every holiday so the series looks consistent.",
-      "Holiday subject: " + imagePrompt,
-      "COMPOSITION: one compact centered subject, fully visible, with generous pure-white empty margin on every side. Keep all important parts well away from the image edges; nothing may touch or cross the edge.",
+      "EXACT HOLIDAY: " + chosen.title + ". CALENDAR CONTEXT: " + chosen.description,
+      "REQUIRED HOLIDAY-SPECIFIC SCENE: " + imagePrompt,
+      "The illustration must unmistakably depict the required scene and communicate the exact holiday above. Do not replace it with a generic schoolchild, star, gift, envelope, smiling people, or random celebration. If the required scene contains a named object, profession, activity, or symbol, make that the central and largest recognizable subject.",
+      "COMPOSITION: one compact centered scene, fully visible, with generous pure-white empty margin on every side. Keep all important parts well away from the image edges; nothing may touch or cross the edge.",
       "BACKGROUND: perfectly clean solid white (#FFFFFF), no frame, no border, no cast shadow outside the subject.",
       "STRICTLY AVOID: photorealism, realistic photography, 3D render, realistic skin or material textures, cinematic lighting, gradients, glossy effects, watercolor realism, text, letters, numbers, logos, watermarks, poster layout."
     ].join(" ").slice(0, 2048);
