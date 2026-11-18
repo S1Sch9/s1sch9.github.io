@@ -76,9 +76,24 @@ async function loadBrandAssets() {
   return cachedBrandAssetsPromise;
 }
 
+let cachedSocialRobotoFontPromise;
+async function loadSocialRobotoBlackFont() {
+  if (!cachedSocialRobotoFontPromise) {
+    cachedSocialRobotoFontPromise = (async () => {
+      const response = await fetch("https://raw.githubusercontent.com/google/fonts/main/ofl/roboto/Roboto%5Bwdth,wght%5D.ttf");
+      if (!response.ok) throw new Error("Не удалось загрузить шрифт Roboto Black.");
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      if (!bytes.length || bytes.length > 2000000) throw new Error("Файл шрифта Roboto повреждён или слишком большой.");
+      return bytes;
+    })().catch(error => { cachedSocialRobotoFontPromise = null; throw error; });
+  }
+  return cachedSocialRobotoFontPromise;
+}
+
 async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = async () => {} }) {
   await onStage("Подготавливаю фирменные элементы…", 58);
   const [councilLogo, schoolCrest] = await loadBrandAssets();
+  const robotoBlackFont = await loadSocialRobotoBlackFont();
   await onStage("Фирменные элементы готовы…", 62);
   const safeTitle = escapeHtml(title || "События и инициативы");
   const titleFontSize = String(title || "").length > 34 ? 23 : String(title || "").length > 24 ? 27 : 31;
@@ -94,6 +109,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
         '<div style="display:flex;align-items:center;gap:15px;width:790px;height:100%">' +
           '<img src="' + councilLogo + '" style="display:flex;width:82px;height:82px;object-fit:contain"/>' +
           '<img src="' + schoolCrest + '" style="display:flex;width:82px;height:82px;object-fit:contain"/>' +
+          '<div style="display:flex;align-items:center;justify-content:center;width:238px;height:76px;box-sizing:border-box;padding:7px 14px;border:2px solid #a1001f;border-radius:16px;background:#fff;color:#a1001f;font-family:Roboto,sans-serif;font-size:26px;line-height:25px;font-weight:900;letter-spacing:-.4px"><div style="display:flex;flex-direction:column;align-items:flex-start"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div><div style="display:flex;margin-left:12px;width:28px;height:28px;align-items:center;justify-content:center;border-radius:50%;background:#a1001f;color:#fff;font-size:18px">✦</div></div>' +
 
         '</div>' +
         '<div style="display:flex;align-items:center;justify-content:flex-end;margin-left:auto;width:350px;height:100%;color:#3d000d;font-size:' + titleFontSize + 'px;line-height:1.12;font-weight:800;text-align:right;overflow:hidden">' + safeTitle + '</div>' +
@@ -104,7 +120,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
     '</div>';
   await onStage("Собираю горизонтальную карточку…", 68);
   const { ImageResponse } = await import("workers-og");
-  const response = new ImageResponse(html, { width:1280, height:720 });
+  const response = new ImageResponse(html, { width:1280, height:720, fonts: [{ name: "Roboto", data: robotoBlackFont, weight: 900, style: "normal" }] });
   await onStage("Формирую изображение…", 73);
   let renderTimer;
   const renderTimeout = new Promise((_, reject) => {
