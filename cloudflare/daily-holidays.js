@@ -362,7 +362,7 @@ function holidayIllustration(title) {
 export function holidayVisualConcept(title, description = "") {
   const value = (String(title || "") + " " + String(description || "")).toLocaleLowerCase("ru");
   const concepts = [
-    [/гиннесс|рекорд.{0,20}гиннесс|книга рекордов/, "One unmistakable hero object: a large, thick deep-blue hardcover record book, shown open at a three-quarter angle. A bold golden laurel wreath is embossed on the front cover and one small gold medal rests on the open pages; the book itself dominates the composition. No writing or letters anywhere."],
+    [/гиннесс|рекорд.{0,20}гиннесс|книга рекордов/, "One unmistakable hero object: a single fully closed, thick deep-blue hardcover record book, viewed from a slight three-quarter angle. The front cover is completely shut and lies flat against the page block; a golden laurel wreath is embossed on the cover. Show one solid closed book only, with no open pages, no bent or split cover, no writing or letters."],
     [/пасх|светлое христово воскрес|воскресение христово/, "One unmistakable hero object: a single large, beautifully decorated Easter egg, upright and centered, with elegant traditional red, gold and white ornamental patterns. The egg fills most of the composition; no basket, no people, no extra objects."],
     [/блин|маслениц/, "One unmistakable hero object: a tall, appetizing stack of golden Russian pancakes with a small curl of butter melting on top. The pancake stack fills most of the composition; no table setting or extra food."],
     [/книг|чтен|писател|поэз|литератур/, "One unmistakable hero object: a beautiful open hardback book with clearly visible thick pages, viewed at a slight angle. The open book fills most of the composition; no readable writing, letters or extra objects."],
@@ -381,6 +381,41 @@ export function holidayVisualConcept(title, description = "") {
   ];
   for (const [pattern, concept] of concepts) if (pattern.test(value)) return concept;
   return "";
+}
+
+
+export function holidaySvgIllustration(title, description = "") {
+  const value = (String(title || "") + " " + String(description || "")).toLocaleLowerCase("ru");
+  if (!/гиннесс|рекорд.{0,20}гиннесс|книга рекордов/.test(value)) return "";
+  // A hand-built vector illustration avoids generative-image shape artefacts.
+  // The book is deliberately and unambiguously CLOSED: one cover, one page block.
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">' +
+    '<g stroke="#1a0b5c" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">' +
+      '<path d="M116 88 L350 48 L421 86 L421 374 L174 420 L116 382 Z" fill="#f1e7d3"/>' +
+      '<path d="M116 88 L174 116 L174 420 L116 382 Z" fill="#0d2d65"/>' +
+      '<path d="M174 116 L350 78 L421 108 L421 374 L174 420 Z" fill="#174584"/>' +
+      '<path d="M350 78 L421 108 L421 374 L350 390 Z" fill="#12396f"/>' +
+      '<path d="M174 116 L350 78 L421 108" fill="none" stroke="#7898c6" stroke-width="7"/>' +
+      '<path d="M190 135 L190 398" fill="none" stroke="#42679f" stroke-width="5"/>' +
+    '</g>' +
+    '<g fill="none" stroke="#efc65a" stroke-width="9" stroke-linecap="round">' +
+      '<path d="M270 160 C211 184 202 256 244 304"/>' +
+      '<path d="M304 153 C363 178 373 249 331 303"/>' +
+    '</g>' +
+    '<g fill="#efc65a" stroke="#9c7428" stroke-width="3">' +
+      '<ellipse cx="235" cy="184" rx="11" ry="21" transform="rotate(-42 235 184)"/>' +
+      '<ellipse cx="218" cy="215" rx="11" ry="21" transform="rotate(-28 218 215)"/>' +
+      '<ellipse cx="215" cy="250" rx="11" ry="21" transform="rotate(-8 215 250)"/>' +
+      '<ellipse cx="230" cy="283" rx="11" ry="21" transform="rotate(28 230 283)"/>' +
+      '<ellipse cx="338" cy="180" rx="11" ry="21" transform="rotate(42 338 180)"/>' +
+      '<ellipse cx="355" cy="212" rx="11" ry="21" transform="rotate(28 355 212)"/>' +
+      '<ellipse cx="358" cy="248" rx="11" ry="21" transform="rotate(8 358 248)"/>' +
+      '<ellipse cx="343" cy="282" rx="11" ry="21" transform="rotate(-28 343 282)"/>' +
+    '</g>' +
+    '<path d="M286 190 L303 220 L337 225 L312 248 L318 282 L286 266 L254 282 L260 248 L235 225 L269 220 Z" fill="#f4d477" stroke="#9c7428" stroke-width="5" stroke-linejoin="round"/>' +
+    '<circle cx="286" cy="235" r="12" fill="#fff2bf" stroke="#9c7428" stroke-width="4"/>' +
+    '</svg>';
+  return "data:image/svg+xml;base64," + btoa(svg);
 }
 
 let cachedHolidayAssetsPromise;
@@ -410,7 +445,7 @@ async function loadHolidayBrandAssets() {
   }
   return cachedHolidayAssetsPromise;
 }
-async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationBase64, bodyText = "") {
+async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationDataUrl, bodyText = "") {
   const [councilLogo, schoolCrest, robotoBlackFont] = await loadHolidayBrandAssets();
   const { ImageResponse } = await import("workers-og");
   const fittedTitle = fitHolidayTitle(holidayTitle);
@@ -426,20 +461,24 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
       '<div style="display:flex;position:absolute;left:-150px;bottom:-210px;width:430px;height:430px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
       '<div style="display:flex;position:absolute;right:-120px;top:-170px;width:390px;height:390px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
       '<div style="display:flex;position:absolute;left:26px;top:24px;width:1228px;height:672px;border:2px solid rgba(26,11,92,.18);border-radius:30px;box-sizing:border-box"></div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:58px;width:650px;height:92px;align-items:center;justify-content:flex-start">' +
-        '<img src="' + councilLogo + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:14px"/>' +
-        '<img src="' + schoolCrest + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:20px"/>' +
-        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;color:#1a0b5c;text-align:left"><div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;font-family:Roboto,Arial,sans-serif;font-size:25px;line-height:26px;font-weight:900;letter-spacing:-.35px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div><div style="display:flex;font-family:Arial,sans-serif;font-size:12px;line-height:15px;font-weight:700;letter-spacing:1.05px;color:#655b91">СОВЕТ ПЕРВЫХ · ШКОЛЫ №9</div></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:50px;width:650px;height:108px;align-items:center;justify-content:flex-start">' +
+        '<img src="' + councilLogo + '" style="display:flex;width:76px;height:76px;object-fit:contain;margin-right:16px"/>' +
+        '<img src="' + schoolCrest + '" style="display:flex;width:76px;height:76px;object-fit:contain;margin-right:20px"/>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:7px;color:#1a0b5c;text-align:left">' +
+          '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;font-family:Roboto,Arial,sans-serif;font-size:27px;line-height:27px;font-weight:900;letter-spacing:-.45px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div>' +
+          '<div style="display:flex;font-family:Arial,sans-serif;font-size:13px;line-height:16px;font-weight:800;letter-spacing:1.2px;color:#655b91;white-space:nowrap">СОВЕТ ПЕРВЫХ · ШКОЛЫ №9</div>' +
+        '</div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;right:78px;top:55px;width:360px;height:96px;align-items:center;justify-content:flex-end;box-sizing:border-box;color:#1a0b5c">' +
-        '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;justify-content:center;text-align:right;width:100%"><div style="display:flex;font-family:Arial,sans-serif;font-size:32px;line-height:36px;font-weight:900;letter-spacing:.2px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900;letter-spacing:.25px">КАЖДЫЙ ДЕНЬ</div></div>' +
+      '<div style="display:flex;position:absolute;right:78px;top:54px;width:360px;height:100px;align-items:center;justify-content:flex-end;box-sizing:border-box;color:#1a0b5c">' +
+        '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;justify-content:center;text-align:right;width:100%"><div style="display:flex;font-family:Arial,sans-serif;font-size:32px;line-height:36px;font-weight:900;letter-spacing:.2px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900;letter-spacing:.25px">КАЖДЫЙ ДЕНЬ</div></div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:238px;width:1124px;height:2px;background:rgba(26,11,92,.14)"></div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:258px;width:660px;height:38px;align-items:center;color:#655b91;font-size:23px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:310px;width:92px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:190px;width:1124px;height:1px;background:rgba(26,11,92,.16)"></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:188px;width:92px;height:3px;border-radius:3px;background:#a1001f"></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:216px;width:660px;height:36px;align-items:center;color:#655b91;font-size:21px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:268px;width:72px;height:4px;border-radius:4px;background:#1a0b5c"></div>' +
       titleMarkup +
-      '<div style="display:flex;position:absolute;left:800px;top:206px;width:400px;height:400px;align-items:center;justify-content:center;background:#fff;border:2px solid rgba(26,11,92,.18);border-radius:30px;padding:10px;box-sizing:border-box">' +
-        '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
+      '<div style="display:flex;position:absolute;left:800px;top:216px;width:400px;height:400px;align-items:center;justify-content:center;background:#fff;border:1.5px solid rgba(26,11,92,.14);border-radius:28px;padding:10px;box-sizing:border-box">' +
+        '<img src="' + illustrationDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:20px"/>' +
       '</div>' +
     '</div>';
   // Some workers-og/fontkit builds cannot parse this variable Roboto font and
@@ -691,26 +730,29 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
 
     stage = "image-ai";
     if (onProgress) await onProgress(stage);
-    const illustrationPrompt = [
-      "Create one standalone editorial illustration asset for a polished school holiday series. This is artwork placed inside an existing poster template, not a poster or greeting card.",
-      "EXACT HOLIDAY: " + chosen.title + ".",
-      "THE ONE MAIN SUBJECT: " + imagePrompt + " The described physical subject must be unmistakable and must occupy about 75–85% of the square image. Preserve its natural recognizable shape; do not reinterpret it as a sphere, ball, orb, planet, abstract blob or generic decorative icon.",
-      "STYLE: warm, premium flat 2D storybook illustration; confident dark indigo outlines, rich clean colors, soft restrained shading, beautifully drawn shapes. Consistent style across the series.",
-      "COMPOSITION: one large hero object or one clearly identifiable subject, centered, full silhouette visible, close enough to recognize instantly on a phone. At most one tiny supporting detail only if essential to identify this holiday. No empty tiny object floating in the middle.",
-      "BACKGROUND: clean pure white (#FFFFFF), simple and uncluttered.",
-      "NO TEXT AT ALL: no words, letters, numbers, labels, symbols made of typography, logos, watermarks or captions.",
-      "Avoid generic celebration imagery, balloons, confetti, random spheres, abstract geometry, collages, photorealism, 3D, gradients and decorative filler."
-    ].join(" ").slice(0, 2048);
-    const illustrationResult = await withTimeout(env.AI.run(IMAGE_MODEL, {
-      prompt: illustrationPrompt,
-      steps: 4
-    }), AI_TIMEOUT_MS, "Генерация тематической иллюстрации");
-    if (!illustrationResult || typeof illustrationResult.image !== "string" || illustrationResult.image.length < 4000) {
-      throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
-    }
-    const illustrationBase64 = illustrationResult.image.replace(/\s/g, "");
-    if (!illustrationBase64.startsWith("/9j/")) {
-      throw new Error("Иллюстрация пришла не в ожидаемом JPEG-формате. Черновик не отправлен.");
+    let illustrationDataUrl = holidaySvgIllustration(chosen.title, chosen.description);
+    if (!illustrationDataUrl) {
+      const illustrationPrompt = [
+        "Create one standalone illustration asset for a consistent premium school editorial series.",
+        "EXACT HOLIDAY: " + chosen.title + ".",
+        "SUBJECT: " + imagePrompt + ". Keep the real-world subject anatomically and structurally correct, with one coherent silhouette and no fused, duplicated or half-transformed parts.",
+        "ART DIRECTION: polished hand-drawn 2D editorial storybook art, not generic AI clipart. Confident dark indigo ink outlines of consistent thickness, beautifully controlled shapes, rich restrained burgundy, navy, warm gold and soft sky-blue palette, subtle paper-like texture, gentle cel shading, refined children's book illustration finish.",
+        "COMPOSITION: one large clear subject, fully visible and centered, occupying around 78% of the square. Keep the whole object in one consistent physical state. No fragments, no contradictory geometry, no floating pieces.",
+        "BACKGROUND: pure white, no frame and no decorative background.",
+        "STRICTLY NO: text, lettering, numbers, logos, watermarks, gradients, 3D, photorealism, collage, confetti, balloons, random spheres, abstract shapes, extra objects or decorative filler."
+      ].join(" ").slice(0, 2048);
+      const illustrationResult = await withTimeout(env.AI.run(IMAGE_MODEL, {
+        prompt: illustrationPrompt,
+        steps: 4
+      }), AI_TIMEOUT_MS, "Генерация тематической иллюстрации");
+      if (!illustrationResult || typeof illustrationResult.image !== "string" || illustrationResult.image.length < 4000) {
+        throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
+      }
+      const illustrationBase64 = illustrationResult.image.replace(/\s/g, "");
+      if (!illustrationBase64.startsWith("/9j/")) {
+        throw new Error("Иллюстрация пришла не в ожидаемом JPEG-формате. Черновик не отправлен.");
+      }
+      illustrationDataUrl = "data:image/jpeg;charset=utf-8;base64," + illustrationBase64;
     }
 
     stage = "template-render";
@@ -719,7 +761,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric"
     }).format(new Date(date + "T12:00:00+03:00"));
     const bytes = await withTimeout(
-      renderHolidayTemplate(null, dateForImage, chosen.title, illustrationBase64, body),
+      renderHolidayTemplate(null, dateForImage, chosen.title, illustrationDataUrl, body),
       45000,
       "Сборка изображения"
     );
