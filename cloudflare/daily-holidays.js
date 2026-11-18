@@ -402,7 +402,7 @@ export function buildHolidayIllustrationPrompt(title, description, subject) {
 }
 
 export function guinnessIllustrationSvg() {
-  return \`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
     <defs>
       <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0a6"/><stop offset=".42" stop-color="#e7a928"/><stop offset="1" stop-color="#a96812"/></linearGradient>
       <linearGradient id="page" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffef9"/><stop offset="1" stop-color="#e9e5d9"/></linearGradient>
@@ -424,7 +424,7 @@ export function guinnessIllustrationSvg() {
       <path d="M215 282 L285 282 L276 310 L224 310Z" fill="url(#gold)"/>
       <path d="M183 310 Q250 326 317 310 L328 330 Q250 352 172 330Z" fill="url(#gold)"/>
     </g>
-  </svg>\`;
+  </svg>`;
 }
 
 function holidaySvgDataUrl(svg) {
