@@ -67,6 +67,11 @@ assert.ok(daily.includes('AI не вернула корректный JSON да�
 assert.ok(!daily.includes('Could not send fallback daily draft progress message'));
 assert.ok(!daily.includes('const sent = await tg(env, "sendMessage"'));
 assert.ok(daily.includes('await updateStatus(message);'));
+assert.ok(daily.includes("manual_draft_last_date"));
+assert.ok(daily.includes("const statusDate = queuedDate || (processingMatch ? processingMatch[1] : \"\") || lastRequestedDate || localDate();"));
+assert.ok(daily.indexOf("if (requestedDate && queueValue === requestedDate)") < daily.indexOf("try { await processQueuedSocialPhotos(env); }"));
+assert.ok(daily.includes("A slow unrelated social-photo job"));
+
 assert.ok(social.includes('Roboto%5Bwdth,wght%5D.ttf'));
 assert.ok(social.includes('BRAND + "/gerb.png"'));
 assert.ok(social.includes("width:1280px;height:720px"));
