@@ -13,6 +13,7 @@ on:
       - "cloudflare/package.json"
       - "cloudflare/validate-source.mjs"
       - "cloudflare/security-smoke-test.mjs"
+      - "cloudflare/daily-bot-smoke-test.mjs"
       - "cloudflare/wrangler.jsonc"
       - ".github/workflows/deploy-telegram-webhook.yml"
 
@@ -42,6 +43,7 @@ jobs:
           node --check social-publisher.js
           node --check admin-page.js
           node validate-source.mjs
+          node daily-bot-smoke-test.mjs
       - name: Install Worker dependencies
         working-directory: cloudflare
         run: npm install --no-package-lock --omit=dev
