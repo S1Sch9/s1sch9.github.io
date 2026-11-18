@@ -280,66 +280,56 @@ function holidayIllustration(title) {
   return '<g stroke="#21105f" stroke-width="9" stroke-linejoin="round"><path d="M44 100 L132 48 L220 100 V212 H44Z" fill="#65b9d4"/><path d="M44 100 L132 154 L220 100" fill="#ef6b59"/><path d="M132 48 V154" fill="none" stroke="#fff"/><path d="M132 20 L145 45 L173 49 L153 69 L158 98 L132 84 L106 98 L111 69 L91 49 L119 45Z" fill="#ffcf55"/></g>';
 }
 
-async function loadHolidayFont() {
-  const fontResponse = await fetchWithTimeout(
-    "https://raw.githubusercontent.com/go-flutter-desktop/examples/56920efbce6e92a63689ca549750511c2fe14431/stocks/fonts/Roboto/Roboto-Black.ttf",
-    {},
-    REQUEST_TIMEOUT_MS,
-    "Загрузка шрифта Roboto Black"
-  );
-  if (!fontResponse.ok) throw new Error("Не удалось загрузить шрифт Roboto Black (HTTP " + fontResponse.status + ").");
-  const fontData = await fontResponse.arrayBuffer();
-  if (fontData.byteLength < 100000) throw new Error("Файл шрифта Roboto Black повреждён или неполный.");
-  return fontData;
-}
+let cachedHolidayAssetsPromise;
 async function holidayBrandAsset(url) {
   const response = await fetchWithTimeout(url, {}, REQUEST_TIMEOUT_MS, "Загрузка фирменного логотипа");
-  if (!response.ok) throw new Error("Не удалось загрузить оригинальный логотип Совета.");
+  if (!response.ok) throw new Error("Не удалось загрузить оригинальный логотип Совета или герб школы.");
   const bytes = new Uint8Array(await response.arrayBuffer());
   if (!bytes.length || bytes.length > 500000) throw new Error("Файл логотипа повреждён или слишком большой.");
   let binary = "";
   for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return "data:" + (response.headers.get("content-type") || "image/png") + ";base64," + btoa(binary);
 }
-
+async function loadHolidayBrandAssets() {
+  if (!cachedHolidayAssetsPromise) {
+    cachedHolidayAssetsPromise = Promise.all([
+      holidayBrandAsset("https://s1sch9.github.io/official-logo.svg"),
+      holidayBrandAsset("https://s1sch9.github.io/gerb.png")
+    ]).catch(error => { cachedHolidayAssetsPromise = null; throw error; });
+  }
+  return cachedHolidayAssetsPromise;
+}
 async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationBase64, bodyText = "") {
-  const councilLogo = await holidayBrandAsset("https://s1sch9.github.io/official-logo.svg");
-  const schoolCrest = await holidayBrandAsset("https://s1sch9.github.io/gerb.png");
+  const [councilLogo, schoolCrest] = await loadHolidayBrandAssets();
   const { ImageResponse } = await import("workers-og");
-  const fontData = await loadHolidayFont();
   const fittedTitle = fitHolidayTitle(holidayTitle);
   const lines = fittedTitle.lines;
-  const fontSize = Math.min(66, fittedTitle.fontSize);
-  const lineHeight = Math.round(fontSize * 1.12);
+  const fontSize = Math.min(62, fittedTitle.fontSize);
+  const lineHeight = Math.round(fontSize * 1.08);
   const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
-  const safeBody = escapeHtml(String(bodyText || "").slice(0, 180));
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:78px;top:' + (290 + index * lineHeight) + 'px;width:680px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:76px;top:' + (330 + index * lineHeight) + 'px;width:650px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
   const html =
-    '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
-      '<div style="display:flex;position:absolute;left:-150px;bottom:-210px;width:470px;height:470px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
-      '<div style="display:flex;position:absolute;right:-130px;top:-190px;width:430px;height:430px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
-      '<div style="display:flex;position:absolute;left:34px;top:28px;width:1468px;height:709px;border:5px solid #1a0b5c;border-radius:34px;box-sizing:border-box"></div>' +
-      '<div style="display:flex;position:absolute;left:72px;top:62px;width:700px;height:142px;align-items:center">' +
-        '<img src="' + councilLogo + '" style="display:flex;width:112px;height:112px;object-fit:contain;margin-right:22px"/>' +
-        '<img src="' + schoolCrest + '" style="display:flex;width:112px;height:112px;object-fit:contain;margin-right:24px"/>' +
-        '<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;font-size:34px;font-weight:900;color:#1a0b5c">СОВЕТ ПЕРВЫХ</div><div style="display:flex;font-size:26px;font-weight:700;color:#51477a">ШКОЛЫ №9</div></div>' +
+    '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
+      '<div style="display:flex;position:absolute;left:-150px;bottom:-210px;width:430px;height:430px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
+      '<div style="display:flex;position:absolute;right:-120px;top:-170px;width:390px;height:390px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
+      '<div style="display:flex;position:absolute;left:26px;top:24px;width:1228px;height:672px;border:3px solid #1a0b5c;border-radius:30px;box-sizing:border-box"></div>' +
+      '<div style="display:flex;position:absolute;left:70px;top:58px;width:540px;height:110px;align-items:center">' +
+        '<img src="' + councilLogo + '" style="display:flex;width:88px;height:88px;object-fit:contain;margin-right:18px"/>' +
+        '<img src="' + schoolCrest + '" style="display:flex;width:88px;height:88px;object-fit:contain;margin-right:22px"/>' +
+        '<div style="display:flex;flex-direction:column;gap:5px"><div style="display:flex;font-size:28px;font-weight:900;color:#1a0b5c">СОВЕТ ПЕРВЫХ</div><div style="display:flex;font-size:22px;font-weight:700;color:#51477a">ШКОЛЫ №9</div></div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:790px;top:88px;width:650px;height:74px;align-items:center;justify-content:flex-end;color:#1a0b5c;font-family:Roboto Black,sans-serif;font-size:34px;font-weight:900;text-align:right">' + escapeHtml(dateText) + '</div>' +
-      '<div style="display:flex;position:absolute;left:80px;top:228px;width:650px;height:48px;align-items:center;color:#655b91;font-size:26px;font-weight:800;letter-spacing:1px">ПРАЗДНИК КАЖДЫЙ ДЕНЬ</div>' +
+      '<div style="display:flex;position:absolute;right:70px;top:88px;width:560px;height:52px;align-items:center;justify-content:flex-end;color:#1a0b5c;font-size:27px;font-weight:900;letter-spacing:.5px;text-align:right">ПРАЗДНИК КАЖДЫЙ ДЕНЬ</div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:238px;width:640px;height:44px;align-items:center;color:#655b91;font-size:25px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
       titleMarkup +
-      '<div style="display:flex;position:absolute;left:82px;top:590px;width:660px;height:105px;overflow:hidden;color:#40395d;font-size:18px;line-height:1.35">' + safeBody + '</div>' +
-      '<div style="display:flex;position:absolute;left:830px;top:198px;width:590px;height:450px;align-items:center;justify-content:center;background:#fff;border:5px solid #1a0b5c;border-radius:34px;padding:18px;box-sizing:border-box;box-shadow:0 16px 40px rgba(26,11,92,.10)">' +
+      '<div style="display:flex;position:absolute;left:78px;top:292px;width:112px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
+      '<div style="display:flex;position:absolute;left:820px;top:205px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:3px solid #1a0b5c;border-radius:32px;padding:16px;box-sizing:border-box">' +
         '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:840px;top:672px;width:570px;height:36px;align-items:center;justify-content:flex-end;color:#655b91;font-size:20px;font-weight:700">СОВЕТ ПЕРВЫХ ШКОЛЫ №9</div>' +
+      '<div style="display:flex;position:absolute;left:820px;top:588px;width:360px;height:28px;align-items:center;justify-content:center;color:#655b91;font-size:16px;font-weight:700;letter-spacing:1px">НАШ ДЕНЬ · НАША ИСТОРИЯ</div>' +
     '</div>';
-  const rendered = new ImageResponse(html, {
-    width: 1536,
-    height: 765,
-    fonts: [{ name: "Roboto Black", data: fontData, weight: 900, style: "normal" }]
-  });
+  const rendered = new ImageResponse(html, { width: 1280, height: 720 });
   return new Uint8Array(await rendered.arrayBuffer());
 }
 function escapeHtml(value) {
