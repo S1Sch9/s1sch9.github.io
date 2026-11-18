@@ -37,19 +37,36 @@ function escapeHtml(value) {
   return String(value || "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
 }
 async function assetDataUrl(url) {
-  const response = await fetchWithTimeout(url, {}, "Загрузка фирменного изображения");
-  if (!response.ok) throw new Error("Не удалось загрузить фирменный логотип Совета или графику «Важен каждый!».");
-  const mime = response.headers.get("content-type") || "image/png";
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  let binary = "";
-  for (let i=0;i<bytes.length;i+=0x8000) binary += String.fromCharCode(...bytes.subarray(i,i+0x8000));
-  return "data:" + mime + ";base64," + btoa(binary);
+  // Keep the abort timer active until the response body is fully read.
+  // fetch() may resolve after headers while arrayBuffer() is still stalled.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error("Не удалось загрузить фирменный логотип Совета или графику «Важен каждый!».");
+    const declaredSize = Number(response.headers.get("content-length") || 0);
+    if (declaredSize > 4 * 1024 * 1024) throw new Error("Фирменное изображение слишком большое для безопасной обработки.");
+    const mime = response.headers.get("content-type") || "image/png";
+    const buffer = await response.arrayBuffer();
+    if (buffer.byteLength > 4 * 1024 * 1024) throw new Error("Фирменное изображение слишком большое для безопасной обработки.");
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i=0;i<bytes.length;i+=0x8000) binary += String.fromCharCode(...bytes.subarray(i,i+0x8000));
+    return "data:" + mime + ";base64," + btoa(binary);
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error("Загрузка фирменного изображения превысила 20 секунд.");
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = async () => {} }) {
-  await onStage("Загружаю фирменные изображения…", 58);
+  await onStage("Загружаю логотип Совета…", 58);
   const councilLogo = await assetDataUrl(BRAND + "/official-logo.svg");
+  await onStage("Загружаю герб школы…", 60);
   const schoolCrest = await assetDataUrl(BRAND + "/gerb.png");
+  await onStage("Загружаю графику «Важен каждый!»…", 61);
   const importantLogo = await assetDataUrl(BRAND + "/vazhen.png");
   await onStage("Фирменные изображения готовы…", 62);
   const safeTitle = escapeHtml(title || "Новости и события");
