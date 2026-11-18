@@ -39,7 +39,7 @@ assert.match(illustrationPrompt, /BACKGROUND: absolutely uniform pure white #FFF
 assert.match(illustrationPrompt, /no environment, no scenery, no floor/);
 assert.match(illustrationPrompt, /Outlines use only the Council's exact deep navy #21145f/);
 assert.match(illustrationPrompt, /TEXT BAN: the image must contain ZERO text/);
-assert.match(illustrationPrompt, /no letters, words, numbers, typography, handwriting, book titles/);
+assert.match(illustrationPrompt, /No letters, words, numbers, typography, handwriting, book titles/);
 
 const longCaptionBody = "Это первое предложение о празднике. ".repeat(50);
 const fittedCaptionBody = fitTelegramCaptionBody(longCaptionBody, 180);
