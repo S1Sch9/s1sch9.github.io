@@ -539,7 +539,7 @@ async function callback(env, item, adminId) {
       const imageBase64 = result.image.replace(/\s/g, "");
       if (!imageBase64.startsWith("/9j/")) throw new Error("Иллюстрация пришла не в JPEG-формате.");
       const dateLabel = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric" }).format(new Date(date + "T12:00:00+03:00"));
-      const bytes = await withTimeout(renderHolidayTemplate(null, dateLabel, title, imageBase64), REQUEST_TIMEOUT_MS, "Сборка изображения");
+      const bytes = await withTimeout(renderHolidayTemplate(null, dateLabel, title, imageBase64), 45000, "Сборка изображения");
       const form = new FormData();
       form.append("chat_id", adminId);
       form.append("message_id", String(row.message_id));
