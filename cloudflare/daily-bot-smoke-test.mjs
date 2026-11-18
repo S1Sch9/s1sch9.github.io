@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { modelText } from "./daily-holidays.js";
+import { fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
 
 const sample = {
   selected_index: 1,
@@ -14,6 +14,12 @@ assert.equal(modelText({ choices: [{ message: { content: [{ type: "text", text: 
 assert.equal(modelText({ output: [{ content: [{ type: "output_text", text: JSON.stringify(sample) }] }] }), JSON.stringify(sample));
 assert.equal(modelText(JSON.stringify(sample)), JSON.stringify(sample));
 assert.equal(modelText({ response: null, choices: [] }), "");
+assert.equal(fitTelegramCaptionBody("Короткий текст", 100), "Короткий текст");
+const longCaptionBody = "Это первое предложение о празднике. ".repeat(50);
+const fittedCaptionBody = fitTelegramCaptionBody(longCaptionBody, 180);
+assert.ok(fittedCaptionBody.length <= 180);
+assert.ok(/[.!?…]$/.test(fittedCaptionBody));
+
 assert.equal(modelText({ result: { generated_text: JSON.stringify(sample) } }), JSON.stringify(sample));
 assert.equal(modelText({ response: { result: JSON.stringify(sample) } }), JSON.stringify(sample));
 
@@ -34,6 +40,8 @@ assert.ok(daily.includes("steps: 4"));
 assert.doesNotMatch(daily, /env\.AI\.run\(IMAGE_MODEL,\s*\{[^}]*\bseed\s*:/s);
 assert.ok(daily.includes('const TEXT_MODEL = "@cf/google/gemma-4-26b-a4b-it"'));
 assert.ok(daily.includes("Создание тематического описания иллюстрации"));
+assert.ok(daily.includes("fitTelegramCaptionBody(body, bodyLimit)"));
+assert.ok(daily.includes("const bodyLimit = Math.max(0, 1000 - fixedCaptionLength)"));
 assert.ok(daily.includes("void loadHolidayBrandAssets().catch"));
 assert.ok(daily.indexOf("// Manual requests run from the scheduled Worker invocation") < daily.indexOf("// Publish approved future-dated drafts at 06:00 Moscow time."));
 assert.ok(daily.includes("AI_TIMEOUT_MS = 60000"));
