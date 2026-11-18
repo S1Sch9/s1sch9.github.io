@@ -412,16 +412,13 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     const body = String(draft.body || "").replace(/\r/g, "").split(/\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\n\n");
     const imagePrompt = String(draft.image_prompt || "").slice(0, 700);
     if (body.length < 180 || imagePrompt.length < 30) throw new Error("Основной текст праздника неполный. Черновик не отправлен.");
-    const dateForPost = new Intl.DateTimeFormat("ru-RU", {
-      timeZone: "Europe/Moscow", day: "numeric", month: "long"
-    }).format(new Date(date + "T12:00:00+03:00"));
     const postHtml = escapeHtml(body);
 
     stage = "image-ai";
     if (onProgress) await onProgress(stage);
     const illustrationPrompt = [
-      "Create one small standalone illustration for the lower-right white circle of a Russian school holiday poster.",
-      "LOCKED ART STYLE: friendly flat 2D hand-drawn cartoon, like a warm illustrated school storybook: simple rounded shapes, clean confident dark-purple outlines, solid cheerful color fills, minimal soft shading, slightly playful proportions and expressive friendly details.",
+      "Create one small standalone illustration for the right-side illustration area of a clean Russian school holiday card.",
+      "LOCKED ART STYLE: friendly flat 2D hand-drawn cartoon, like a warm illustrated school storybook: simple rounded shapes, clean confident deep indigo-blue outlines, solid cheerful color fills, minimal soft shading, slightly playful proportions and expressive friendly details.",
       "It must look unmistakably DRAWN and ILLUSTRATED, not like a photograph. Keep the same simple cartoon visual language for every holiday so the series looks consistent.",
       "Holiday subject: " + imagePrompt,
       "COMPOSITION: one compact centered subject, fully visible, with generous pure-white empty margin on every side. Keep all important parts well away from the image edges; nothing may touch or cross the edge.",
@@ -443,11 +440,11 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     stage = "template-render";
     if (onProgress) await onProgress(stage);
     const dateForImage = new Intl.DateTimeFormat("ru-RU", {
-      timeZone: "Europe/Moscow", day: "numeric", month: "long"
+      timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric"
     }).format(new Date(date + "T12:00:00+03:00"));
     const bytes = await withTimeout(
       renderHolidayTemplate(null, dateForImage, chosen.title, illustrationBase64, body),
-      REQUEST_TIMEOUT_MS,
+      45000,
       "Сборка изображения"
     );
     const keyboard = { inline_keyboard: [
@@ -536,7 +533,7 @@ async function callback(env, item, adminId) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Создаю новую картинку. Текст и шаблон не меняю." });
     try {
       const title = String(row.holiday_title || "Праздник");
-      const prompt = "Create a fresh small standalone friendly flat 2D hand-drawn cartoon illustration for the lower-right white circle of a Russian school holiday poster. Warm school storybook style, rounded shapes, confident dark-purple outlines, solid cheerful colors, minimal soft shading. Holiday subject: " + title + ". Make a different visual interpretation. One compact centered fully visible subject, pure white background, generous white margins. No text, letters, numbers, logos, watermarks, poster layout, gradients, photorealism or 3D.";
+      const prompt = "Create a fresh small standalone friendly flat 2D hand-drawn cartoon illustration for the right-side illustration area of a clean Russian school holiday card. Warm school storybook style, rounded shapes, confident deep indigo-blue outlines, solid cheerful colors, minimal soft shading. Holiday subject: " + title + ". Make a different visual interpretation. One compact centered fully visible subject, pure white background, generous white margins. No text, letters, numbers, logos, watermarks, poster layout, gradients, photorealism or 3D.";
       const result = await withTimeout(env.AI.run(IMAGE_MODEL, { prompt: prompt.slice(0, 1800), steps: 4 }), AI_TIMEOUT_MS, "Генерация новой иллюстрации");
       if (!result || typeof result.image !== "string" || result.image.length < 4000) throw new Error("Модель не вернула готовую иллюстрацию.");
       const imageBase64 = result.image.replace(/\s/g, "");
