@@ -914,17 +914,14 @@ async function callback(env, item, adminId) {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Готовлю новую иллюстрацию в общем стиле рубрики. Макет и текст не меняю." });
     try {
       const title = String(row.holiday_title || "Праздник");
-      const subjectAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
-        messages: [
-          { role: "system", content: "You are an expert editorial illustrator. Think carefully about the exact holiday and return ONLY one concrete visual subject or short scene in 1–2 short English sentences. Do not use a generic symbol or reuse an unrelated holiday motif. No style, background, lighting, text, lettering or logos." },
-          { role: "user", content: "EXACT HOLIDAY TITLE: " + title + ". Choose the clearest, most recognizable visual for this exact holiday. Be literal and specific; a small scene is allowed if it communicates the holiday better than a single object." }
-        ],
-        max_tokens: 180,
-        temperature: 0.15
-      }), AI_TIMEOUT_MS, "Выбор сюжета новой иллюстрации");
-      const subject = String(modelText(subjectAnswer) || "").trim().replace(/\s+/g, " ").slice(0, 420);
-      if (subject.length < 20) throw new Error("Не удалось определить сюжет иллюстрации.");
-      const illustrationSubject = holidayIllustrationSubjectForTitle(title, "", "", subject);
+      // Reuse deterministic holiday-specific art direction. Regeneration must not
+      // depend on a second text-model call that can return an empty/non-text payload.
+      const illustrationSubject = holidayIllustrationSubjectForTitle(
+        title,
+        "",
+        String(q.message.caption || ""),
+        ""
+      );
       const illustrationDataUrl = await generateVerifiedHolidayIllustration(env, title, "", illustrationSubject);
       const dateLabel = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric" }).format(new Date(date + "T12:00:00+03:00"));
       const bytes = await withTimeout(renderHolidayTemplate(null, dateLabel, title, illustrationDataUrl), 45000, "Сборка изображения");
