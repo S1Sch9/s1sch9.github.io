@@ -210,6 +210,10 @@ export function modelText(result) {
       const found = visit(value.choices, depth + 1);
       if (found) return found;
     }
+    if (Array.isArray(value.choices)) {
+      const found = visit(value.choices, depth + 1);
+      if (found) return found;
+    }
     if (Array.isArray(value.output)) {
       const found = visit(value.output, depth + 1);
       if (found) return found;
