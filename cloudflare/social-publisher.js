@@ -85,7 +85,7 @@ async function loadSocialRobotoBlackFont() {
       const bytes = new Uint8Array(await response.arrayBuffer());
       if (!bytes.length || bytes.length > 2000000) throw new Error("Файл шрифта Roboto повреждён или слишком большой.");
       return bytes;
-    })().catch(error => { cachedSocialRobotoFontPromise = null; throw error; });
+    })().catch(() => null);
   }
   return cachedSocialRobotoFontPromise;
 }
@@ -120,7 +120,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
     '</div>';
   await onStage("Собираю горизонтальную карточку…", 68);
   const { ImageResponse } = await import("workers-og");
-  const response = new ImageResponse(html, { width:1280, height:720, fonts: [{ name: "Roboto", data: robotoBlackFont, weight: 900, style: "normal" }] });
+  const response = new ImageResponse(html, { width:1280, height:720, fonts: robotoBlackFont ? [{ name: "Roboto", data: robotoBlackFont, weight: 900, style: "normal" }] : [] });
   await onStage("Формирую изображение…", 73);
   let renderTimer;
   const renderTimeout = new Promise((_, reject) => {
