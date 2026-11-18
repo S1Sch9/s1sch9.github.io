@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
+import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, holidayIllustrationSubjectForTitle, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
 
 const sample = {
   selected_index: 1,
@@ -33,13 +33,13 @@ const illustrationPrompt = buildHolidayIllustrationPrompt(
   "A warm family scene with parents and children spending time together"
 );
 assert.match(illustrationPrompt, /flat 2D editorial illustration/);
-assert.match(illustrationPrompt, /maximum TWO visible objects or beings in total/);
+assert.match(illustrationPrompt, /OBJECT LIMIT: show exactly the one or two objects/);
 assert.match(illustrationPrompt, /one large central subject/);
-assert.match(illustrationPrompt, /BACKGROUND MUST BE EMPTY/);
-assert.match(illustrationPrompt, /no environment, landscape, room, scenery/);
+assert.match(illustrationPrompt, /BACKGROUND: absolutely uniform pure white #FFFFFF/);
+assert.match(illustrationPrompt, /no environment, no scenery, no floor/);
 assert.match(illustrationPrompt, /outlines in the Council's exact deep navy #21145f only/);
-assert.match(illustrationPrompt, /ABSOLUTELY NO TEXT/);
-assert.match(illustrationPrompt, /no words, letters, numbers, typography, labels, signs, captions, logos, watermarks/);
+assert.match(illustrationPrompt, /TEXT BAN: the image must contain ZERO text/);
+assert.match(illustrationPrompt, /no letters, words, numbers, typography, handwriting, book titles/);
 
 const longCaptionBody = "Это первое предложение о празднике. ".repeat(50);
 const fittedCaptionBody = fitTelegramCaptionBody(longCaptionBody, 180);
@@ -57,12 +57,22 @@ for (const phrase of [
   "https://t.me/dvizhenieschool9"
 ]) assert.ok(daily.includes(phrase), "Approved daily caption phrase missing: " + phrase);
 
-assert.ok(daily.includes('const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell"'));
+assert.ok(daily.includes('const IMAGE_MODEL = "@cf/black-forest-labs/flux-2-dev"'));
 assert.ok(daily.includes("env.AI.run(IMAGE_MODEL, {"));
-assert.ok(daily.includes("prompt: illustrationPrompt,"));
-assert.ok(daily.includes("steps: 8"));
+assert.ok(daily.includes("multipart: {"));
+assert.ok(daily.includes('form.append("steps", "20")'));
+assert.ok(daily.includes('form.append("guidance", "4")'));
+assert.ok(daily.includes("generateVerifiedHolidayIllustration"));
+assert.ok(daily.includes("pure_white_background"));
+assert.ok(daily.includes("text_free"));
+assert.ok(daily.includes("within_object_limit"));
 assert.ok(!daily.includes("seed:"));
-assert.ok(daily.includes("buildHolidayIllustrationPrompt(chosen.title, chosen.description, imagePrompt)"));
+assert.ok(daily.includes("holidayIllustrationSubjectForTitle(chosen.title, chosen.description, body, imagePrompt)"));
+const recordsSubject = holidayIllustrationSubjectForTitle("Всемирный день рекордов Гиннесса", "", "", "three children at school");
+assert.match(recordsSubject, /golden trophy/);
+assert.match(recordsSubject, /open, deep-navy record book/);
+assert.match(recordsSubject, /No people/);
+assert.ok(!recordsSubject.includes("children"));
 assert.ok(daily.includes("renderHolidayTemplate(null, dateForImage, chosen.title, illustrationDataUrl, body)"));
 assert.ok(daily.includes("left:820px;top:205px;width:360px;height:360px"));
 assert.ok(daily.includes("left:72px;top:' + (346 + index * lineHeight)"));
@@ -73,6 +83,8 @@ assert.ok(daily.includes("official-logo.svg"));
 assert.ok(daily.includes("gerb.png"));
 assert.ok(daily.includes("border:2.5px solid #21145f;border-radius:31px"));
 assert.ok(daily.includes("mix-blend-mode:multiply"));
+assert.ok(daily.includes("FINAL STRICT RETRY"));
+assert.ok(daily.includes("within_object_limit"));
 assert.ok(daily.includes("left:70px;top:52px;width:650px;height:82px;align-items:center"));
 assert.ok(daily.includes("color:#21145f;font-family:Georgia,Times New Roman,serif;font-size:47px"));
 assert.ok(!daily.includes("#d9d9e2"));
