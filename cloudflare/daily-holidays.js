@@ -622,30 +622,24 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       throw new Error("Не удалось получить достаточно сведений о выбранном празднике из календаря." +
         (textAiError ? " " + textAiError.slice(0, 100) : ""));
     }
-    const curatedVisualConcept = holidayVisualConcept(chosen.title, chosen.description);
-    if (curatedVisualConcept) {
-      imagePrompt = curatedVisualConcept;
-    } else {
-      const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert editorial illustrator. Return ONLY one concrete visual subject in 1–2 short English sentences. Name one physical object or one clearly identifiable subject, not an abstract idea, shape, sphere, ball, orb, generic symbol or decorative composition. It must be the first object people associate with the exact holiday. Do not invent a connection. No style, background, lighting, text, lettering or logos."
-          },
-          {
-            role: "user",
-            content: "EXACT HOLIDAY TITLE: " + chosen.title + "\nCALENDAR DESCRIPTION: " + chosen.description + "\nAPPROVED POST TEXT: " + body + "\nName the single most recognizable physical object or subject for this exact holiday. Be literal and specific. If there is no reliable symbol, choose the most concrete object directly mentioned by the holiday."
-          }
-        ],
-        max_tokens: 120,
-        temperature: 0.1,
-        chat_template_kwargs: { enable_thinking: false }
-      }), AI_TIMEOUT_MS, "Создание тематического описания иллюстрации");
-      imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
-        .replace(/^["'`]+|["'`]+$/g, "")
-        .replace(/\s+/g, " ")
-        .slice(0, 420);
-    }
+    const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert editorial illustrator. Think carefully about the exact holiday and return ONLY one concrete visual subject or short scene in 1–2 short English sentences. It must be the most recognizable and meaningful visual for this specific holiday, not a generic celebration. Use a real physical object, person, animal or action when appropriate. Do not force the same object or visual motif onto unrelated holidays. No style, background, lighting, text, lettering or logos."
+        },
+        {
+          role: "user",
+          content: "EXACT HOLIDAY TITLE: " + chosen.title + "\nCALENDAR DESCRIPTION: " + chosen.description + "\nAPPROVED POST TEXT: " + body + "\nChoose the clearest, most recognizable visual scene for THIS holiday only. Be specific and literal. It may be an object, person, animal or a small scene if that better communicates the holiday. Do not reuse a generic symbol."
+        }
+      ],
+      max_tokens: 180,
+      temperature: 0.15
+    }), AI_TIMEOUT_MS, "Создание тематического описания иллюстрации");
+    imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
+      .replace(/^[\"']+|[\"']+$/g, "")
+      .replace(/\s+/g, " ")
+      .slice(0, 420);
     if (imagePrompt.length < 25) throw new Error("Не удалось получить точное описание иллюстрации к выбранному празднику.");
     const dateForPost = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
@@ -680,18 +674,10 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     if (onProgress) await onProgress(stage);
     let illustrationDataUrl = holidaySvgIllustration(chosen.title, chosen.description);
     if (!illustrationDataUrl) {
-      const illustrationPrompt = [
-        "Create one standalone illustration asset for a consistent premium school editorial series.",
-        "EXACT HOLIDAY: " + chosen.title + ".",
-        "SUBJECT: " + imagePrompt + ". Keep the real-world subject anatomically and structurally correct, with one coherent silhouette and no fused, duplicated or half-transformed parts.",
-        "ART DIRECTION: polished hand-drawn 2D editorial storybook art, not generic AI clipart. Confident dark indigo ink outlines of consistent thickness, beautifully controlled shapes, rich restrained burgundy, navy, warm gold and soft sky-blue palette, subtle paper-like texture, gentle cel shading, refined children's book illustration finish.",
-        "COMPOSITION: one large clear subject, fully visible and centered, occupying around 78% of the square. Keep the whole object in one consistent physical state. No fragments, no contradictory geometry, no floating pieces.",
-        "BACKGROUND: pure white, no frame and no decorative background.",
-        "STRICTLY NO: text, lettering, numbers, logos, watermarks, gradients, 3D, photorealism, collage, confetti, balloons, random spheres, abstract shapes, extra objects or decorative filler."
-      ].join(" ").slice(0, 2048);
+      const illustrationPrompt = buildHolidayIllustrationPrompt(chosen.title, chosen.description, imagePrompt);
       const illustrationResult = await withTimeout(env.AI.run(IMAGE_MODEL, {
         prompt: illustrationPrompt,
-        steps: 4
+        steps: 8
       }), AI_TIMEOUT_MS, "Генерация тематической иллюстрации");
       if (!illustrationResult || typeof illustrationResult.image !== "string" || illustrationResult.image.length < 4000) {
         throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
