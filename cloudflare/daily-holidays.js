@@ -446,7 +446,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       "Не выбирай военные, политические, трагические, медицинские темы, курение, алкоголь или спорные поводы.",
       "Верни только JSON с одним полем selected_index — точный индекс выбранного события с нуля. Не придумывай новые праздники и не меняй название.",
       "Список событий: " + JSON.stringify(safeList)
-    ].join("\\n");
+    ].join("\n");
     stage = "text-ai";
     if (onProgress) await onProgress(stage);
     let chosen = null;
@@ -458,7 +458,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
             role: "system",
             content: "Выбери один пункт из списка и верни только корректный JSON вида {\\"selected_index\\": 0}. Не добавляй текст и не меняй индекс."
           },
-          { role: "user", content: prompt + (attempt ? "\\nПредыдущий ответ был некорректным. Верни точный индекс одного пункта списка." : "") }
+          { role: "user", content: prompt + (attempt ? "\nПредыдущий ответ был некорректным. Верни точный индекс одного пункта списка." : "") }
         ],
         max_tokens: 100,
         temperature: 0.1
@@ -483,7 +483,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       "Не меняй тему, не упоминай другие праздники и не подменяй событие.",
       "Напиши два коротких содержательных абзаца на русском, примерно 300–420 символов суммарно. Первый — значение или происхождение; второй — интересный факт или как отмечают.",
       "Не выдумывай факты: используй только сведения из описания. Не добавляй заголовок, дату, приветствие, пожелание, подпись, ссылки, хэштеги или эмодзи."
-    ].join("\\n");
+    ].join("\n");
     body = "";
     for (let attempt = 0; attempt < 3 && body.length < 180; attempt++) {
       const bodyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
@@ -492,13 +492,13 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
             role: "system",
             content: "Пиши только два законченных абзаца на русском языке строго об указанном празднике. Не меняй тему. Не добавляй ничего кроме этих двух абзацев."
           },
-          { role: "user", content: bodyPrompt + (attempt ? "\\nПредыдущий текст был слишком коротким. Напиши два полноценных абзаца только об этом же празднике." : "") }
+          { role: "user", content: bodyPrompt + (attempt ? "\nПредыдущий текст был слишком коротким. Напиши два полноценных абзаца только об этом же празднике." : "") }
         ],
         max_tokens: 700,
         temperature: attempt ? 0.1 : 0.2
       }), AI_TIMEOUT_MS, "Текстовая AI-модель");
-      body = String(modelText(bodyAnswer) || "").replace(/\\r/g, "")
-        .split(/\\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\\n\\n");
+      body = String(modelText(bodyAnswer) || "").replace(/\r/g, "")
+        .split(/\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\n\n");
     }
     if (body.length < 180) throw new Error("Не удалось получить полный текст именно о выбранном празднике. Черновик не отправлен.");
     const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
@@ -509,7 +509,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
         },
         {
           role: "user",
-          content: "EXACT HOLIDAY TITLE: " + chosen.title + "\\nCALENDAR DESCRIPTION: " + chosen.description + "\\nAPPROVED POST TEXT: " + body + "\\nDescribe one concise visual subject that unmistakably represents this exact holiday."
+          content: "EXACT HOLIDAY TITLE: " + chosen.title + "\nCALENDAR DESCRIPTION: " + chosen.description + "\nAPPROVED POST TEXT: " + body + "\nDescribe one concise visual subject that unmistakably represents this exact holiday."
         }
       ],
       max_tokens: 140,
@@ -517,7 +517,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     }), AI_TIMEOUT_MS, "Создание тематического описания иллюстрации");
     imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
       .replace(/^["'`]+|["'`]+$/g, "")
-      .replace(/\\s+/g, " ")
+      .replace(/\s+/g, " ")
       .slice(0, 700);
     if (imagePrompt.length < 35) throw new Error("Не удалось получить точное описание иллюстрации к выбранному празднику.");
     const dateForPost = new Intl.DateTimeFormat("ru-RU", {
