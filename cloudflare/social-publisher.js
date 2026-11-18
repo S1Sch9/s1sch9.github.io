@@ -67,8 +67,7 @@ async function loadBrandAssets() {
   if (!cachedBrandAssetsPromise) {
     cachedBrandAssetsPromise = Promise.all([
       assetDataUrl(BRAND + "/official-logo.svg"),
-      assetDataUrl(BRAND + "/gerb.png"),
-      assetDataUrl(BRAND + "/vazhen.png")
+      assetDataUrl(BRAND + "/gerb.png")
     ]).catch(error => {
       cachedBrandAssetsPromise = null;
       throw error;
@@ -79,7 +78,7 @@ async function loadBrandAssets() {
 
 async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = async () => {} }) {
   await onStage("Подготавливаю фирменные элементы…", 58);
-  const [councilLogo, schoolCrest, importantLogo] = await loadBrandAssets();
+  const [councilLogo, schoolCrest] = await loadBrandAssets();
   await onStage("Фирменные элементы готовы…", 62);
   const safeTitle = escapeHtml(title || "События и инициативы");
   const titleFontSize = String(title || "").length > 34 ? 23 : String(title || "").length > 24 ? 27 : 31;
