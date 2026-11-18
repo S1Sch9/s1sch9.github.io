@@ -54,11 +54,16 @@ assert.ok(daily.includes("prompt: illustrationPrompt,"));
 assert.ok(daily.includes("steps: 8"));
 assert.ok(daily.includes("buildHolidayIllustrationPrompt(chosen.title, chosen.description, imagePrompt)"));
 assert.ok(daily.includes('buildHolidayIllustrationPrompt(title, "", subject)'));
-assert.ok(daily.includes('left:820px;top:226px;width:360px;height:360px'));
-assert.ok(!daily.includes('width:1124px;height:1px'));
-assert.ok(!daily.includes('width:92px;height:3px'));
-assert.ok(!daily.includes('left:26px;top:24px;width:1228px;height:672px'));
-assert.ok(daily.includes('color:#3d000d'));
+assert.ok(daily.includes('left:800px;top:216px;width:400px;height:400px'));
+assert.ok(daily.includes('border:2px solid rgba(26,11,92,.18)'));
+assert.ok(daily.includes('color:#1a0b5c'));
+assert.ok(daily.includes('width:1124px;height:1px'));
+assert.ok(daily.includes('width:92px;height:3px'));
+assert.ok(daily.includes('left:26px;top:24px;width:1228px;height:672px'));
+
+
+
+assert.ok(!daily.includes('color:#3d000d'));
 
 assert.doesNotMatch(daily, /env\.AI\.run\(IMAGE_MODEL,\s*\{[^}]*\bseed\s*:/s);
 assert.ok(daily.includes('const TEXT_MODEL = "@cf/google/gemma-4-26b-a4b-it"'));
@@ -89,6 +94,8 @@ assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
 assert.ok(daily.includes('EXACT HOLIDAY TITLE: '));
 assert.ok(!daily.includes('border:3px solid rgba(255,255,255,.85)'));
+assert.ok(daily.includes('border:1.5px solid rgba(26,11,92,.14)'));
+assert.ok(daily.includes('left:78px;top:216px;width:660px;height:36px'));
 
 assert.ok(daily.includes("DELETE FROM daily_holiday_state WHERE key IN ('awaiting_publish_time', 'awaiting_custom_date')"));
 assert.ok(daily.includes("Все уже созданные черновики и ожидающие подтверждения публикации сохранены."));
