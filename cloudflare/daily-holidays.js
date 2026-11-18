@@ -245,6 +245,20 @@ async function showHolidayChoices(env, adminId, date) {
   }
 }
 
+export function fitTelegramCaptionBody(value, maxLength) {
+  const input = String(value || "").trim();
+  const limit = Math.max(0, Number(maxLength) || 0);
+  if (input.length <= limit) return input;
+  if (limit < 80) throw new Error("Слишком длинное название праздника для подписи Telegram.");
+  const clipped = input.slice(0, limit);
+  const paragraphEnd = clipped.lastIndexOf("\n\n");
+  if (paragraphEnd >= Math.floor(limit * 0.55)) return clipped.slice(0, paragraphEnd).trim();
+  const sentenceEnd = Math.max(clipped.lastIndexOf(". "), clipped.lastIndexOf("! "), clipped.lastIndexOf("? "));
+  if (sentenceEnd >= Math.floor(limit * 0.55)) return clipped.slice(0, sentenceEnd + 1).trim();
+  const wordEnd = clipped.lastIndexOf(" ");
+  return clipped.slice(0, wordEnd > 0 ? wordEnd : limit).trim().replace(/[,:;—-]+$/, "") + "…";
+}
+
 export function modelText(result) {
   const seen = new Set();
   const visit = (value, depth = 0) => {
@@ -619,15 +633,23 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     const dateForPost = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
-    const post = [
+    const postParts = [
       "Доброе утро! ☀️",
       "Наша ежедневная рубрика «Праздник каждый день»!",
       dateForPost + "\n" + chosen.title,
-      body,
+      "",
       "Желаем вам отличного дня! 😊",
       "👉 С1Шк9.Сайт | TGK | MAX"
-    ].join("\n\n");
-    if (post.length > 1024) throw new Error("Текст по утверждённому шаблону превышает лимит Telegram. Черновик не отправлен.");
+    ];
+    const fixedCaptionLength = postParts.reduce((total, part) => total + part.length, 0) + (postParts.length - 1) * 2;
+    // Telegram photo captions are limited to 1024 characters. Keep a safety margin
+    // and shorten only the explanatory body, never the approved greeting or footer.
+    const bodyLimit = Math.max(0, 1000 - fixedCaptionLength);
+    body = fitTelegramCaptionBody(body, bodyLimit);
+    if (body.length < 80) throw new Error("Название праздника и обязательный шаблон не помещаются в подпись Telegram. Черновик не отправлен.");
+    postParts[3] = body;
+    const post = postParts.join("\n\n");
+    if (post.length > 1000) throw new Error("Не удалось безопасно сократить текст до лимита Telegram. Черновик не отправлен.");
     const postHtml = [
       escapeHtml("Доброе утро! ☀️"),
       escapeHtml("Наша ежедневная рубрика «Праздник каждый день»!"),
