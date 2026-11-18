@@ -196,7 +196,9 @@ async function processQueuedSocialPhotos(env) {
   const now = Math.floor(Date.now() / 1000);
   const stale = await env.DB.prepare("SELECT id, started_at FROM social_publication_queue WHERE status = 'processing'").all();
   for (const row of stale.results || []) {
-    if (Number(row.started_at || 0) && now - Number(row.started_at) > 240) {
+    // A render can legitimately take longer than four minutes on a cold Worker.
+    // Recover only jobs that have made no recorded progress for 15 minutes.
+    if (Number(row.started_at || 0) && now - Number(row.started_at) > 900) {
       const recovered = await env.DB.prepare("UPDATE social_publication_queue SET status='failed', started_at=NULL WHERE id=? AND status='processing'").bind(row.id).run();
       if (recovered.meta && recovered.meta.changes) {
         const queued = await env.DB.prepare("SELECT notice_message_id FROM social_publication_queue WHERE id=?").bind(row.id).first();
@@ -219,19 +221,13 @@ async function processQueuedSocialPhotos(env) {
   const lock = await env.DB.prepare("UPDATE social_publication_queue SET status='processing', started_at=? WHERE id=? AND status='pending'").bind(now, next.id).run();
   if (!lock.meta || !lock.meta.changes) return;
 
-  // Keep the queue lease fresh while a long image render is still active.
-  // Without this heartbeat, the next minute's Cron run can mistake a live
-  // render for a dead job after four minutes and mark it failed.
-  const heartbeatTimer = setInterval(() => {
-    env.DB.prepare("UPDATE social_publication_queue SET started_at=? WHERE id=? AND status='processing'")
-      .bind(Math.floor(Date.now() / 1000), next.id)
-      .run()
-      .catch(error => console.warn("Social photo heartbeat failed:", error && error.message ? error.message : "unknown error"));
-  }, 30000);
-
   let stage = "чтение задания из очереди";
   const adminId = String(env.TELEGRAM_ADMIN_ID);
   const progress = async (label, percent) => {
+    // Persist progress synchronously in D1. setInterval-based heartbeats are
+    // not reliable across scheduled Worker invocations / isolate suspension.
+    await env.DB.prepare("UPDATE social_publication_queue SET started_at=? WHERE id=? AND status='processing'")
+      .bind(Math.floor(Date.now() / 1000), next.id).run();
     const filled = Math.max(0, Math.min(10, Math.round(percent / 10)));
     const bar = "▰".repeat(filled) + "▱".repeat(10 - filled);
     try {
@@ -308,8 +304,6 @@ async function processQueuedSocialPhotos(env) {
       console.error("Could not update queued social photo status:", notifyError && notifyError.message ? notifyError.message : "unknown error");
     }
     await env.DB.prepare("UPDATE social_publication_queue SET status='failed' WHERE id=?").bind(next.id).run();
-  } finally {
-    clearInterval(heartbeatTimer);
   }
 }
 
