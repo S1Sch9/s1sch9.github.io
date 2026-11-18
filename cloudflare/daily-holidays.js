@@ -377,14 +377,14 @@ export function fallbackHolidayIllustrationSubject(title, description, body = ""
 
 export function buildHolidayIllustrationPrompt(title, description, subject) {
   return [
-    "Create one small, polished editorial illustration for a clean school holiday poster. This is an illustration asset only, never a poster, greeting card, banner, collage or infographic.",
+    "Create a single isolated cut-out editorial illustration asset for a school holiday poster. This is ONLY the pictured subject, never a poster, greeting card, banner, collage, infographic or full scene.",
     "EXACT HOLIDAY: " + String(title || "") + ". VERIFIED CALENDAR CONTEXT: " + String(description || "") + ".",
-    "EXACT VISUAL SUBJECT: " + String(subject || "") + ". Depict this concrete subject literally. The holiday must be recognizable from the main object or action alone. Do not invent a different scene, people, props or symbols.",
-    "ART DIRECTION: refined flat 2D hand-drawn illustration, friendly and tasteful, clean rounded forms, crisp medium-thin deep blue outlines, a restrained palette of cobalt blue, sky blue, warm yellow and a small amount of coral. Subtle simple shading only. Consistent visual language across the series.",
-    "COMPOSITION: one single focal subject, or one tiny scene with at most two directly relevant elements. Centered, balanced, fully visible, generous white negative space. No oversized characters, no clutter, no decorative confetti or random stars.",
-    "BACKGROUND: pure white (#FFFFFF), isolated subject.",
-    "ABSOLUTELY NO TEXT OR LETTERING of any kind: no words, letters, numbers, labels, signs, captions, logos, watermarks or pseudo-writing.",
-    "No photorealism, no 3D, no gradients, no dramatic lighting, no stock-image look, no generic birthday or holiday-party imagery."
+    "SUBJECT: " + String(subject || "") + ". Choose the one most instantly recognizable real object, animal or person performing the defining action for this exact holiday. Interpret literally and simply. If two things are essential to identify it, show only those two; otherwise show one object. Do not add supporting props.",
+    "STYLE: beautiful, polished, friendly flat 2D editorial illustration, refined hand-drawn character, clear silhouette, smooth clean shapes, subtle internal shading, crisp outlines in the Council's exact deep navy #21145f only. Use natural, restrained object colors; do not use other blue shades for outlines or decoration.",
+    "COMPOSITION: one large central subject, maximum TWO visible objects or beings in total. The subject occupies about 70 percent of the canvas, fully visible, with clear silhouette and no cropping. No decorative stars, confetti, sparkles, frames, badges or extra objects.",
+    "BACKGROUND MUST BE EMPTY: isolated subject on a completely plain pure-white #FFFFFF background, with no environment, landscape, room, scenery, pattern, gradient, backdrop, platform, ground, cast shadow or vignette. The white background must visually disappear into the white poster card.",
+    "ABSOLUTELY NO TEXT: no words, letters, numbers, typography, labels, signs, captions, logos, watermarks, symbols that resemble writing or pseudo-text.",
+    "No photorealism, no 3D, no stock-image appearance, no generic birthday or party scene. The subject alone must immediately communicate the exact holiday."
   ].join(" ").slice(0, 2048);
 }
 
@@ -416,37 +416,34 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const lineHeight = Math.round(fontSize * 1.08);
   const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:78px;top:' + (346 + index * lineHeight) + 'px;width:690px;height:' + lineHeight + 'px;color:#1b145b;font-family:Georgia,Times New Roman,serif;font-size:' + fontSize + 'px;font-weight:700;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1.2px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:72px;top:' + (346 + index * lineHeight) + 'px;width:690px;height:' + lineHeight + 'px;color:#21145f;font-family:Georgia,Times New Roman,serif;font-size:' + fontSize + 'px;font-weight:700;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1.2px">' + escapeHtml(line) + '</div>'
   ).join("");
   const html =
     '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Georgia,Times New Roman,serif">' +
-      '<div style="display:flex;position:absolute;left:-110px;top:495px;width:390px;height:390px;border-radius:50%;background:#f7f7fa"></div>' +
-      '<div style="display:flex;position:absolute;right:-115px;top:-145px;width:420px;height:420px;border-radius:50%;background:#f8f8fb"></div>' +
-      '<div style="display:flex;position:absolute;left:26px;top:22px;width:1228px;height:674px;border:2px solid #d9d9e2;border-radius:31px;box-sizing:border-box"></div><div style="display:flex;position:absolute;left:488px;top:23px;width:334px;height:3px;background:#21145f"></div><div style="display:flex;position:absolute;left:26px;top:162px;width:3px;height:503px;background:#21145f"></div><div style="display:flex;position:absolute;left:1251px;top:162px;width:3px;height:503px;background:#21145f"></div><div style="display:flex;position:absolute;left:55px;top:693px;width:1170px;height:3px;background:#21145f"></div>' +
-      '<div style="display:flex;position:absolute;left:29px;top:25px;width:455px;height:132px;background:#fff"></div>' +
-      '<div style="display:flex;position:absolute;right:29px;top:25px;width:426px;height:132px;background:#fff"></div>' +
-      '<div style="display:flex;position:absolute;left:72px;top:54px;width:405px;height:78px;align-items:center;justify-content:flex-start">' +
-        '<img src="' + councilLogo + '" style="display:flex;width:70px;height:70px;object-fit:contain;margin-right:18px"/>' +
-        '<img src="' + schoolCrest + '" style="display:flex;width:68px;height:76px;object-fit:contain;margin-right:24px"/>' +
+      '<div style="display:flex;position:absolute;left:26px;top:22px;width:1228px;height:674px;border:2.5px solid #21145f;border-radius:31px;box-sizing:border-box"></div>' +
+      '<div style="display:flex;position:absolute;left:70px;top:52px;width:650px;height:82px;align-items:center;justify-content:flex-start;gap:20px">' +
+        '<img src="' + councilLogo + '" style="display:flex;width:66px;height:66px;object-fit:contain;flex:none"/>' +
+        '<img src="' + schoolCrest + '" style="display:flex;width:66px;height:74px;object-fit:contain;flex:none"/>' +
         '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;color:#21145f;text-align:left;font-family:Georgia,Times New Roman,serif;font-size:27px;line-height:31px;font-weight:700;letter-spacing:-.55px;white-space:nowrap">' +
           '<div style="display:flex">СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ №9</div>' +
         '</div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;right:82px;top:72px;width:340px;height:82px;align-items:center;justify-content:flex-end;color:#21145f">' +
+      '<div style="display:flex;position:absolute;right:72px;top:57px;width:390px;height:78px;align-items:center;justify-content:flex-end;color:#21145f">' +
         '<div style="display:flex;flex-direction:column;gap:0;align-items:flex-end;justify-content:center;text-align:right;width:100%;font-family:Georgia,Times New Roman,serif;font-size:34px;line-height:39px;font-weight:700;letter-spacing:-.5px">' +
           '<div style="display:flex">ПРАЗДНИК</div><div style="display:flex">КАЖДЫЙ ДЕНЬ</div>' +
         '</div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:72px;top:205px;width:680px;height:62px;align-items:center;color:#777394;font-family:Georgia,Times New Roman,serif;font-size:47px;font-weight:700;line-height:58px;letter-spacing:.2px;white-space:nowrap">' + escapeHtml(dateText) + '</div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:306px;width:112px;height:5px;border-radius:4px;background:#21145f"></div>' +
+      '<div style="display:flex;position:absolute;left:72px;top:205px;width:680px;height:62px;align-items:center;color:#21145f;font-family:Georgia,Times New Roman,serif;font-size:47px;font-weight:700;line-height:58px;letter-spacing:.2px;white-space:nowrap">' + escapeHtml(dateText) + '</div>' +
+      '<div style="display:flex;position:absolute;left:72px;top:306px;width:112px;height:5px;border-radius:4px;background:#21145f"></div>' +
       titleMarkup +
       '<div style="display:flex;position:absolute;left:820px;top:205px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:2.5px solid #21145f;border-radius:31px;padding:20px;box-sizing:border-box">' +
-        '<img src="' + illustrationDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:12px"/>' +
+        '<img src="' + illustrationDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:12px;mix-blend-mode:multiply"/>' +
       '</div>' +
     '</div>';
   const rendered = new ImageResponse(html, { width: 1280, height: 720 });
   return new Uint8Array(await rendered.arrayBuffer());
 }
+
 function escapeHtml(value) {
   return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
