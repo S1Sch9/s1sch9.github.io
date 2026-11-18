@@ -60,8 +60,12 @@ assert.ok(daily.includes('await showHolidayChoices(env, adminId, date)'));
 
 assert.ok(daily.includes('СТРОГО выбранный праздник: '));
 assert.ok(daily.includes('Не меняй тему, не упоминай другие праздники и не подменяй событие.'));
-assert.ok(daily.includes('Holiday subject: '));
-assert.ok(daily.includes('Make the central subject instantly recognizable as the exact holiday: '));
+assert.ok(!daily.includes('Holiday subject: '));
+assert.ok(daily.includes('You are an expert editorial illustrator.'));
+assert.ok(daily.includes('HOLIDAY-SPECIFIC SCENE — follow literally: '));
+assert.ok(daily.includes('The exact holiday is: '));
+assert.ok(daily.includes('Depict the defining activity, object, or tradition of THIS holiday'));
+assert.ok(daily.includes('Do not use generic stars, balloons, gifts, schoolchildren, flags'));
 assert.ok(daily.includes('one compact centered scene'));
 assert.ok(!daily.includes('REQUIRED HOLIDAY-SPECIFIC SCENE: '));
 assert.ok(!daily.includes('border:1.5px solid rgba(26,11,92,.35)'));
