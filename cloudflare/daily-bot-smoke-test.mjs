@@ -87,7 +87,7 @@ assert.ok(daily.includes('top:254px;width:660px;height:28px'));
 assert.ok(!daily.includes('right:78px;top:55px;width:360px;height:96px'));
 assert.ok(daily.includes('function holidayImageDirection(title, description)'));
 assert.ok(daily.includes('Guinness World Records-style hardcover record book'));
-assert.ok(daily.includes('a vase, no flowers, no random girl portrait'));
+assert.ok(daily.includes('No vase, no flowers, no random girl portrait'));
 assert.ok(daily.includes('width:1124px;height:2px;background:rgba(26,11,92,.14)'));
 assert.ok(daily.includes('left:820px;top:226px;width:360px;height:360px'));
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
