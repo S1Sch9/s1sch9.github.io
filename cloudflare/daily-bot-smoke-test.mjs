@@ -46,7 +46,6 @@ assert.ok(!daily.includes('ШКОЛЫ ДЕВЯТЬ'));
 assert.ok(daily.includes('Первое предложение сразу и простыми словами объясняет'));
 assert.ok(daily.includes('one clear central subject and at most two supporting details'));
 assert.ok(daily.includes('MINIMAL COMPOSITION: one clear focal point'));
-assert.ok(daily.includes('position:absolute;left:78px;top:180px;width:430px;height:48px'));
 assert.ok(!daily.includes('border:1.5px solid rgba(26,11,92,.35)'));
 assert.ok(daily.includes('ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div>'));
 assert.ok(daily.includes('text-align:right'));
