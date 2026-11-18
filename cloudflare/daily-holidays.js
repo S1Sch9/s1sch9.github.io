@@ -340,9 +340,9 @@ function wrapHolidayTitle(value, maxWidth = 430, fontSize = 76) {
   if (line) lines.push(line);
   return lines;
 }
-function fitHolidayTitle(value) {
+function fitHolidayTitle(value, maxWidth = 700) {
   for (let fontSize = 66; fontSize >= 38; fontSize -= 2) {
-    const lines = wrapHolidayTitle(value, 660, fontSize);
+    const lines = wrapHolidayTitle(value, maxWidth, fontSize);
     if (lines.length <= 4) return { lines, fontSize };
   }
   throw new Error("Название праздника слишком длинное для исходного шаблона. Черновик не отправлен.");
@@ -377,14 +377,14 @@ export function fallbackHolidayIllustrationSubject(title, description, body = ""
 
 export function buildHolidayIllustrationPrompt(title, description, subject) {
   return [
-    "Generate one standalone editorial illustration asset, not a greeting card, not a poster, not a banner.",
-    "Exact holiday: " + String(title || "") + ". Calendar context: " + String(description || "") + ".",
-    "Show this specific subject or action: " + String(subject || "") + ". This is the central subject and must remain the main focus. Do not replace it with a generic celebration or an unrelated person/object.",
-    "STYLE: warm, charming flat 2D hand-drawn cartoon, like a beautifully illustrated children's storybook. Rounded expressive shapes, confident dark indigo-purple outlines, cheerful solid colors, gentle minimal shading. Consistent visual style across the series.",
-    "COMPOSITION: one clear recognizable scene, centered, fully visible, large enough to read at a glance. One main subject and only the few details needed to identify this exact holiday. Keep generous pure-white space around the scene.",
-    "BACKGROUND: plain pure white (#FFFFFF).",
-    "ABSOLUTELY NO TEXT: no words, no letters, no numbers, no typography, no labels, no greeting, no logos, no watermarks, no card or poster layout.",
-    "Avoid photorealism, 3D, gradients, cinematic lighting, busy collages, decorative filler and generic party imagery."
+    "Create one small, polished editorial illustration for a clean school holiday poster. This is an illustration asset only, never a poster, greeting card, banner, collage or infographic.",
+    "EXACT HOLIDAY: " + String(title || "") + ". VERIFIED CALENDAR CONTEXT: " + String(description || "") + ".",
+    "EXACT VISUAL SUBJECT: " + String(subject || "") + ". Depict this concrete subject literally. The holiday must be recognizable from the main object or action alone. Do not invent a different scene, people, props or symbols.",
+    "ART DIRECTION: refined flat 2D hand-drawn illustration, friendly and tasteful, clean rounded forms, crisp medium-thin deep blue outlines, a restrained palette of cobalt blue, sky blue, warm yellow and a small amount of coral. Subtle simple shading only. Consistent visual language across the series.",
+    "COMPOSITION: one single focal subject, or one tiny scene with at most two directly relevant elements. Centered, balanced, fully visible, generous white negative space. No oversized characters, no clutter, no decorative confetti or random stars.",
+    "BACKGROUND: pure white (#FFFFFF), isolated subject.",
+    "ABSOLUTELY NO TEXT OR LETTERING of any kind: no words, letters, numbers, labels, signs, captions, logos, watermarks or pseudo-writing.",
+    "No photorealism, no 3D, no gradients, no dramatic lighting, no stock-image look, no generic birthday or holiday-party imagery."
   ].join(" ").slice(0, 2048);
 }
 
@@ -418,41 +418,38 @@ async function loadHolidayBrandAssets() {
 async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationDataUrl, bodyText = "") {
   const [councilLogo, schoolCrest, robotoBlackFont] = await loadHolidayBrandAssets();
   const { ImageResponse } = await import("workers-og");
-  const fittedTitle = fitHolidayTitle(holidayTitle);
+  const fittedTitle = fitHolidayTitle(holidayTitle, 700);
   const lines = fittedTitle.lines;
-  const fontSize = Math.min(60, fittedTitle.fontSize);
+  const fontSize = Math.min(62, fittedTitle.fontSize);
   const lineHeight = Math.round(fontSize * 1.08);
   const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:78px;top:' + (338 + index * lineHeight) + 'px;width:660px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:82px;top:' + (328 + index * lineHeight) + 'px;width:700px;height:' + lineHeight + 'px;color:#173F82;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
   const html =
     '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
-      '<div style="display:flex;position:absolute;left:-150px;bottom:-210px;width:430px;height:430px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
-      '<div style="display:flex;position:absolute;right:-120px;top:-170px;width:390px;height:390px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
-      '<div style="display:flex;position:absolute;left:26px;top:24px;width:1228px;height:672px;border:2px solid rgba(26,11,92,.18);border-radius:30px;box-sizing:border-box"></div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:50px;width:650px;height:108px;align-items:center;justify-content:flex-start">' +
-        '<img src="' + councilLogo + '" style="display:flex;width:76px;height:76px;object-fit:contain;margin-right:16px"/>' +
-        '<img src="' + schoolCrest + '" style="display:flex;width:76px;height:76px;object-fit:contain;margin-right:20px"/>' +
-        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:7px;color:#1a0b5c;text-align:left">' +
-          '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;font-family:Roboto,Arial,sans-serif;font-size:27px;line-height:27px;font-weight:900;letter-spacing:-.45px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div>' +
-          '<div style="display:flex;font-family:Arial,sans-serif;font-size:13px;line-height:16px;font-weight:800;letter-spacing:1.2px;color:#655b91;white-space:nowrap">СОВЕТ ПЕРВЫХ · ШКОЛЫ №9</div>' +
+      '<div style="display:flex;position:absolute;left:24px;top:22px;width:1232px;height:676px;border:3px solid #2459A6;border-radius:26px;box-sizing:border-box"></div>' +
+      '<div style="display:flex;position:absolute;left:31px;top:29px;width:1218px;height:662px;border:1px solid #D7E4F5;border-radius:20px;box-sizing:border-box"></div>' +
+      '<div style="display:flex;position:absolute;left:82px;top:52px;width:650px;height:112px;align-items:center;justify-content:flex-start">' +
+        '<img src="' + councilLogo + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:15px"/>' +
+        '<img src="' + schoolCrest + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:20px"/>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:7px;color:#173F82;text-align:left">' +
+          '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;font-family:Roboto,Arial,sans-serif;font-size:28px;line-height:29px;font-weight:900;letter-spacing:-.45px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div>' +
+          '<div style="display:flex;font-family:Arial,sans-serif;font-size:13px;line-height:16px;font-weight:800;letter-spacing:1px;color:#456A9F;white-space:nowrap">СОВЕТ ПЕРВЫХ · ШКОЛЫ №9</div>' +
         '</div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;right:78px;top:54px;width:360px;height:100px;align-items:center;justify-content:flex-end;box-sizing:border-box;color:#1a0b5c">' +
-        '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;justify-content:center;text-align:right;width:100%"><div style="display:flex;font-family:Arial,sans-serif;font-size:32px;line-height:36px;font-weight:900;letter-spacing:.2px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900;letter-spacing:.25px">КАЖДЫЙ ДЕНЬ</div></div>' +
+      '<div style="display:flex;position:absolute;right:82px;top:62px;width:390px;height:92px;align-items:center;justify-content:flex-end;box-sizing:border-box;color:#173F82">' +
+        '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;justify-content:center;text-align:right;width:100%"><div style="display:flex;font-family:Arial,sans-serif;font-size:34px;line-height:38px;font-weight:900;letter-spacing:.1px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:30px;line-height:34px;font-weight:900;letter-spacing:.15px">КАЖДЫЙ ДЕНЬ</div></div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:190px;width:1124px;height:1px;background:rgba(26,11,92,.16)"></div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:188px;width:92px;height:3px;border-radius:3px;background:#a1001f"></div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:216px;width:660px;height:36px;align-items:center;color:#655b91;font-size:21px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:268px;width:72px;height:4px;border-radius:4px;background:#1a0b5c"></div>' +
+      '<div style="display:flex;position:absolute;left:82px;top:190px;width:1116px;height:2px;background:#D6E3F4"></div>' +
+      '<div style="display:flex;position:absolute;left:82px;top:188px;width:116px;height:5px;border-radius:3px;background:#2D69BD"></div>' +
+      '<div style="display:flex;position:absolute;left:82px;top:232px;width:700px;height:38px;align-items:center;color:#5275A5;font-size:21px;font-weight:800;letter-spacing:1.1px">' + escapeHtml(dateText) + '</div>' +
+      '<div style="display:flex;position:absolute;left:82px;top:291px;width:76px;height:5px;border-radius:4px;background:#2D69BD"></div>' +
       titleMarkup +
-      '<div style="display:flex;position:absolute;left:800px;top:216px;width:400px;height:400px;align-items:center;justify-content:center;background:#fff;border:1.5px solid rgba(26,11,92,.14);border-radius:28px;padding:10px;box-sizing:border-box">' +
-        '<img src="' + illustrationDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:20px"/>' +
+      '<div style="display:flex;position:absolute;left:880px;top:286px;width:278px;height:278px;align-items:center;justify-content:center;background:#fff;border:2px solid #B8CDE9;border-radius:24px;padding:12px;box-sizing:border-box">' +
+        '<img src="' + illustrationDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:14px"/>' +
       '</div>' +
     '</div>';
-  // Some workers-og/fontkit builds cannot parse this variable Roboto font and
-  // fail while reading a missing glyph table entry (for example index 256).
   // Keep the preferred Roboto Black render, but retry without the custom font
   // so a font parser issue never blocks draft creation.
   if (robotoBlackFont) {
