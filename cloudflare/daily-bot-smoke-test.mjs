@@ -30,7 +30,10 @@ assert.ok(daily.includes("env.AI.run(IMAGE_MODEL, {"));
 assert.ok(daily.includes("prompt: illustrationPrompt,"));
 assert.ok(daily.includes("steps: 4"));
 assert.doesNotMatch(daily, /env\.AI\.run\(IMAGE_MODEL,\s*\{[^}]*\bseed\s*:/s);
-assert.ok(daily.includes('response_format: { type: "json_object" }'));
+assert.ok(daily.includes('const TEXT_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast"'));
+assert.ok(daily.includes("max_tokens: 900"));
+assert.ok(daily.includes("AI_TIMEOUT_MS = 60000"));
+assert.ok(!daily.includes('response_format: { type: "json_object" }'));
 assert.ok(daily.includes('result.image.replace(/\\s/g, "")'));
 
 assert.ok(daily.includes('🔄 Бот обновлён!'));
