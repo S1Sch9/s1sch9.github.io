@@ -13,8 +13,8 @@ function dailyMenuMarkup() {
   return {
     keyboard: [
       [{ text: "📝 Создать черновик" }],
-      [{ text: "✍️ Публикация" }, { text: "🎨 Шаблоны публикаций" }],
-      [{ text: "📊 Проверить статус" }, { text: "🖼 Оригинальный шаблон" }],
+      [{ text: "✍️ Публикация" }],
+      [{ text: "📊 Проверить статус" }],
     ],
     resize_keyboard: true,
     is_persistent: true,
@@ -302,43 +302,38 @@ async function holidayBrandAsset(url) {
   return "data:" + (response.headers.get("content-type") || "image/png") + ";base64," + btoa(binary);
 }
 
-async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationBase64) {
-  const councilLogo = await holidayBrandAsset("https://s1sch9.github.io/logo-soveta-pervykh.png");
+async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustrationBase64, bodyText = "") {
+  const councilLogo = await holidayBrandAsset("https://s1sch9.github.io/official-logo.svg");
+  const schoolCrest = await holidayBrandAsset("https://s1sch9.github.io/gerb.png");
   const { ImageResponse } = await import("workers-og");
   const fontData = await loadHolidayFont();
   const fittedTitle = fitHolidayTitle(holidayTitle);
   const lines = fittedTitle.lines;
-  const fontSize = fittedTitle.fontSize;
-  const lineHeight = Math.round(fontSize * 1.16);
+  const fontSize = Math.min(66, fittedTitle.fontSize);
+  const lineHeight = Math.round(fontSize * 1.12);
   const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
-  const dateFontSize = Math.min(86, Math.floor(430 / robotoBlackWidth(dateText, 1)));
+  const safeBody = escapeHtml(bodyText || "");
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:778px;top:' + (150 + index * lineHeight) + 'px;width:430px;height:' + lineHeight + 'px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:78px;top:' + (290 + index * lineHeight) + 'px;width:680px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Roboto Black,sans-serif;font-size:' + fontSize + 'px;font-weight:900;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
-
-  // Fully erase the old date and title with a solid patch. The original white circle
-  // is redrawn immediately afterwards, so no part of the template outside this field changes.
-  const textMask = '<div style="display:flex;position:absolute;left:776px;top:20px;width:447px;height:480px;background:#1a0b5c"></div>';
-
-  // Close only the narrow purple gap between the upper-right frame and the poster's outer white margin.
-  // The original 1536x765 render has a ~5-6 px gap here; this strip extends the existing white frame
-  // without touching the crest, the "ВАЖЕН КАЖДЫЙ" lettering, or any other template element.
-  const topRightFrameFix = '<div style="display:flex;position:absolute;left:1510px;top:18px;width:6px;height:150px;background:#fff"></div>';
-
-  // The original illustration sits inside a white circle centered at (1400, 665),
-  // radius 320. A circular white-backed image exactly replaces that corner artwork
-  // while keeping the circle silhouette and everything outside it intact.
-  const html = '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#1a0b5c">' +
-    '<img src="data:' + template.mime_type + ';base64,' + template.content_base64 + '" style="position:absolute;left:0;top:0;width:1536px;height:765px;object-fit:fill"/>' +
-    topRightFrameFix +
-    // Replace the former school emblem with the Council's only official logo.
-    '<div style="display:flex;position:absolute;left:1332px;top:24px;width:166px;height:144px;align-items:center;justify-content:center;background:#fff;border-radius:18px;overflow:hidden"><img src="' + councilLogo + '" style="display:flex;width:156px;height:134px;object-fit:contain" /></div>' +
-    textMask +
-    '<div style="display:flex;position:absolute;left:778px;top:34px;width:430px;height:100px;color:#fff;font-family:Roboto Black,sans-serif;font-size:' + dateFontSize + 'px;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(dateText) + '</div>' +
-    titleMarkup +
-    '<div style="display:flex;position:absolute;left:1080px;top:345px;width:640px;height:640px;background:#fff;border-radius:50%;overflow:hidden">' +
-    '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;position:absolute;left:8px;top:-11px;width:480px;height:480px;object-fit:contain;border-radius:50%"/>' +
-    '</div>' +
+  const html =
+    '<div style="display:flex;position:relative;width:1536px;height:765px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
+      '<div style="display:flex;position:absolute;left:-150px;bottom:-210px;width:470px;height:470px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
+      '<div style="display:flex;position:absolute;right:-130px;top:-190px;width:430px;height:430px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
+      '<div style="display:flex;position:absolute;left:34px;top:28px;width:1468px;height:709px;border:5px solid #1a0b5c;border-radius:34px;box-sizing:border-box"></div>' +
+      '<div style="display:flex;position:absolute;left:72px;top:62px;width:700px;height:142px;align-items:center">' +
+        '<img src="' + councilLogo + '" style="display:flex;width:112px;height:112px;object-fit:contain;margin-right:22px"/>' +
+        '<img src="' + schoolCrest + '" style="display:flex;width:112px;height:112px;object-fit:contain;margin-right:24px"/>' +
+        '<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;font-size:34px;font-weight:900;color:#1a0b5c">СОВЕТ ПЕРВЫХ</div><div style="display:flex;font-size:26px;font-weight:700;color:#51477a">ШКОЛЫ №9</div></div>' +
+      '</div>' +
+      '<div style="display:flex;position:absolute;left:790px;top:88px;width:650px;height:74px;align-items:center;justify-content:flex-end;color:#1a0b5c;font-family:Roboto Black,sans-serif;font-size:34px;font-weight:900;text-align:right">' + escapeHtml(dateText) + '</div>' +
+      '<div style="display:flex;position:absolute;left:80px;top:228px;width:650px;height:48px;align-items:center;color:#655b91;font-size:26px;font-weight:800;letter-spacing:1px">ПРАЗДНИК КАЖДЫЙ ДЕНЬ</div>' +
+      titleMarkup +
+      '<div style="display:flex;position:absolute;left:82px;top:545px;width:660px;height:118px;overflow:hidden;color:#40395d;font-size:24px;line-height:1.35">' + safeBody + '</div>' +
+      '<div style="display:flex;position:absolute;left:830px;top:198px;width:590px;height:450px;align-items:center;justify-content:center;background:#fff;border:5px solid #1a0b5c;border-radius:34px;padding:18px;box-sizing:border-box;box-shadow:0 16px 40px rgba(26,11,92,.10)">' +
+        '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
+      '</div>' +
+      '<div style="display:flex;position:absolute;left:840px;top:672px;width:570px;height:36px;align-items:center;justify-content:flex-end;color:#655b91;font-size:20px;font-weight:700">СОВЕТ ПЕРВЫХ ШКОЛЫ №9</div>' +
     '</div>';
   const rendered = new ImageResponse(html, {
     width: 1536,
@@ -356,10 +351,6 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     return { ok: false, stage: "configuration", error: "Не настроены обязательные параметры Worker." };
   }
   await tables(env);
-  const template = await env.DB.prepare("SELECT mime_type, content_base64 FROM daily_holiday_assets WHERE key = 'template'").first();
-  if (!template || !template.content_base64 || !["image/png", "image/jpeg"].includes(template.mime_type)) {
-    return { ok: false, stage: "template", error: "Оригинальный шаблон не найден или повреждён. Черновик не отправлен." };
-  }
   const date = requestedDate || localDate();
   if (!validIsoDate(date)) return { ok: false, stage: "date", error: "Выбрана некорректная или прошедшая дата." };
   const old = await env.DB.prepare("SELECT status, created_at, chat_id, message_id FROM daily_holiday_drafts WHERE date = ?").bind(date).first();
@@ -483,7 +474,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
     const bytes = await withTimeout(
-      renderHolidayTemplate(template, dateForImage, chosen.title, illustrationBase64),
+      renderHolidayTemplate(null, dateForImage, chosen.title, illustrationBase64, body),
       REQUEST_TIMEOUT_MS,
       "Сборка изображения"
     );
