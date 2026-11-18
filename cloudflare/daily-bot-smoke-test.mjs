@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { fitTelegramCaptionBody, holidayVisualConcept, modelText } from "./daily-holidays.js";
+import { fitTelegramCaptionBody, holidaySvgIllustration, holidayVisualConcept, modelText } from "./daily-holidays.js";
 
 const sample = {
   selected_index: 1,
@@ -15,7 +15,10 @@ assert.equal(modelText({ output: [{ content: [{ type: "output_text", text: JSON.
 assert.equal(modelText(JSON.stringify(sample)), JSON.stringify(sample));
 assert.equal(modelText({ response: null, choices: [] }), "");
 assert.equal(fitTelegramCaptionBody("Короткий текст", 100), "Короткий текст");
-assert.match(holidayVisualConcept("Всемирный день рекордов Гиннесса"), /deep-blue hardcover record book/i);
+assert.match(holidayVisualConcept("Всемирный день рекордов Гиннесса"), /fully closed.*deep-blue hardcover record book/i);
+assert.doesNotMatch(holidayVisualConcept("Всемирный день рекордов Гиннесса"), /open pages|shown open/i);
+assert.match(holidaySvgIllustration("Всемирный день рекордов Гиннесса"), /^data:image\/svg\+xml;base64,/);
+assert.equal(holidaySvgIllustration("Неизвестный праздник"), "");
 assert.match(holidayVisualConcept("Пасха"), /single large.*Easter egg/i);
 assert.match(holidayVisualConcept("Международный день блина"), /stack of golden Russian pancakes/i);
 assert.equal(holidayVisualConcept("Неизвестный праздник"), "");
@@ -72,8 +75,12 @@ assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
 assert.ok(!daily.includes('top:254px;width:660px;height:28px'));
 assert.ok(!daily.includes('function holidayImageDirection(title, description)'));
 assert.ok(daily.includes('deep-blue hardcover record book'));
-assert.ok(daily.includes('width:1124px;height:2px;background:rgba(26,11,92,.14)'));
-assert.ok(daily.includes('left:800px;top:206px;width:400px;height:400px'));
+assert.ok(daily.includes('width:1124px;height:1px;background:rgba(26,11,92,.16)'));
+assert.ok(daily.includes('left:78px;top:188px;width:92px;height:3px;border-radius:3px;background:#a1001f'));
+assert.ok(daily.includes('left:800px;top:216px;width:400px;height:400px'));
+assert.ok(daily.includes('holidaySvgIllustration(chosen.title, chosen.description)'));
+assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
+
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
 assert.ok(daily.includes('EXACT HOLIDAY TITLE: '));
 assert.ok(!daily.includes('border:3px solid rgba(255,255,255,.85)'));
