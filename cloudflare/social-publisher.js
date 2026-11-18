@@ -218,6 +218,17 @@ async function processQueuedSocialPhotos(env) {
   if (!next) return;
   const lock = await env.DB.prepare("UPDATE social_publication_queue SET status='processing', started_at=? WHERE id=? AND status='pending'").bind(now, next.id).run();
   if (!lock.meta || !lock.meta.changes) return;
+
+  // Keep the queue lease fresh while a long image render is still active.
+  // Without this heartbeat, the next minute's Cron run can mistake a live
+  // render for a dead job after four minutes and mark it failed.
+  const heartbeatTimer = setInterval(() => {
+    env.DB.prepare("UPDATE social_publication_queue SET started_at=? WHERE id=? AND status='processing'")
+      .bind(Math.floor(Date.now() / 1000), next.id)
+      .run()
+      .catch(error => console.warn("Social photo heartbeat failed:", error && error.message ? error.message : "unknown error"));
+  }, 30000);
+
   let stage = "чтение задания из очереди";
   const adminId = String(env.TELEGRAM_ADMIN_ID);
   const progress = async (label, percent) => {
@@ -297,6 +308,8 @@ async function processQueuedSocialPhotos(env) {
       console.error("Could not update queued social photo status:", notifyError && notifyError.message ? notifyError.message : "unknown error");
     }
     await env.DB.prepare("UPDATE social_publication_queue SET status='failed' WHERE id=?").bind(next.id).run();
+  } finally {
+    clearInterval(heartbeatTimer);
   }
 }
 
