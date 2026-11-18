@@ -7,7 +7,7 @@ const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
 const POLL_CRON = "* * * * *";
 const DAILY_DRAFT_HOUR = 17;
 const REQUEST_TIMEOUT_MS = 25000;
-const AI_TIMEOUT_MS = 60000;
+const AI_TIMEOUT_MS = 60000; // Allow retries for incomplete holiday text responses.
 
 function dailyMenuMarkup() {
   return {
