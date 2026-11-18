@@ -50,6 +50,14 @@ assert.ok(daily.includes('text-align:right'));
 assert.ok(daily.includes('align-items:flex-end'));
 assert.ok(daily.includes('const safeList = list.filter'));
 assert.ok(daily.includes('calendarHeading[1].toLocaleLowerCase("ru").includes(expectedCalendarDate)'));
+assert.ok(daily.includes("async function showHolidayChoices(env, adminId, date)"));
+assert.ok(daily.includes('callback_data: "holidaypick:" + date + ":" + n'));
+assert.ok(daily.includes('match(/^holidaypick:(\\d{4}-\\d{2}-\\d{2}):(\\d{1,2})$/)'));
+assert.ok(daily.includes('bind("manual_holiday:" + date, JSON.stringify(selected))'));
+assert.ok(daily.includes("manualHoliday = JSON.parse(String(chosenRow && chosenRow.value || \"null\"))"));
+assert.ok(daily.includes("chosen = safeList.find(item => item.title === manualHoliday.title && item.url === manualHoliday.url) || null"));
+assert.ok(daily.includes('await showHolidayChoices(env, adminId, date)'));
+
 assert.ok(daily.includes('СТРОГО выбранный праздник: '));
 assert.ok(daily.includes('Не меняй тему, не упоминай другие праздники и не подменяй событие.'));
 assert.ok(daily.includes('Holiday subject: '));
