@@ -77,7 +77,7 @@ async function telegramImageData(env, fileId) {
   const response = await fetchWithTimeout("https://api.telegram.org/file/bot" + env.SOVETTG_BOT_TOKEN + "/" + info.file_path, {}, "Загрузка оригинала фото");
   if (!response.ok) throw new Error("Не удалось загрузить фотографию из Telegram.");
   const bytes = new Uint8Array(await response.arrayBuffer());
-  if (bytes.length > 8 * 1024 * 1024) throw new Error("Фото больше 8 МБ — отправь его в обычном размере.");
+  if (bytes.length > 2 * 1024 * 1024) throw new Error("Даже уменьшенная версия фото слишком большая для безопасного оформления. Отправь фото как обычное изображение, не как файл.");
   let binary = "";
   for (let i=0;i<bytes.length;i+=0x8000) binary += String.fromCharCode(...bytes.subarray(i,i+0x8000));
   const headerMime = String(response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
@@ -166,7 +166,21 @@ async function processQueuedSocialPhotos(env) {
   const stale = await env.DB.prepare("SELECT id, started_at FROM social_publication_queue WHERE status = 'processing'").all();
   for (const row of stale.results || []) {
     if (Number(row.started_at || 0) && now - Number(row.started_at) > 240) {
-      await env.DB.prepare("UPDATE social_publication_queue SET status='pending', started_at=NULL WHERE id=? AND status='processing'").bind(row.id).run();
+      const recovered = await env.DB.prepare("UPDATE social_publication_queue SET status='failed', started_at=NULL WHERE id=? AND status='processing'").bind(row.id).run();
+      if (recovered.meta && recovered.meta.changes) {
+        const queued = await env.DB.prepare("SELECT notice_message_id FROM social_publication_queue WHERE id=?").bind(row.id).first();
+        if (queued && queued.notice_message_id) {
+          try {
+            await tg(env, "editMessageText", {
+              chat_id: String(env.TELEGRAM_ADMIN_ID),
+              message_id: queued.notice_message_id,
+              text: "⚠️ Подготовка фотопоста остановилась на стороне сервера.\\nЗадача выполнялась дольше 4 минут и была безопасно остановлена, чтобы бот не зацикливался на 55%.\\n\\nВ канал ничего не опубликовано. Можно отправить фото повторно после обновления бота."
+            });
+          } catch (notifyError) {
+            console.error("Could not notify about stale social photo job:", notifyError && notifyError.message ? notifyError.message : "unknown error");
+          }
+        }
+      }
     }
   }
   const next = await env.DB.prepare("SELECT id, payload, notice_message_id FROM social_publication_queue WHERE status='pending' ORDER BY id LIMIT 1").first();
@@ -200,7 +214,10 @@ async function processQueuedSocialPhotos(env) {
     const caption = captionFor("photo", template.id, rawCaption);
     stage = "загрузка оригинала фото";
     await progress("Загружаю оригинальную фотографию…", 25);
-    const photo = msg.photo[msg.photo.length - 1];
+    // Prefer the largest Telegram rendition below the renderer's safe input budget.
+    const photoChoices = msg.photo.slice().sort((a, b) => Number(b.file_size || 0) - Number(a.file_size || 0));
+    const photo = photoChoices.find(item => Number(item.file_size || 0) > 0 && Number(item.file_size) <= 2 * 1024 * 1024)
+      || photoChoices[photoChoices.length - 1];
     const dataUrl = await telegramImageData(env, photo.file_id);
     stage = "сборка горизонтальной карточки";
     await progress("Оформляю карточку Совета…", 55);
