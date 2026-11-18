@@ -476,6 +476,8 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       }
     }
     if (!chosen) throw new Error("Не удалось надёжно выбрать праздник из календаря: " + String(lastTextError || "пустой ответ"));
+    let body = "";
+    let imagePrompt = "";
     const bodyPrompt = [
       "Напиши только основной информационный текст для школьной рубрики «Праздник каждый день».",
       "СТРОГО выбранный праздник: " + chosen.title,
