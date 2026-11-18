@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { buildHolidayIllustrationPrompt, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
+import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
 
 const sample = {
   selected_index: 1,
@@ -15,6 +15,17 @@ assert.equal(modelText({ output: [{ content: [{ type: "output_text", text: JSON.
 assert.equal(modelText(JSON.stringify(sample)), JSON.stringify(sample));
 assert.equal(modelText({ response: null, choices: [] }), "");
 assert.equal(fitTelegramCaptionBody("Короткий текст", 100), "Короткий текст");
+const fallbackWithCalendar = fallbackHolidayIllustrationSubject(
+  "Международный день семьи",
+  "Праздник посвящён семье, заботе и совместному времени родителей и детей."
+);
+assert.ok(fallbackWithCalendar.length >= 25);
+assert.match(fallbackWithCalendar, /Международный день семьи/);
+assert.match(fallbackWithCalendar, /родителей и детей/);
+const fallbackWithoutDescription = fallbackHolidayIllustrationSubject("День книги", "", "");
+assert.ok(fallbackWithoutDescription.length >= 25);
+assert.match(fallbackWithoutDescription, /День книги/);
+
 const sharedPrompt = buildHolidayIllustrationPrompt("Международный день семьи", "Праздник семьи", "A warm family scene with parents and children spending time together");
 assert.match(sharedPrompt, /flat 2D hand-drawn cartoon/);
 assert.match(sharedPrompt, /Consistent visual style across the series/);
