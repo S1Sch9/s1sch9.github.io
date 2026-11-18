@@ -359,6 +359,22 @@ function holidayIllustration(title) {
 }
 
 
+export function fallbackHolidayIllustrationSubject(title, description, body = "") {
+  const clean = value => String(value || "").replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&")
+    .replace(/\\s+/g, " ").trim();
+  const context = [clean(description), clean(body)].find(value => value.length >= 24) || "";
+  if (context) {
+    return ("A literal, recognizable scene based on the exact holiday “" +
+      clean(title) + "”: " + context +
+      ". Depict the concrete activity, person, animal or object described; do not invent unrelated symbols.")
+      .slice(0, 420);
+  }
+  return ("A clear, literal everyday scene representing the exact holiday “" +
+    clean(title) + "”. Show its most recognizable real-world activity or object, not a generic celebration.")
+    .slice(0, 420);
+}
+
 export function buildHolidayIllustrationPrompt(title, description, subject) {
   return [
     "Generate one standalone editorial illustration asset, not a greeting card, not a poster, not a banner.",
@@ -622,25 +638,37 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       throw new Error("Не удалось получить достаточно сведений о выбранном празднике из календаря." +
         (textAiError ? " " + textAiError.slice(0, 100) : ""));
     }
-    const imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert editorial illustrator. Think carefully about the exact holiday and return ONLY one concrete visual subject or short scene in 1–2 short English sentences. It must be the most recognizable and meaningful visual for this specific holiday, not a generic celebration. Use a real physical object, person, animal or action when appropriate. Do not force the same object or visual motif onto unrelated holidays. No style, background, lighting, text, lettering or logos."
-        },
-        {
-          role: "user",
-          content: "EXACT HOLIDAY TITLE: " + chosen.title + "\nCALENDAR DESCRIPTION: " + chosen.description + "\nAPPROVED POST TEXT: " + body + "\nChoose the clearest, most recognizable visual scene for THIS holiday only. Be specific and literal. It may be an object, person, animal or a small scene if that better communicates the holiday. Do not reuse a generic symbol."
-        }
-      ],
-      max_tokens: 180,
-      temperature: 0.15
-    }), AI_TIMEOUT_MS, "Создание тематического описания иллюстрации");
+    let imageOnlyAnswer = null;
+    try {
+      imageOnlyAnswer = await withTimeout(env.AI.run(TEXT_MODEL, {
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert editorial illustrator. Return ONLY one concrete, recognizable visual subject or short scene in 1–2 short English sentences for the exact holiday. Use a real object, person, animal or action. No generic celebration, style, background, text or logos."
+          },
+          {
+            role: "user",
+            content: "EXACT HOLIDAY TITLE: " + chosen.title + "\\nCALENDAR DESCRIPTION: " + chosen.description + "\\nAPPROVED POST TEXT: " + body + "\\nDescribe the most recognizable literal scene for THIS holiday only. Do not reuse a generic symbol."
+          }
+        ],
+        max_tokens: 180,
+        temperature: 0.15
+      }), AI_TIMEOUT_MS, "Создание тематического описания иллюстрации");
+    } catch (error) {
+      // A transient text-model failure must not block a draft when verified calendar context exists.
+      console.warn("Holiday illustration subject AI failed; using source-based fallback:",
+        error && error.message ? error.message : "unknown error");
+    }
     imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
-      .replace(/^[\"']+|[\"']+$/g, "")
-      .replace(/\s+/g, " ")
+      .replace(/^[\\"']+|[\\"']+$/g, "")
+      .replace(/\\s+/g, " ")
       .slice(0, 420);
-    if (imagePrompt.length < 25) throw new Error("Не удалось получить точное описание иллюстрации к выбранному празднику.");
+    if (imagePrompt.length < 25) {
+      imagePrompt = fallbackHolidayIllustrationSubject(chosen.title, chosen.description, body);
+    }
+    if (imagePrompt.length < 25) {
+      throw new Error("Не удалось сформировать описание иллюстрации даже из проверенных сведений календаря.");
+    }
     const dateForPost = new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Moscow", day: "numeric", month: "long"
     }).format(new Date(date + "T12:00:00+03:00"));
