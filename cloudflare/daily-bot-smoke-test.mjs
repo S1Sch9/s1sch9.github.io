@@ -57,7 +57,7 @@ assert.ok(daily.includes('result.image.replace(/\\s/g, "")'));
 
 assert.ok(daily.includes('🔄 Бот обновлён!'));
 assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
-assert.ok(daily.includes('font-size:12px;line-height:15px;font-weight:700;letter-spacing:1.05px'));
+assert.ok(daily.includes('font-size:13px;line-height:16px;font-weight:800;letter-spacing:1.2px'));
 assert.ok(daily.includes('border:2px solid rgba(26,11,92,.18)'));
 assert.ok(!daily.includes('font-size:27px;line-height:29px;font-weight:900'));
 
@@ -65,10 +65,10 @@ assert.ok(daily.includes('Первое предложение сразу и пр
 assert.ok(daily.includes('You are an expert editorial illustrator.'));
 assert.ok(daily.includes('EXACT HOLIDAY TITLE: '));
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
-assert.ok(daily.includes('NO TEXT AT ALL: no words, letters, numbers'));
-assert.ok(daily.includes('occupy about 75–85% of the square image'));
-assert.ok(daily.includes('NO TEXT AT ALL: no words, letters, numbers'));
-assert.ok(daily.includes('right:78px;top:55px;width:360px;height:96px'));
+assert.ok(daily.includes('STRICTLY NO: text, lettering, numbers'));
+assert.ok(daily.includes('occupying around 78% of the square'));
+assert.ok(daily.includes('STRICTLY NO: text, lettering, numbers'));
+assert.ok(daily.includes('right:78px;top:54px;width:360px;height:100px'));
 assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px'));
 assert.ok(daily.includes("(338 + index * lineHeight)"));
 assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
