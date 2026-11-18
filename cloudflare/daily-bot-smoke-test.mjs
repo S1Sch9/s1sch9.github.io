@@ -32,13 +32,13 @@ const illustrationPrompt = buildHolidayIllustrationPrompt(
   "Праздник семьи",
   "A warm family scene with parents and children spending time together"
 );
-assert.match(illustrationPrompt, /premium editorial illustration asset/);
+assert.match(illustrationPrompt, /premium, beautifully art-directed editorial illustration/);
 assert.match(illustrationPrompt, /OBJECT LIMIT: show exactly the one or two objects/);
 assert.match(illustrationPrompt, /one large central subject/);
-assert.match(illustrationPrompt, /BACKGROUND: absolutely uniform pure white #FFFFFF/);
-assert.match(illustrationPrompt, /no environment, no scenery, no floor/);
-assert.match(illustrationPrompt, /Outlines use only the Council's exact deep navy #21145f/);
-assert.match(illustrationPrompt, /TEXT BAN: the image must contain ZERO text/);
+assert.match(illustrationPrompt, /isolated cut-out subject on transparent background if supported/);
+assert.match(illustrationPrompt, /room, landscape, scenery, floor, horizon/);
+assert.match(illustrationPrompt, /if an outline is essential, use only the Council's deep navy #21145f/);
+assert.match(illustrationPrompt, /TEXT BAN: ZERO text of any kind/);
 assert.match(illustrationPrompt, /No letters, words, numbers, typography, handwriting, book titles/);
 
 const longCaptionBody = "Это первое предложение о празднике. ".repeat(50);
@@ -69,8 +69,8 @@ assert.ok(redoBlock.includes('holidayIllustrationSubjectForTitle('));
 assert.ok(!redoBlock.includes('env.AI.run(TEXT_MODEL'));
 assert.ok(!redoBlock.includes('Не удалось определить сюжет иллюстрации'));
 
-assert.ok(daily.includes("pure_white_background"));
-assert.ok(daily.includes("return holidaySvgDataUrl(guinnessIllustrationSvg())"));
+assert.ok(daily.includes("background_clean"));
+assert.ok(daily.includes("findCommonsHolidayIllustration(env, title, description, subject)"));\nassert.ok(daily.includes("Wikimedia Commons"));\nassert.ok(daily.includes("public domain|cc0|creative commons zero"));\nassert.ok(daily.includes("background_clean"));\nassert.ok(daily.includes("semi-realistic hand-painted editorial artwork"));
 assert.ok(daily.includes("background:#fbfaff"));
 assert.ok(daily.includes("background:#f0eef8"));
 assert.ok(daily.includes("background:#f8edf1"));
