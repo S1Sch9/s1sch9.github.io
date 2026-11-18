@@ -385,11 +385,11 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
     '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
       '<div style="display:flex;position:absolute;left:-150px;bottom:-210px;width:430px;height:430px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
       '<div style="display:flex;position:absolute;right:-120px;top:-170px;width:390px;height:390px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
-      '<div style="display:flex;position:absolute;left:26px;top:24px;width:1228px;height:672px;border:3px solid #1a0b5c;border-radius:30px;box-sizing:border-box"></div>' +
+      '<div style="display:flex;position:absolute;left:26px;top:24px;width:1228px;height:672px;border:2px solid rgba(26,11,92,.18);border-radius:30px;box-sizing:border-box"></div>' +
       '<div style="display:flex;position:absolute;left:78px;top:58px;width:650px;height:92px;align-items:center;justify-content:flex-start">' +
         '<img src="' + councilLogo + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:14px"/>' +
         '<img src="' + schoolCrest + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:20px"/>' +
-        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;color:#1a0b5c;font-family:Roboto,Arial,sans-serif;font-size:27px;line-height:29px;font-weight:900;letter-spacing:-.4px;text-align:left"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;color:#1a0b5c;text-align:left"><div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;font-family:Roboto,Arial,sans-serif;font-size:25px;line-height:26px;font-weight:900;letter-spacing:-.35px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div><div style="display:flex;font-family:Arial,sans-serif;font-size:12px;line-height:15px;font-weight:700;letter-spacing:1.05px;color:#655b91">СОВЕТ ПЕРВЫХ · ШКОЛЫ №9</div></div>' +
       '</div>' +
       '<div style="display:flex;position:absolute;right:78px;top:55px;width:360px;height:96px;align-items:center;justify-content:flex-end;box-sizing:border-box;color:#1a0b5c">' +
         '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;justify-content:center;text-align:right;width:100%"><div style="display:flex;font-family:Arial,sans-serif;font-size:32px;line-height:36px;font-weight:900;letter-spacing:.2px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900;letter-spacing:.25px">КАЖДЫЙ ДЕНЬ</div></div>' +
@@ -399,7 +399,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
       '<div style="display:flex;position:absolute;left:78px;top:258px;width:660px;height:38px;align-items:center;color:#655b91;font-size:23px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
       '<div style="display:flex;position:absolute;left:78px;top:310px;width:92px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
       titleMarkup +
-      '<div style="display:flex;position:absolute;left:820px;top:226px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:3px solid #1a0b5c;border-radius:32px;padding:16px;box-sizing:border-box">' +
+      '<div style="display:flex;position:absolute;left:820px;top:226px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:2px solid rgba(26,11,92,.18);border-radius:30px;padding:14px;box-sizing:border-box">' +
         '<img src="data:image/jpeg;charset=utf-8;base64,' + illustrationBase64 + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:22px"/>' +
       '</div>' +
     '</div>';
@@ -560,15 +560,15 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       messages: [
         {
           role: "system",
-          content: "You are an expert editorial illustrator. Return ONLY English, 2–3 concise sentences describing a specific, unmistakable minimalist scene for the exact named holiday. Use one clear central subject and at most two supporting details; leave generous empty space. If giving gifts is genuinely part of this exact holiday, make one or two beautifully wrapped gifts the visual focus. Otherwise, do not add unrelated presents: depict the defining object, activity, or tradition of the holiday. Treat the holiday title and calendar description as hard constraints. Never replace it with a generic celebration. No style, background, lighting, text, or logos."
+          content: "You are a visual concept artist creating instantly recognizable holiday illustrations. First identify the single most iconic, concrete object, person, or action that people immediately associate with THIS exact holiday. It must be specific enough that someone can guess the holiday from the picture alone, without reading its title. Do not describe a vague theme, mood, season, celebration, or generic festive scene. Choose the clearest visual symbol supported by the holiday title and calendar description; if the holiday is about a specific activity, show that activity in progress. If it is a gift-giving holiday, make one clearly recognizable wrapped present or a small stack of presents the main subject. Return ONLY English in this exact concise format: MAIN SUBJECT: [one unmistakable subject and action]. RECOGNITION CLUE: [one essential visual detail]. Keep it simple, bold, friendly, and easy to read at a glance. No background, style, text, or logos."
         },
         {
           role: "user",
           content: "EXACT HOLIDAY TITLE: " + chosen.title + "\nCALENDAR DESCRIPTION: " + chosen.description + "\nAPPROVED POST TEXT: " + body + "\nDescribe one concise visual subject that unmistakably represents this exact holiday."
         }
       ],
-      max_tokens: 140,
-      temperature: 0.1
+      max_tokens: 220,
+      temperature: 0.15
     }), AI_TIMEOUT_MS, "Создание тематического описания иллюстрации");
     imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
       .replace(/^["'`]+|["'`]+$/g, "")
@@ -600,12 +600,12 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     if (onProgress) await onProgress(stage);
     const illustrationPrompt = [
       "Create one small standalone illustration for the right-side illustration area of a clean Russian school holiday card.",
-      "LOCKED ART STYLE: very minimal flat 2D hand-drawn editorial illustration, simple rounded shapes, clean confident deep indigo-blue outlines, a small restrained palette, solid color fills, almost no shading, no tiny decorative details.",
-      "It must look unmistakably DRAWN and ILLUSTRATED, not like a photograph. Keep the same simple cartoon visual language for every holiday so the series looks consistent.",
-      "HOLIDAY-SPECIFIC SCENE — follow literally: " + imagePrompt,
-      "MINIMAL COMPOSITION: one clear focal point, no more than two supporting objects, lots of clean white negative space. When gifts are central to this exact holiday, make the wrapped gifts the strongest visual accent; otherwise keep the illustration faithful to the holiday and do not add decorative gift boxes.",
-      "The exact holiday is: " + chosen.title + ". Calendar facts: " + chosen.description + ". Depict the defining activity, object, or tradition of THIS holiday, not merely its broad topic. The main subject should occupy most of the illustration area and be recognizable at a glance. Include the distinctive details from the art direction above. No generic school scene and no generic celebration symbols.",
-      "COMPOSITION: one compact centered scene, fully visible, with generous pure-white empty margin on every side. Keep all important parts well away from the image edges; nothing may touch or cross the edge. Avoid clutter and extra ornaments.",
+      "LOCKED ART STYLE: simple, charming flat 2D hand-drawn cartoon illustration, like a polished pictogram from a children's editorial magazine. Use bold clean indigo outlines, 3–5 cheerful solid colors, rounded shapes, and very light shading. Keep this visual style consistent across the series.",
+      "It must look unmistakably DRAWN and ILLUSTRATED, never like a photograph.",
+      "EXACT HOLIDAY: " + chosen.title + ". CALENDAR CONTEXT: " + chosen.description + ".",
+      "THE ONE THING THAT MUST BE RIGHT: " + imagePrompt + " Follow the MAIN SUBJECT literally. It is the entire point of this image. Make that subject large, unmistakable, and visually dominant. A person who sees only the picture should be able to guess the holiday. Do not substitute a generic party, seasonal scenery, abstract symbol, or unrelated cute objects.",
+      "MINIMAL BUT RECOGNIZABLE: one large iconic subject, plus only the single recognition clue if needed. Use a clear silhouette and strong color contrast. No clutter, no tiny details. If the holiday is specifically about giving presents, show one or two clearly wrapped gifts as the main subject; do not add gifts to unrelated holidays.",
+      "COMPOSITION: centered, fully visible, occupying about 70% of the illustration area, with a clean white margin. Simple white background. No frame or cast shadow.",
       "BACKGROUND: perfectly clean solid white (#FFFFFF), no frame, no border, no cast shadow outside the subject.",
       "STRICTLY AVOID: photorealism, realistic photography, 3D render, realistic skin or material textures, cinematic lighting, gradients, glossy effects, watercolor realism, text, letters, numbers, logos, watermarks, poster layout."
     ].join(" ").slice(0, 2048);
