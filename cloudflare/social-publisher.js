@@ -130,12 +130,6 @@ function typeKeyboard() {
   ] };
 }
 
-function templateKeyboard(type) {
-  return { inline_keyboard: TEMPLATES[type].map(item => [
-    { text: item.name + " — " + item.description, callback_data: "social:template:" + type + ":" + item.id }
-  ]) };
-}
-
 function publishKeyboard(id) {
   return { inline_keyboard: [
     [{ text: "✅ Опубликовать в канал", callback_data: "social:publish:" + id }],
@@ -251,13 +245,6 @@ async function handleSocialUpdate(env, item, adminId) {
     const typeMatch = data.match(/^social:type:(post|photo)$/);
     if (typeMatch) {
       const type = typeMatch[1];
-      const templateMode = await env.DB.prepare("SELECT value FROM social_publication_state WHERE key='template_mode'").first();
-      if (templateMode && templateMode.value === "1") {
-        await env.DB.prepare("DELETE FROM social_publication_state WHERE key='template_mode'").run();
-        await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Выбери оформление." });
-        await tg(env, "sendMessage", { chat_id: adminId, text: "Варианты оформления для формата «" + TYPES[type].title + "»:", reply_markup: templateKeyboard(type) });
-        return true;
-      }
       await env.DB.prepare("INSERT INTO social_publication_state (key,value) VALUES ('compose_type',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(type).run();
       await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Формат выбран." });
       await tg(env, "sendMessage", { chat_id: adminId, text: TYPES[type].prompt + "\n\nЕдиный фирменный шаблон будет применён автоматически." });
