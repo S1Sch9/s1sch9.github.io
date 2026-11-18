@@ -412,7 +412,26 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     const body = String(draft.body || "").replace(/\r/g, "").split(/\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\n\n");
     const imagePrompt = String(draft.image_prompt || "").slice(0, 700);
     if (body.length < 180 || imagePrompt.length < 30) throw new Error("Основной текст праздника неполный. Черновик не отправлен.");
-    const postHtml = escapeHtml(body);
+    const dateForPost = new Intl.DateTimeFormat("ru-RU", {
+      timeZone: "Europe/Moscow", day: "numeric", month: "long"
+    }).format(new Date(date + "T12:00:00+03:00"));
+    const post = [
+      "Доброе утро! ☀️",
+      "Наша ежедневная рубрика «Праздник каждый день»!",
+      dateForPost + "\n" + chosen.title,
+      body,
+      "Желаем вам отличного дня! 😊",
+      "👉 С1Шк9.Сайт | TGK | MAX"
+    ].join("\n\n");
+    if (post.length > 1024) throw new Error("Текст по утверждённому шаблону превышает лимит Telegram. Черновик не отправлен.");
+    const postHtml = [
+      escapeHtml("Доброе утро! ☀️"),
+      escapeHtml("Наша ежедневная рубрика «Праздник каждый день»!"),
+      escapeHtml(dateForPost + "\n" + chosen.title),
+      escapeHtml(body),
+      escapeHtml("Желаем вам отличного дня! 😊"),
+      '👉 <a href="https://s1sch9.github.io/">С1Шк9.Сайт</a> | <a href="https://t.me/dvizhenieschool9">TGK</a> | <a href="https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI">MAX</a>'
+    ].join("\n\n");
 
     stage = "image-ai";
     if (onProgress) await onProgress(stage);
