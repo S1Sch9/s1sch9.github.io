@@ -456,7 +456,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
         messages: [
           {
             role: "system",
-            content: "Выбери один пункт из списка и верни только корректный JSON вида {\\"selected_index\\": 0}. Не добавляй текст и не меняй индекс."
+            content: "Выбери один пункт из списка и верни только корректный JSON с числовым полем selected_index. Не добавляй текст и не меняй индекс."
           },
           { role: "user", content: prompt + (attempt ? "\nПредыдущий ответ был некорректным. Верни точный индекс одного пункта списка." : "") }
         ],
