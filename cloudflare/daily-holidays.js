@@ -193,6 +193,55 @@ async function candidatesFor(date) {
   return list;
 }
 
+
+async function showHolidayChoices(env, adminId, date) {
+  await tables(env);
+  if (!validIsoDate(date)) {
+    await tg(env, "sendMessage", { chat_id: adminId, text: "⚠️ Некорректная дата. Выбери дату заново.", reply_markup: dailyMenuMarkup() });
+    return;
+  }
+  try {
+    const response = await fetchWithTimeout("https://www.calend.ru/holidays/" + date + "/", {
+      headers: { "Accept": "text/html", "Accept-Language": "ru-RU,ru;q=0.9" }
+    }, REQUEST_TIMEOUT_MS, "Проверка даты календаря");
+    if (!response.ok) throw new Error("Не удалось открыть календарь на выбранную дату.");
+    const html = await response.text();
+    const heading = html.match(/<meta property="og:title" content="([^"]+)"/i);
+    const expected = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "numeric", month: "long" })
+      .format(new Date(date + "T12:00:00+03:00")).toLocaleLowerCase("ru");
+    if (!heading || !heading[1].toLocaleLowerCase("ru").includes(expected)) {
+      throw new Error("Календарь не подтвердил выбранную дату. Попробуй ещё раз позже.");
+    }
+    const all = await candidatesFor(date);
+    const safe = all.filter(item =>
+      !/войск|артиллер|оруж|военн|войн|трагед|смерт|болезн|медицин|курен|туалет|алкогол|вин[оа]|наркот|террор/i.test(item.title + " " + item.description)
+    );
+    if (!safe.length) throw new Error("На эту дату календарь не нашёл подходящих праздников для школьной рубрики.");
+    await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
+      .bind("holiday_choices:" + date, JSON.stringify(safe)).run();
+    const rows = [];
+    for (let n = 0; n < safe.length; n += 2) {
+      const row = [{ text: (n + 1) + ". " + safe[n].title.slice(0, 48), callback_data: "holidaypick:" + date + ":" + n }];
+      if (safe[n + 1]) row.push({ text: (n + 2) + ". " + safe[n + 1].title.slice(0, 48), callback_data: "holidaypick:" + date + ":" + (n + 1) });
+      rows.push(row);
+    }
+    rows.push([{ text: "↩️ Отмена", callback_data: "holidaycancel:" + date }]);
+    const dateLabel = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric" })
+      .format(new Date(date + "T12:00:00+03:00"));
+    await tg(env, "sendMessage", {
+      chat_id: adminId,
+      text: "📅 Праздники на " + dateLabel + "\n\nВыбери, о каком именно празднике подготовить пост. Бот не будет выбирать за тебя:",
+      reply_markup: { inline_keyboard: rows }
+    });
+  } catch (error) {
+    await tg(env, "sendMessage", {
+      chat_id: adminId,
+      text: "⚠️ Не удалось загрузить список праздников: " + String(error && error.message || "ошибка календаря").slice(0, 180),
+      reply_markup: dailyMenuMarkup()
+    });
+  }
+}
+
 export function modelText(result) {
   const seen = new Set();
   const visit = (value, depth = 0) => {
