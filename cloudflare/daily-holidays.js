@@ -412,7 +412,6 @@ export function guinnessIllustrationSvg() {
       <path d="M76 335 Q250 300 424 335 L398 410 Q250 448 102 410Z" fill="url(#cover)"/>
       <path d="M91 333 Q166 298 249 329 Q333 298 409 333 L390 387 Q319 370 250 399 Q181 370 110 387Z" fill="url(#page)"/>
       <path d="M250 329 Q250 364 250 399" fill="none"/>
-      <path d="M111 354 Q177 333 231 357 M112 370 Q178 351 231 372 M389 354 Q323 333 269 357 M388 370 Q322 351 269 372" fill="none" stroke="#c9c4b8" stroke-width="4"/>
       <path d="M178 113 Q134 104 129 145 Q125 188 193 207 L207 181 Q164 164 165 143 Q166 132 181 139Z" fill="url(#gold)"/>
       <path d="M322 113 Q366 104 371 145 Q375 188 307 207 L293 181 Q336 164 335 143 Q334 132 319 139Z" fill="url(#gold)"/>
       <path d="M178 91 Q250 111 322 91 L305 190 Q250 230 195 190Z" fill="url(#gold)"/>
