@@ -192,7 +192,7 @@ async function candidatesFor(date) {
 export function modelText(result) {
   const seen = new Set();
   const visit = (value, depth = 0) => {
-    if (depth > 5 || value == null) return "";
+    if (depth > 10 || value == null) return "";
     if (typeof value === "string") return value;
     if (Array.isArray(value)) {
       return value.map(item => visit(item, depth + 1)).filter(Boolean).join("\n");
@@ -205,10 +205,6 @@ export function modelText(result) {
         const found = visit(value[key], depth + 1);
         if (found) return found;
       }
-    }
-    if (Array.isArray(value.choices)) {
-      const found = visit(value.choices, depth + 1);
-      if (found) return found;
     }
     if (Array.isArray(value.choices)) {
       const found = visit(value.choices, depth + 1);
