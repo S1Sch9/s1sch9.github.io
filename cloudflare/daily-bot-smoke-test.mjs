@@ -47,6 +47,8 @@ assert.ok(social.includes('ВАЖЕН</div><div style="display:flex">КАЖДЫ�
 assert.ok(social.includes('font-family:Roboto,sans-serif;font-size:26px;line-height:25px;font-weight:900'));
 assert.ok(social.includes('name: "Roboto", data: robotoBlackFont, weight: 900'));
 assert.ok(daily.includes('Roboto%5Bwdth,wght%5D.ttf'));
+assert.ok(daily.includes("retrying holiday card with system font"));
+assert.ok(daily.includes('"▰".repeat(filled) + "▱".repeat(10-filled) + " " + value + "%\\n" + message'));
 assert.ok(social.includes('Roboto%5Bwdth,wght%5D.ttf'));
 assert.ok(social.includes('BRAND + "/gerb.png"'));
 assert.ok(social.includes("width:1280px;height:720px"));
