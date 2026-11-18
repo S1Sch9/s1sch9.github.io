@@ -1,5 +1,7 @@
 import { handleSocialUpdate, processQueuedSocialPhotos } from "./social-publisher.js";
 
+// Deploy trigger: holiday-specific illustration prompts are now active.
+
 const API = "https://api.telegram.org/bot";
 const CHANNEL = "@dvizhenieschool9";
 const TEXT_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
