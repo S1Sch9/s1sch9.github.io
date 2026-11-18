@@ -189,7 +189,7 @@ async function candidatesFor(date) {
   return list;
 }
 
-function modelText(result) {
+export function modelText(result) {
   const extract = value => {
     if (typeof value === "string") return value;
     if (Array.isArray(value)) return value.map(item => {
@@ -197,12 +197,18 @@ function modelText(result) {
       if (item && typeof item.text === "string") return item.text;
       if (item && typeof item.content === "string") return item.content;
       return "";
-    }).filter(Boolean).join("\\n");
+    }).filter(Boolean).join("\n");
     return "";
+  };
+  const serialize = value => {
+    if (!value || typeof value !== "object") return "";
+    try { return JSON.stringify(value); } catch { return ""; }
   };
   if (typeof result === "string") return result;
   if (!result || typeof result !== "object") return "";
-  const direct = extract(result.response) || extract(result.output_text) || extract(result.text) || extract(result.content);
+  // Workers AI JSON mode can return a parsed object directly in response.
+  const direct = extract(result.response) || serialize(result.response) ||
+    extract(result.output_text) || extract(result.text) || extract(result.content);
   if (direct) return direct;
   const choice = result.choices && result.choices[0];
   if (choice) {
@@ -217,7 +223,6 @@ function modelText(result) {
   }
   return "";
 }
-
 function parseObject(value) {
   const s = String(value || "").replace(/^\s*\x60{3}(?:json)?/i, "").replace(/\x60{3}\s*$/, "").trim();
   const a = s.indexOf("{"), b = s.lastIndexOf("}");
