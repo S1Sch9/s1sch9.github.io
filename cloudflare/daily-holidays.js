@@ -2,12 +2,12 @@ import { handleSocialUpdate, processQueuedSocialPhotos } from "./social-publishe
 
 const API = "https://api.telegram.org/bot";
 const CHANNEL = "@dvizhenieschool9";
-const TEXT_MODEL = "@cf/google/gemma-4-26b-a4b-it";
+const TEXT_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
 const POLL_CRON = "* * * * *";
 const DAILY_DRAFT_HOUR = 17;
 const REQUEST_TIMEOUT_MS = 25000;
-const AI_TIMEOUT_MS = 45000;
+const AI_TIMEOUT_MS = 60000;
 
 function dailyMenuMarkup() {
   return {
@@ -422,13 +422,11 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     if (onProgress) await onProgress(stage);
     const answer = await withTimeout(env.AI.run(TEXT_MODEL, {
       messages: [
-        { role: "system", content: "Пиши грамотно, не выдумывай факты. Ответ — только JSON." },
+        { role: "system", content: "Пиши грамотно, не выдумывай факты. Верни только один корректный JSON-объект без Markdown, пояснений и текста до или после него. Строковые значения JSON должны быть корректно экранированы." },
         { role: "user", content: prompt }
       ],
-      max_completion_tokens: 1200,
-      temperature: 0.4,
-      chat_template_kwargs: { enable_thinking: false },
-      response_format: { type: "json_object" }
+      max_tokens: 900,
+      temperature: 0.3
     }), AI_TIMEOUT_MS, "Текстовая AI-модель");
     const generatedText = modelText(answer);
     if (!generatedText.trim()) {
