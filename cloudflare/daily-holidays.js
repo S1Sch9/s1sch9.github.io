@@ -362,7 +362,7 @@ function holidayIllustration(title) {
 export function fallbackHolidayIllustrationSubject(title, description, body = "") {
   const clean = value => String(value || "").replace(/<[^>]*>/g, " ")
     .replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&")
-    .replace(/\\s+/g, " ").trim();
+    .replace(/\s+/g, " ").trim();
   const context = [clean(description), clean(body)].find(value => value.length >= 24) || "";
   if (context) {
     return ("A literal, recognizable scene based on the exact holiday “" +
@@ -648,7 +648,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
           },
           {
             role: "user",
-            content: "EXACT HOLIDAY TITLE: " + chosen.title + "\\nCALENDAR DESCRIPTION: " + chosen.description + "\\nAPPROVED POST TEXT: " + body + "\\nDescribe the most recognizable literal scene for THIS holiday only. Do not reuse a generic symbol."
+            content: "EXACT HOLIDAY TITLE: " + chosen.title + "\nCALENDAR DESCRIPTION: " + chosen.description + "\nAPPROVED POST TEXT: " + body + "\nDescribe the most recognizable literal scene for THIS holiday only. Do not reuse a generic symbol."
           }
         ],
         max_tokens: 180,
@@ -660,8 +660,8 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
         error && error.message ? error.message : "unknown error");
     }
     imagePrompt = String(modelText(imageOnlyAnswer) || "").trim()
-      .replace(/^[\\"']+|[\\"']+$/g, "")
-      .replace(/\\s+/g, " ")
+      .replace(/^["']+|["']+$/g, "")
+      .replace(/\s+/g, " ")
       .slice(0, 420);
     if (imagePrompt.length < 25) {
       imagePrompt = fallbackHolidayIllustrationSubject(chosen.title, chosen.description, body);
