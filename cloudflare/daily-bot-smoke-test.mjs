@@ -32,13 +32,13 @@ const illustrationPrompt = buildHolidayIllustrationPrompt(
   "Праздник семьи",
   "A warm family scene with parents and children spending time together"
 );
-assert.match(illustrationPrompt, /flat 2D hand-drawn illustration/);
+assert.match(illustrationPrompt, /flat 2D editorial illustration/);
 assert.match(illustrationPrompt, /maximum TWO visible objects or beings in total/);
 assert.match(illustrationPrompt, /one large central subject/);
 assert.match(illustrationPrompt, /BACKGROUND MUST BE EMPTY/);
 assert.match(illustrationPrompt, /no environment, landscape, room, scenery/);
 assert.match(illustrationPrompt, /outlines in the Council's exact deep navy #21145f only/);
-assert.match(illustrationPrompt, /ABSOLUTELY NO TEXT OR LETTERING of any kind/);
+assert.match(illustrationPrompt, /ABSOLUTELY NO TEXT/);
 assert.match(illustrationPrompt, /no words, letters, numbers, labels, signs, captions, logos, watermarks or pseudo-writing/);
 
 const longCaptionBody = "Это первое предложение о празднике. ".repeat(50);
