@@ -41,11 +41,17 @@ assert.ok(!daily.includes('response_format: { type: "json_object" }'));
 assert.ok(daily.includes('result.image.replace(/\\s/g, "")'));
 
 assert.ok(daily.includes('🔄 Бот обновлён!'));
-assert.ok(!daily.includes('СОВЕТ ПЕРВЫХ'));
-assert.ok(!daily.includes('ШКОЛЫ ДЕВЯТЬ'));
+assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
+assert.ok(daily.includes('font-size:12px;line-height:15px;font-weight:700;letter-spacing:1.05px'));
+assert.ok(daily.includes('border:2px solid rgba(26,11,92,.18)'));
+assert.ok(!daily.includes('font-size:27px;line-height:29px;font-weight:900'));
+
 assert.ok(daily.includes('Первое предложение сразу и простыми словами объясняет'));
-assert.ok(daily.includes('one clear central subject and at most two supporting details'));
-assert.ok(daily.includes('MINIMAL COMPOSITION: one clear focal point'));
+assert.ok(daily.includes('MAIN SUBJECT: [one unmistakable subject and action]'));
+assert.ok(daily.includes('RECOGNITION CLUE: [one essential visual detail]'));
+assert.ok(daily.includes('occupying about 70% of the illustration area'));
+assert.ok(daily.includes('guess the holiday. Do not substitute a generic party'));
+
 assert.ok(!daily.includes('border:1.5px solid rgba(26,11,92,.35)'));
 assert.ok(daily.includes('ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div>'));
 assert.ok(daily.includes('text-align:right'));
@@ -66,12 +72,13 @@ assert.ok(daily.includes('You are an expert editorial illustrator.'));
 assert.ok(daily.includes('HOLIDAY-SPECIFIC SCENE — follow literally: '));
 assert.ok(daily.includes('The exact holiday is: '));
 assert.ok(daily.includes('Depict the defining activity, object, or tradition of THIS holiday'));
-assert.ok(daily.includes('If giving gifts is genuinely part of this exact holiday'));
-assert.ok(daily.includes('Otherwise, do not add unrelated presents'));
+assert.ok(daily.includes('If it is a gift-giving holiday'));
+assert.ok(daily.includes('do not add gifts to unrelated holidays'));
+
 assert.ok(daily.includes('one compact centered scene'));
 assert.ok(!daily.includes('REQUIRED HOLIDAY-SPECIFIC SCENE: '));
 assert.ok(!daily.includes('border:1.5px solid rgba(26,11,92,.35)'));
-assert.ok(!daily.includes('ШКОЛЫ №9'));
+assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
 assert.ok(daily.includes('text-align:left'));
 assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900'));
 assert.ok(daily.includes('width:1124px;height:2px;background:rgba(26,11,92,.14)'));
