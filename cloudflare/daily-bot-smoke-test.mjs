@@ -47,13 +47,17 @@ assert.ok(!daily.includes('response_format: { type: "json_object" }'));
 assert.ok(daily.includes('result.image.replace(/\\s/g, "")'));
 
 assert.ok(daily.includes('🔄 Бот обновлён!'));
-assert.ok(daily.includes('ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div>'));
-assert.ok(daily.includes('ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div>'));
-assert.ok(daily.includes('ШКОЛЫ ДЕВЯТЬ'));
+assert.ok(daily.includes('СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ ДЕВЯТЬ</div>'));
 assert.ok(!daily.includes('ШКОЛЫ №9'));
 assert.ok(daily.includes('text-align:left'));
-assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:27px;line-height:30px;font-weight:900'));
-assert.ok(daily.includes('background:rgba(26,11,92,.07)'));
+assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:23px;line-height:26px;font-weight:900'));
+assert.ok(daily.includes('width:1124px;height:2px;background:rgba(26,11,92,.14)'));
+assert.ok(daily.includes('left:820px;top:226px;width:360px;height:360px'));
+assert.ok(daily.includes('EXACT HOLIDAY: '));
+assert.ok(daily.includes('REQUIRED HOLIDAY-SPECIFIC SCENE: '));
+assert.ok(daily.includes('Always build the visual brief independently from the finished body.'));
+assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
+assert.ok(!daily.includes('ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div>'));
 assert.ok(!daily.includes('border:3px solid rgba(255,255,255,.85)'));
 
 assert.ok(daily.includes("DELETE FROM daily_holiday_state WHERE key IN ('awaiting_publish_time', 'awaiting_custom_date')"));
