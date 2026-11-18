@@ -16,7 +16,7 @@ assert.equal(modelText(JSON.stringify(sample)), JSON.stringify(sample));
 assert.equal(modelText({ response: null, choices: [] }), "");
 assert.equal(fitTelegramCaptionBody("Короткий текст", 100), "Короткий текст");
 assert.match(holidayVisualConcept("Всемирный день рекордов Гиннесса"), /fully closed.*deep-blue hardcover record book/i);
-assert.doesNotMatch(holidayVisualConcept("Всемирный день рекордов Гиннесса"), /open pages|shown open/i);
+assert.doesNotMatch(holidayVisualConcept("Всемирный день рекордов Гиннесса"), /shown open|open at a|open book/i);
 assert.match(holidaySvgIllustration("Всемирный день рекордов Гиннесса"), /^data:image\/svg\+xml;base64,/);
 assert.equal(holidaySvgIllustration("Неизвестный праздник"), "");
 assert.match(holidayVisualConcept("Пасха"), /single large.*Easter egg/i);
