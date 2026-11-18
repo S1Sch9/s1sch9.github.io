@@ -37,7 +37,7 @@ assert.match(illustrationPrompt, /OBJECT LIMIT: show exactly the one or two obje
 assert.match(illustrationPrompt, /one large central subject/);
 assert.match(illustrationPrompt, /BACKGROUND: absolutely uniform pure white #FFFFFF/);
 assert.match(illustrationPrompt, /no environment, no scenery, no floor/);
-assert.match(illustrationPrompt, /outlines in the Council's exact deep navy #21145f only/);
+assert.match(illustrationPrompt, /Outlines use only the Council's exact deep navy #21145f/);
 assert.match(illustrationPrompt, /TEXT BAN: the image must contain ZERO text/);
 assert.match(illustrationPrompt, /no letters, words, numbers, typography, handwriting, book titles/);
 
