@@ -33,6 +33,10 @@ assert.doesNotMatch(daily, /env\.AI\.run\(IMAGE_MODEL,\s*\{[^}]*\bseed\s*:/s);
 assert.ok(daily.includes('response_format: { type: "json_object" }'));
 assert.ok(daily.includes('result.image.replace(/\\s/g, "")'));
 
+assert.ok(daily.includes('🔄 Бот обновлён!'));
+assert.ok(daily.includes("DELETE FROM daily_holiday_state WHERE key IN ('awaiting_publish_time', 'awaiting_custom_date')"));
+assert.ok(daily.includes("Все уже созданные черновики и ожидающие подтверждения публикации сохранены."));
+assert.ok(social.includes('normalized === "/start" || normalized.startsWith("/start@")'));
 assert.ok(social.includes('BRAND + "/official-logo.svg"'));
 assert.ok(social.includes('BRAND + "/gerb.png"'));
 assert.ok(social.includes("width:1280px;height:720px"));
