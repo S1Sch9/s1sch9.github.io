@@ -94,7 +94,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
         '<div style="display:flex;align-items:center;gap:15px;width:790px;height:100%">' +
           '<img src="' + councilLogo + '" style="display:flex;width:82px;height:82px;object-fit:contain"/>' +
           '<img src="' + schoolCrest + '" style="display:flex;width:82px;height:82px;object-fit:contain"/>' +
-          '<img src="' + importantLogo + '" style="display:flex;width:82px;height:82px;object-fit:contain;filter:brightness(0) saturate(100%) invert(12%) sepia(98%) saturate(5365%) hue-rotate(337deg) brightness(82%) contrast(111%)"/>' +
+
         '</div>' +
         '<div style="display:flex;align-items:center;justify-content:flex-end;margin-left:auto;width:350px;height:100%;color:#3d000d;font-size:' + titleFontSize + 'px;line-height:1.12;font-weight:800;text-align:right;overflow:hidden">' + safeTitle + '</div>' +
       '</div>' +
