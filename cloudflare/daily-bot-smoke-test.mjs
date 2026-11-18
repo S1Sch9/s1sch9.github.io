@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { fitTelegramCaptionBody, holidaySvgIllustration, holidayVisualConcept, modelText } from "./daily-holidays.js";
+import { buildHolidayIllustrationPrompt, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
 
 const sample = {
   selected_index: 1,
@@ -15,13 +15,10 @@ assert.equal(modelText({ output: [{ content: [{ type: "output_text", text: JSON.
 assert.equal(modelText(JSON.stringify(sample)), JSON.stringify(sample));
 assert.equal(modelText({ response: null, choices: [] }), "");
 assert.equal(fitTelegramCaptionBody("Короткий текст", 100), "Короткий текст");
-assert.match(holidayVisualConcept("Всемирный день рекордов Гиннесса"), /fully closed.*deep-blue hardcover record book/i);
-assert.doesNotMatch(holidayVisualConcept("Всемирный день рекордов Гиннесса"), /shown open|open at a|open book/i);
-assert.match(holidaySvgIllustration("Всемирный день рекордов Гиннесса"), /^data:image\/svg\+xml;base64,/);
-assert.equal(holidaySvgIllustration("Неизвестный праздник"), "");
-assert.match(holidayVisualConcept("Пасха"), /single large.*Easter egg/i);
-assert.match(holidayVisualConcept("Международный день блина"), /stack of golden Russian pancakes/i);
-assert.equal(holidayVisualConcept("Неизвестный праздник"), "");
+const sharedPrompt = buildHolidayIllustrationPrompt("Международный день семьи", "Праздник семьи", "A warm family scene with parents and children spending time together");
+assert.match(sharedPrompt, /flat 2D hand-drawn cartoon/);
+assert.match(sharedPrompt, /consistent visual style across the series/);
+assert.match(sharedPrompt, /one main subject and only the few details needed/);
 const longCaptionBody = "Это первое предложение о празднике. ".repeat(50);
 const fittedCaptionBody = fitTelegramCaptionBody(longCaptionBody, 180);
 assert.ok(fittedCaptionBody.length <= 180);
@@ -43,7 +40,6 @@ for (const phrase of [
 
 assert.ok(daily.includes("env.AI.run(IMAGE_MODEL, {"));
 assert.ok(daily.includes("prompt: illustrationPrompt,"));
-assert.ok(daily.includes("steps: 4"));
 assert.doesNotMatch(daily, /env\.AI\.run\(IMAGE_MODEL,\s*\{[^}]*\bseed\s*:/s);
 assert.ok(daily.includes('const TEXT_MODEL = "@cf/google/gemma-4-26b-a4b-it"'));
 assert.ok(daily.includes("Создание тематического описания иллюстрации"));
@@ -57,8 +53,6 @@ assert.ok(daily.includes('result.image.replace(/\\s/g, "")'));
 
 assert.ok(daily.includes('🔄 Бот обновлён!'));
 assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
-assert.ok(daily.includes('font-size:13px;line-height:16px;font-weight:800;letter-spacing:1.2px'));
-assert.ok(daily.includes('border:2px solid rgba(26,11,92,.18)'));
 assert.ok(!daily.includes('font-size:27px;line-height:29px;font-weight:900'));
 
 assert.ok(daily.includes('Первое предложение сразу и простыми словами объясняет'));
@@ -66,20 +60,10 @@ assert.ok(daily.includes('You are an expert editorial illustrator.'));
 assert.ok(daily.includes('EXACT HOLIDAY TITLE: '));
 assert.ok(daily.includes('CALENDAR DESCRIPTION: '));
 assert.ok(daily.includes('STRICTLY NO: text, lettering, numbers'));
-assert.ok(daily.includes('occupying around 78% of the square'));
-assert.ok(daily.includes('STRICTLY NO: text, lettering, numbers'));
-assert.ok(daily.includes('right:78px;top:54px;width:360px;height:100px'));
 assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px'));
-assert.ok(daily.includes("(338 + index * lineHeight)"));
 assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
 assert.ok(!daily.includes('top:254px;width:660px;height:28px'));
 assert.ok(!daily.includes('function holidayImageDirection(title, description)'));
-assert.ok(daily.includes('deep-blue hardcover record book'));
-assert.ok(daily.includes('width:1124px;height:1px;background:rgba(26,11,92,.16)'));
-assert.ok(daily.includes('left:78px;top:188px;width:92px;height:3px;border-radius:3px;background:#a1001f'));
-assert.ok(daily.includes('left:800px;top:216px;width:400px;height:400px'));
-assert.ok(daily.includes('holidaySvgIllustration(chosen.title, chosen.description)'));
-assert.ok(daily.includes('let illustrationDataUrl = holidaySvgIllustration(title)'));
 assert.ok(daily.includes('renderHolidayTemplate(null, dateLabel, title, illustrationDataUrl)'));
 assert.ok(daily.includes('СОВЕТ ПЕРВЫХ · ШКОЛЫ №9'));
 
