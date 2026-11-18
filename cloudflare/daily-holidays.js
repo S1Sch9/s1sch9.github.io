@@ -400,6 +400,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
         '<img src="' + schoolCrest + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:20px"/>' +
         '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;color:#1a0b5c;text-align:left"><div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;font-family:Roboto,Arial,sans-serif;font-size:25px;line-height:26px;font-weight:900;letter-spacing:-.35px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div></div>' +
       '</div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:238px;width:1124px;height:2px;background:rgba(26,11,92,.14)"></div>' +
       '<div style="display:flex;position:absolute;left:78px;top:254px;width:660px;height:28px;align-items:center;color:#1a0b5c;font-size:20px;line-height:26px;font-weight:900;letter-spacing:1.15px">ПРАЗДНИК КАЖДЫЙ ДЕНЬ</div>' +
       '<div style="display:flex;position:absolute;left:78px;top:282px;width:660px;height:18px;align-items:center;color:#655b91;font-size:12px;line-height:16px;font-weight:700;letter-spacing:1.05px">СОВЕТ ПЕРВЫХ · ШКОЛЫ №9</div>' +
       '<div style="display:flex;position:absolute;left:78px;top:312px;width:660px;height:34px;align-items:center;color:#655b91;font-size:21px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
