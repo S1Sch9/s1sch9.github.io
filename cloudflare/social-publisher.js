@@ -93,7 +93,7 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
         '<div style="display:flex;align-items:center;width:650px;height:100%;font-size:42px;line-height:1.08;font-weight:800;color:#3d000d;letter-spacing:-.8px;overflow:hidden;text-shadow:0 1px 1px rgba(61,0,13,.08)">' + safeTitle + '</div>' +
         '<div style="display:flex;align-items:center;justify-content:flex-end;gap:20px;margin-left:auto;width:420px;height:100%">' +
           '<img src="' + councilLogo + '" style="display:flex;width:76px;height:80px;object-fit:contain;"/>' +
-          '<img src="' + schoolCrest + '" style="display:flex;width:76px;height:80px;object-fit:contain;filter:drop-shadow(0 3px 5px rgba(61,0,13,.16))"/>' +
+          '<img src="' + schoolCrest + '" style="display:flex;width:76px;height:80px;object-fit:contain;"/>' +
           '<img src="' + importantLogo + '" style="display:flex;width:76px;height:80px;object-fit:contain;filter:brightness(0) saturate(100%) invert(12%) sepia(98%) saturate(5365%) hue-rotate(337deg) brightness(82%) contrast(111%)"/>' +
         '</div>' +
       '</div>' +
@@ -105,7 +105,8 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = 
   const { ImageResponse } = await import("workers-og");
   const response = new ImageResponse(html, { width:1280, height:720 });
   await onStage("Формирую изображение…", 73);
-  const output = new Uint8Array(await response.arrayBuffer());
+  const renderTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Сборка карточки заняла больше 60 секунд. Попробуй отправить фотографию меньшего размера.")), 60000));
+  const output = new Uint8Array(await Promise.race([response.arrayBuffer(), renderTimeout]));
   await onStage("Карточка собрана…", 76);
   return output;
 }
