@@ -207,7 +207,7 @@ async function processQueuedSocialPhotos(env) {
             await tg(env, "editMessageText", {
               chat_id: String(env.TELEGRAM_ADMIN_ID),
               message_id: queued.notice_message_id,
-              text: "⚠️ Подготовка фотопоста остановилась на стороне сервера.\\nЗадача выполнялась дольше 4 минут и была безопасно остановлена, чтобы бот не зацикливался на 55%.\\n\\nВ канал ничего не опубликовано. Можно отправить фото повторно после обновления бота."
+              text: "⚠️ Подготовка фотопоста остановилась на стороне сервера.\\nЗа последние 15 минут задача не сообщала о продвижении, поэтому очередь пометила её как зависшую.\\n\\nВ канал ничего не опубликовано. Можно отправить фото повторно после обновления бота."
             });
           } catch (notifyError) {
             console.error("Could not notify about stale social photo job:", notifyError && notifyError.message ? notifyError.message : "unknown error");
