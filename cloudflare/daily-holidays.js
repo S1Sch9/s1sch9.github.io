@@ -563,8 +563,6 @@ async function callback(env, item, adminId) {
   if (action === "redoimage") {
     await tg(env, "answerCallbackQuery", { callback_query_id: q.id, text: "Создаю новую картинку. Текст и шаблон не меняю." });
     try {
-      const template = await env.DB.prepare("SELECT mime_type, content_base64 FROM daily_holiday_assets WHERE key = 'template'").first();
-      if (!template || !template.content_base64) throw new Error("Оригинальный шаблон не найден.");
       const title = String(row.holiday_title || "Праздник");
       const prompt = "Create a fresh small standalone friendly flat 2D hand-drawn cartoon illustration for the lower-right white circle of a Russian school holiday poster. Warm school storybook style, rounded shapes, confident dark-purple outlines, solid cheerful colors, minimal soft shading. Holiday subject: " + title + ". Make a different visual interpretation. One compact centered fully visible subject, pure white background, generous white margins. No text, letters, numbers, logos, watermarks, poster layout, gradients, photorealism or 3D.";
       const result = await withTimeout(env.AI.run(IMAGE_MODEL, { prompt: prompt.slice(0, 1800), steps: 4 }), AI_TIMEOUT_MS, "Генерация новой иллюстрации");
