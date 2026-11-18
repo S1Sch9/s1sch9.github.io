@@ -46,9 +46,11 @@ async function assetDataUrl(url) {
   return "data:" + mime + ";base64," + btoa(binary);
 }
 
-async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
+async function renderBrandCard({ type, title, subtitle, photoDataUrl, onStage = async () => {} }) {
+  await onStage("Загружаю фирменные изображения…", 58);
   const councilLogo = await assetDataUrl(BRAND + "/official-logo.svg");
   const schoolCrest = await assetDataUrl(BRAND + "/gerb.png");
+  await onStage("Фирменные изображения готовы…", 62);
   const safeTitle = escapeHtml(title || "Новости и события");
   if (type !== "photo" || !photoDataUrl || !String(photoDataUrl).startsWith("data:image/")) {
     throw new Error("Не удалось подготовить исходную фотографию.");
@@ -72,9 +74,13 @@ async function renderBrandCard({ type, title, subtitle, photoDataUrl }) {
         '</div>' +
       '</div>' +
     '</div>';
+  await onStage("Запускаю графический движок…", 68);
   const { ImageResponse } = await import("workers-og");
+  await onStage("Собираю горизонтальную карточку…", 72);
   const response = new ImageResponse(html, { width:1280, height:720 });
-  return new Uint8Array(await response.arrayBuffer());
+  const output = new Uint8Array(await response.arrayBuffer());
+  await onStage("Карточка собрана…", 76);
+  return output;
 }
 async function telegramImageData(env, fileId) {
   const info = await tg(env, "getFile", { file_id:fileId }, 60000);
@@ -219,14 +225,22 @@ async function processQueuedSocialPhotos(env) {
     const caption = captionFor("photo", template.id, rawCaption);
     stage = "загрузка оригинала фото";
     await progress("Загружаю оригинальную фотографию…", 25);
-    // Prefer the largest Telegram rendition below the renderer's safe input budget.
-    const photoChoices = msg.photo.slice().sort((a, b) => Number(b.file_size || 0) - Number(a.file_size || 0));
-    const photo = photoChoices.find(item => Number(item.file_size || 0) > 0 && Number(item.file_size) <= 2 * 1024 * 1024)
-      || photoChoices[photoChoices.length - 1];
+    // Use Telegram's medium rendition (up to 960 px) when available.
+    // The output card remains 1280x720; this only avoids decoding an oversized source.
+    const photoChoices = msg.photo.filter(item => !item.file_size || Number(item.file_size) <= 2 * 1024 * 1024);
+    const mediumPhoto = photoChoices
+      .filter(item => Math.max(Number(item.width || 0), Number(item.height || 0)) <= 960)
+      .sort((a, b) => Number(b.width || 0) * Number(b.height || 0) - Number(a.width || 0) * Number(a.height || 0))[0];
+    const photo = mediumPhoto || photoChoices
+      .sort((a, b) => Number(a.width || 0) * Number(a.height || 0) - Number(b.width || 0) * Number(b.height || 0))[0]
+      || msg.photo[0];
     const dataUrl = await telegramImageData(env, photo.file_id);
     stage = "сборка горизонтальной карточки";
     await progress("Оформляю карточку Совета…", 55);
-    const card = await renderBrandCard({ type:"photo", title, subtitle:rawCaption || "События и инициативы Совета", photoDataUrl:dataUrl });
+    const card = await renderBrandCard({
+      type:"photo", title, subtitle:rawCaption || "События и инициативы Совета", photoDataUrl:dataUrl,
+      onStage: progress
+    });
     stage = "отправка предпросмотра";
     await progress("Отправляю тебе предпросмотр…", 78);
     const preview = await sendBrandedPhoto(env, adminId, card, caption);
