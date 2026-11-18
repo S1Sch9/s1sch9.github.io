@@ -424,24 +424,30 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
   const lineHeight = Math.round(fontSize * 1.08);
   const dateText = String(dateLabel || "").toLocaleUpperCase("ru");
   const titleMarkup = lines.map((line, index) =>
-    '<div style="display:flex;position:absolute;left:78px;top:' + (322 + index * lineHeight) + 'px;width:660px;height:' + lineHeight + 'px;color:#3d000d;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
+    '<div style="display:flex;position:absolute;left:78px;top:' + (338 + index * lineHeight) + 'px;width:660px;height:' + lineHeight + 'px;color:#1a0b5c;font-family:Arial,sans-serif;font-size:' + fontSize + 'px;font-weight:800;line-height:' + lineHeight + 'px;white-space:nowrap;letter-spacing:-1px">' + escapeHtml(line) + '</div>'
   ).join("");
   const html =
     '<div style="display:flex;position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;font-family:Arial,sans-serif">' +
-      '<div style="display:flex;position:absolute;left:78px;top:58px;width:650px;height:92px;align-items:center;justify-content:flex-start">' +
-        '<img src="' + councilLogo + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:14px"/>' +
-        '<img src="' + schoolCrest + '" style="display:flex;width:78px;height:78px;object-fit:contain;margin-right:20px"/>' +
-        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;color:#3d000d;text-align:left">' +
-          '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;font-family:Roboto,Arial,sans-serif;font-size:25px;line-height:26px;font-weight:900;letter-spacing:-.35px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div>' +
-          '<div style="display:flex;font-family:Arial,sans-serif;font-size:12px;line-height:15px;font-weight:700;letter-spacing:1.05px;color:#805b64;white-space:nowrap">СОВЕТ ПЕРВЫХ · ШКОЛЫ №9</div>' +
+      '<div style="display:flex;position:absolute;left:-150px;bottom:-210px;width:430px;height:430px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
+      '<div style="display:flex;position:absolute;right:-120px;top:-170px;width:390px;height:390px;border-radius:50%;background:rgba(26,11,92,.035)"></div>' +
+      '<div style="display:flex;position:absolute;left:26px;top:24px;width:1228px;height:672px;border:2px solid rgba(26,11,92,.18);border-radius:30px;box-sizing:border-box"></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:50px;width:650px;height:108px;align-items:center;justify-content:flex-start">' +
+        '<img src="' + councilLogo + '" style="display:flex;width:76px;height:76px;object-fit:contain;margin-right:16px"/>' +
+        '<img src="' + schoolCrest + '" style="display:flex;width:76px;height:76px;object-fit:contain;margin-right:20px"/>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:7px;color:#1a0b5c;text-align:left">' +
+          '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;font-family:Roboto,Arial,sans-serif;font-size:27px;line-height:27px;font-weight:900;letter-spacing:-.45px"><div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div></div>' +
+          '<div style="display:flex;font-family:Arial,sans-serif;font-size:13px;line-height:16px;font-weight:800;letter-spacing:1.2px;color:#655b91;white-space:nowrap">СОВЕТ ПЕРВЫХ · ШКОЛЫ №9</div>' +
         '</div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;right:78px;top:55px;width:360px;height:96px;align-items:center;justify-content:flex-end;box-sizing:border-box;color:#3d000d">' +
-        '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;justify-content:center;text-align:right;width:100%"><div style="display:flex;font-family:Arial,sans-serif;font-size:32px;line-height:36px;font-weight:900;letter-spacing:.2px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900;letter-spacing:.25px">КАЖДЫЙ ДЕНЬ</div></div>' +
+      '<div style="display:flex;position:absolute;right:78px;top:54px;width:360px;height:100px;align-items:center;justify-content:flex-end;box-sizing:border-box;color:#1a0b5c">' +
+        '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;justify-content:center;text-align:right;width:100%"><div style="display:flex;font-family:Arial,sans-serif;font-size:32px;line-height:36px;font-weight:900;letter-spacing:.2px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900;letter-spacing:.25px">КАЖДЫЙ ДЕНЬ</div></div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:252px;width:660px;height:38px;align-items:center;color:#a1001f;font-size:22px;font-weight:800;letter-spacing:.8px">' + escapeHtml(dateText) + '</div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:190px;width:1124px;height:1px;background:rgba(26,11,92,.16)"></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:188px;width:92px;height:3px;border-radius:3px;background:#a1001f"></div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:216px;width:660px;height:36px;align-items:center;color:#655b91;font-size:21px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
+      '<div style="display:flex;position:absolute;left:78px;top:268px;width:72px;height:4px;border-radius:4px;background:#1a0b5c"></div>' +
       titleMarkup +
-      '<div style="display:flex;position:absolute;left:820px;top:226px;width:360px;height:360px;align-items:center;justify-content:center;background:#fffaf9;border-radius:28px;padding:12px;box-sizing:border-box">' +
+      '<div style="display:flex;position:absolute;left:800px;top:216px;width:400px;height:400px;align-items:center;justify-content:center;background:#fff;border:1.5px solid rgba(26,11,92,.14);border-radius:28px;padding:10px;box-sizing:border-box">' +
         '<img src="' + illustrationDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:20px"/>' +
       '</div>' +
     '</div>';
@@ -664,7 +670,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       .replace(/\s+/g, " ")
       .slice(0, 420);
     if (imagePrompt.length < 25) {
-      imagePrompt = fallbackHolidayIllustrationSubject(chosen.title, chosen.description, body);
+      imagePrompt = fallbackHolidayIllustrationSubject(chosen.title, chosen.description);
     }
     if (imagePrompt.length < 25) {
       throw new Error("Не удалось сформировать описание иллюстрации даже из проверенных сведений календаря.");
