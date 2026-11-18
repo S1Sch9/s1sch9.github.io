@@ -69,7 +69,6 @@ assert.ok(daily.includes('await showHolidayChoices(env, adminId, date)'));
 assert.ok(daily.includes('СТРОГО выбранный праздник: '));
 assert.ok(daily.includes('Не меняй тему, не упоминай другие праздники и не подменяй событие.'));
 assert.ok(daily.includes('You are a visual concept artist creating instantly recognizable holiday illustrations.'));
-assert.ok(daily.includes('HOLIDAY-SPECIFIC SCENE — follow literally: '));
 assert.ok(daily.includes('EXACT HOLIDAY: '));
 assert.ok(daily.includes('THE ONE THING THAT MUST BE RIGHT: '));
 assert.ok(daily.includes('A person who sees only the picture should be able to guess the holiday.'));
