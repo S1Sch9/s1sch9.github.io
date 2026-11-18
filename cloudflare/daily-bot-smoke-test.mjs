@@ -34,6 +34,11 @@ assert.ok(daily.includes('response_format: { type: "json_object" }'));
 assert.ok(daily.includes('result.image.replace(/\\s/g, "")'));
 
 assert.ok(daily.includes('🔄 Бот обновлён!'));
+assert.ok(daily.includes('font-size:28px;font-weight:900;line-height:32px;color:#1a0b5c'));
+assert.ok(daily.includes('ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div>'));
+assert.ok(daily.includes('font-size:23px;line-height:22px;font-weight:900'));
+assert.ok(daily.includes('ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:28px;line-height:31px;font-weight:900'));
+
 assert.ok(daily.includes("DELETE FROM daily_holiday_state WHERE key IN ('awaiting_publish_time', 'awaiting_custom_date')"));
 assert.ok(daily.includes("Все уже созданные черновики и ожидающие подтверждения публикации сохранены."));
 assert.ok(social.includes('normalized === "/start" || normalized.startsWith("/start@")'));
