@@ -394,7 +394,7 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
       '<div style="display:flex;position:absolute;right:78px;top:55px;width:360px;height:96px;align-items:center;justify-content:flex-end;box-sizing:border-box;color:#1a0b5c">' +
         '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;justify-content:center;text-align:right;width:100%"><div style="display:flex;font-family:Arial,sans-serif;font-size:32px;line-height:36px;font-weight:900;letter-spacing:.2px">ПРАЗДНИК</div><div style="display:flex;font-family:Arial,sans-serif;font-size:29px;line-height:33px;font-weight:900;letter-spacing:.25px">КАЖДЫЙ ДЕНЬ</div></div>' +
       '</div>' +
-      '<div style="display:flex;position:absolute;left:78px;top:180px;width:430px;height:48px;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;color:#1a0b5c;font-family:Roboto,Arial,sans-serif;font-size:23px;line-height:25px;font-weight:900;letter-spacing:-.3px;text-align:left"><div style="display:flex">СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ ДЕВЯТЬ</div></div>' +
+      '' +
       '<div style="display:flex;position:absolute;left:78px;top:238px;width:1124px;height:2px;background:rgba(26,11,92,.14)"></div>' +
       '<div style="display:flex;position:absolute;left:78px;top:258px;width:660px;height:38px;align-items:center;color:#655b91;font-size:23px;font-weight:800;letter-spacing:1px">' + escapeHtml(dateText) + '</div>' +
       '<div style="display:flex;position:absolute;left:78px;top:310px;width:92px;height:5px;border-radius:5px;background:#1a0b5c"></div>' +
@@ -536,7 +536,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       "СТРОГО выбранный праздник: " + chosen.title,
       "Описание именно этого праздника из календаря: " + chosen.description,
       "Не меняй тему, не упоминай другие праздники и не подменяй событие.",
-      "Напиши два коротких содержательных абзаца на русском, примерно 300–420 символов суммарно. Первый — значение или происхождение; второй — интересный факт или как отмечают.",
+      "Напиши два коротких содержательных абзаца на русском, примерно 300–420 символов суммарно. Первое предложение сразу и простыми словами объясняет, что именно отмечают в этот праздник и почему он существует. Первый абзац раскрывает суть и значение праздника; второй — один интересный факт или традицию его отмечания.",
       "Не выдумывай факты: используй только сведения из описания. Не добавляй заголовок, дату, приветствие, пожелание, подпись, ссылки, хэштеги или эмодзи."
     ].join("\n");
     body = "";
@@ -545,7 +545,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
         messages: [
           {
             role: "system",
-            content: "Пиши только два законченных абзаца на русском языке строго об указанном празднике. Не меняй тему. Не добавляй ничего кроме этих двух абзацев."
+            content: "Пиши только два законченных абзаца на русском языке строго об указанном празднике. Первое предложение должно сразу объяснить читателю, что это за праздник и чему он посвящён. Не меняй тему. Не добавляй ничего кроме этих двух абзацев."
           },
           { role: "user", content: bodyPrompt + (attempt ? "\nПредыдущий текст был слишком коротким. Напиши два полноценных абзаца только об этом же празднике." : "") }
         ],
@@ -560,7 +560,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       messages: [
         {
           role: "system",
-          content: "You are an expert editorial illustrator. Return ONLY English, 3–4 concise sentences describing a specific, unmistakable scene for the exact named holiday. State the central real-world subject, what it is visibly doing or what is happening, and one or two distinctive objects/details that make this holiday recognizable rather than a generic celebration. Treat the holiday title and calendar description as hard constraints. Do not use generic stars, balloons, gifts, schoolchildren, flags, or random festive decorations unless they are genuinely central to this exact holiday. Never replace the holiday with a loosely related theme. No style, background, lighting, text, or logos."
+          content: "You are an expert editorial illustrator. Return ONLY English, 2–3 concise sentences describing a specific, unmistakable minimalist scene for the exact named holiday. Use one clear central subject and at most two supporting details; leave generous empty space. If giving gifts is genuinely part of this exact holiday, make one or two beautifully wrapped gifts the visual focus. Otherwise, do not add unrelated presents: depict the defining object, activity, or tradition of the holiday. Treat the holiday title and calendar description as hard constraints. Never replace it with a generic celebration. No style, background, lighting, text, or logos."
         },
         {
           role: "user",
@@ -600,11 +600,11 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     if (onProgress) await onProgress(stage);
     const illustrationPrompt = [
       "Create one small standalone illustration for the right-side illustration area of a clean Russian school holiday card.",
-      "LOCKED ART STYLE: friendly flat 2D hand-drawn cartoon, like a warm illustrated school storybook: simple rounded shapes, clean confident deep indigo-blue outlines, solid cheerful color fills, minimal soft shading, slightly playful proportions and expressive friendly details.",
+      "LOCKED ART STYLE: very minimal flat 2D hand-drawn editorial illustration, simple rounded shapes, clean confident deep indigo-blue outlines, a small restrained palette, solid color fills, almost no shading, no tiny decorative details.",
       "It must look unmistakably DRAWN and ILLUSTRATED, not like a photograph. Keep the same simple cartoon visual language for every holiday so the series looks consistent.",
-      "HOLIDAY-SPECIFIC SCENE — follow literally: " + imagePrompt,
+      "HOLIDAY-SPECIFIC SCENE — follow literally: " + imagePrompt,\n      "MINIMAL COMPOSITION: one clear focal point, no more than two supporting objects, lots of clean white negative space. When gifts are central to this exact holiday, make the wrapped gifts the strongest visual accent; otherwise keep the illustration faithful to the holiday and do not add decorative gift boxes.",
       "The exact holiday is: " + chosen.title + ". Calendar facts: " + chosen.description + ". Depict the defining activity, object, or tradition of THIS holiday, not merely its broad topic. The main subject should occupy most of the illustration area and be recognizable at a glance. Include the distinctive details from the art direction above. No generic school scene and no generic celebration symbols.",
-      "COMPOSITION: one compact centered scene, fully visible, with generous pure-white empty margin on every side. Keep all important parts well away from the image edges; nothing may touch or cross the edge.",
+      "COMPOSITION: one compact centered scene, fully visible, with generous pure-white empty margin on every side. Keep all important parts well away from the image edges; nothing may touch or cross the edge. Avoid clutter and extra ornaments.",
       "BACKGROUND: perfectly clean solid white (#FFFFFF), no frame, no border, no cast shadow outside the subject.",
       "STRICTLY AVOID: photorealism, realistic photography, 3D render, realistic skin or material textures, cinematic lighting, gradients, glossy effects, watercolor realism, text, letters, numbers, logos, watermarks, poster layout."
     ].join(" ").slice(0, 2048);
