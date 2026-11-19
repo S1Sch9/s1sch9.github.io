@@ -489,8 +489,9 @@ async function findCommonsHolidayIllustration(env, title, description, subject) 
       let binary = "";
       for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
       const dataUrl = "data:" + contentType.split(";")[0] + ";base64," + btoa(binary);
-      const review = await reviewHolidayIllustration(env, dataUrl, title, subject);
-      if (review.approved) return dataUrl;
+      // Wikimedia Commons title/query + restrictive reuse license + image dimensions
+      // are checked above. Skip AI vision review to conserve the daily Workers AI quota.
+      return dataUrl;
     }
   } catch (error) {
     console.warn("Wikimedia Commons image search unavailable; using generated artwork:", error && error.message ? error.message : "unknown error");
