@@ -84,6 +84,10 @@ assert.ok(daily.includes('<a href="https://t.me/dvizhenieschool9">TGK</a>'));
 assert.ok(daily.includes('<a href="https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI">MAX</a>'));
 
 assert.ok(daily.includes("findCommonsHolidayIllustration(env, title, description, subject)"));
+const commonsBlock = daily.slice(daily.indexOf("async function findCommonsHolidayIllustration"), daily.indexOf("async function generateVerifiedHolidayIllustration"));
+assert.ok(commonsBlock.includes("Skip AI vision review"));
+assert.ok(!commonsBlock.includes("reviewHolidayIllustration(env"));
+
 assert.ok(daily.includes("Wikimedia Commons"));
 assert.ok(daily.includes("public domain|cc0|creative commons zero"));
 assert.ok(daily.includes("background_clean"));
