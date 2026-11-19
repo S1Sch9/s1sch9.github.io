@@ -4,7 +4,7 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#121212",
-  "theme_color": "#121212",
+  "background_color": "#111116",
+  "theme_color": "#111116",
   "description": "Твоя личная музыкальная библиотека"
 }
