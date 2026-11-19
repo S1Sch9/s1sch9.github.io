@@ -263,4 +263,77 @@ document.addEventListener('click',e=>{
  const home=e.target.closest('#returnHome,[data-view="home"]');
  if(home){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();pageView('home')}
 },true);
+
+/* My Music: starter library + legal preview playback */
+const mmStarter=[
+["Perfect World","ROCKET"],["На Тишке","GONE.Fludd, SEEMEE"],["Wassup","Radik"],["Недоволен","Scally Milano"],["ЛОЛ","Пошлая Молли"],["Амнезия","ЛСП, PHARAOH"],["Jesus, Vol. 2","zombiqe"],["Это был дождь","Noize MC"],["Smokey Eyes","9mice"],["Холодные Ребра","GONE.Fludd, techno"],["Пломбир (Bonus)","PHARAOH"],["Мелисса / Моя сука","PHARAOH"],["КОД ГИАС","GONE.Fludd"],["Monday","ROCKET"],["Бизнес","FACE"],["##ThornLungs","shalapay"],["Лаллипап","PHARAOH"],["Золотые рыбки","PHARAOH, ЛСП"],["PiT","PHARAOH, ЛСП"],["Всё как у людей (Bonus Track)","Noize MC"],["DoggyStyle","YUNG TRAPPA, ЛСП"],["D.O.G.G.E.R","shalapay"],["Кекс","PHARAOH, ЛСП"],["Эго","wysa, dexey!"],["Санта Клаус","Платина"],["Hot Wheels (feat. Hot Sugar)","Boulevard Depo, Hot Sugar"],["Кооператив «Лебединое озеро»","Noize MC"],["Вояджер-1","Noize MC"],["Ночное кафе","Mirèle, ONDA ANDAR"],["Уровни","ЛСП"],["Ругань из-за стены","Noize MC"],["Групи","Платина, OG Buda"],["Ууу","ЛСП"],["##Кровосток","shalapay"],["порно","cardinparis, slohku"],["##nolifer","shalapay"],["БОССМУВ!!!","dexey!"],["PROTIVOGAZ","huzzy b"],["М.Л.Д.","ЛСП"],["##ОСКОЛОК","shalapay"],["##SQUAD","shalapay"],["HOODPAiNSTAR","huzzy b"],["#destroy","huzzy b"],["##Урбан","shalapay"],["##мессия","shalapay"],["North##","shalapay"],["##Scumbag","shalapay"],["##Подохни_сука","shalapay"],["##Scar_Sniper","shalapay"],["##сноркк","shalapay, dexey!"]
+];
+let mmAdded=0;
+for(const [title,artist] of mmStarter){
+ const id='manual-'+title.toLowerCase().replace(/[^a-zа-яё0-9]+/gi,'-')+'-'+artist.toLowerCase().replace(/[^a-zа-яё0-9]+/gi,'-');
+ if(!tracks.some(t=>t.id===id||((t.title||'').toLowerCase()===title.toLowerCase()&&(t.artist||'').toLowerCase()===artist.toLowerCase()))){
+  tracks.push({id,title,artist,album:'',missing:true,source:'catalog'});mmAdded++;
+ }
+}
+if(mmAdded){save();try{render()}catch(e){}}
+async function mmFindPreview(t){
+ if(t.previewUrl)return t.previewUrl;
+ const term=encodeURIComponent(t.title+' '+t.artist);
+ const response=await fetch('https://itunes.apple.com/search?term='+term+'&entity=song&limit=15&country=US');
+ if(!response.ok)throw new Error('catalog unavailable');
+ const data=await response.json();
+ const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zа-яё0-9]+/gi,' ').trim();
+ const title=norm(t.title), artists=norm(t.artist).split(/[,&]+/).map(x=>x.trim()).filter(Boolean);
+ const ranked=(data.results||[]).map(x=>{
+  const nt=norm(x.trackName),na=norm(x.artistName);
+  const titleScore=nt===title?4:(nt.includes(title)||title.includes(nt)?2:0);
+  const artistScore=artists.some(a=>na.includes(a)||a.includes(na))?3:0;
+  return {x,score:titleScore+artistScore};
+ }).sort((a,b)=>b.score-a.score);
+ const best=ranked[0];
+ if(!best||best.score<4||!best.x.previewUrl)return null;
+ t.previewUrl=best.x.previewUrl;t.cover=best.x.artworkUrl100||t.cover;t.duration=best.x.trackTimeMillis?Math.round(best.x.trackTimeMillis/1000):t.duration;
+ save();return t.previewUrl;
+}
+async function play(i){
+ const t=tracks[i];if(!t)return;
+ current=i;$('#nowtitle').textContent=t.title;$('#nowartist').textContent='Ищу доступное воспроизведение…';$('#nowart').innerHTML=art(t);$('#toggle').textContent='Ⅱ';
+ if(t.fileId){
+  try{const item=await req('files','readonly',s=>s.get(t.fileId));if(!item)throw Error('missing');if(audio.dataset.objectUrl)URL.revokeObjectURL(audio.dataset.objectUrl);const url=URL.createObjectURL(item.blob);audio.dataset.objectUrl=url;audio.src=url;await audio.play();mmPlayingSource='file';mmSetPlayerStatus(t);return}catch(e){toast('Не удалось открыть аудиофайл');$('#toggle').textContent='▶';return}
+ }
+ try{
+  const preview=await mmFindPreview(t);
+  if(preview){audio.pause();audio.src=preview;audio.currentTime=0;await audio.play();mmPlayingSource='preview';mmSetPlayerStatus(t);toast('Воспроизводится ознакомительный фрагмент');return}
+  throw new Error('preview unavailable');
+ }catch(e){
+  audio.pause();$('#toggle').textContent='▶';
+  const q=encodeURIComponent(t.title+' '+t.artist);
+  $('#nowartist').innerHTML='<a href="https://open.spotify.com/search/'+q+'" target="_blank" rel="noopener" style="color:#c4b5fd;text-decoration:underline">Нет доступного превью · найти в Spotify ↗</a>';
+  toast('Для этой песни не найден бесплатный аудиофрагмент');
+ }
+}
+let mmPlayingSource='file';
+function mmSetPlayerStatus(t){
+ $('#nowtitle').textContent=t.title;
+ $('#nowartist').textContent=mmPlayingSource==='preview'?'Ознакомительный фрагмент · Apple Music':(t.artist||'Локальный файл');
+ $('#nowart').innerHTML=art(t);$('#toggle').textContent='Ⅱ';
+ history=[t.id,...history.filter(x=>x!==t.id)].slice(0,50);save();try{render()}catch(e){}
+}
+function mmNextPlayable(){
+ if(!tracks.length)return;
+ let start=current;
+ for(let n=0;n<tracks.length;n++){
+  let i=shuffle?Math.floor(Math.random()*tracks.length):(start+1+n)%tracks.length;
+  if(i!==current){play(i);return}
+ }
+}
+$('#toggle').onclick=()=>{if(!audio.src){if(current>=0)play(current);else{let i=tracks.findIndex(t=>t.fileId||t.source==='catalog');if(i>=0)play(i)}return}if(audio.paused){audio.play().then(()=>$('#toggle').textContent='Ⅱ').catch(()=>toast('Не удалось продолжить воспроизведение'))}else{audio.pause();$('#toggle').textContent='▶'}};
+$('#next').onclick=mmNextPlayable;
+$('#prev').onclick=()=>{if(audio.currentTime>3){audio.currentTime=0;return}if(current>0)play(current-1)};
+audio.onended=()=>{if(repeat&&current>=0)play(current);else mmNextPlayable()};
+audio.ontimeupdate=()=>{if(audio.duration){$('#seek').value=audio.currentTime/audio.duration*100;$('#elapsed').textContent=fmt(audio.currentTime);$('#duration').textContent=fmt(audio.duration)}};
+$('#seek').oninput=e=>{if(audio.duration)audio.currentTime=audio.duration*e.target.value/100};
+$('#volume').oninput=e=>audio.volume=+e.target.value;
+audio.volume=.8;
+
 </script></body></html>
