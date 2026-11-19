@@ -155,6 +155,7 @@ function importSpotify(f){
 }
 document.addEventListener('click',e=>{
  const b=e.target.closest('button,[data-play],[data-pl],[data-view]');if(!b)return;
+ if(!(b.dataset.view||b.dataset.play!==undefined||b.dataset.pl!==undefined||b.dataset.like||b.dataset.addtrack))return;e.stopPropagation();e.stopImmediatePropagation();
  if(b.dataset.view){e.preventDefault();pageView(b.dataset.view);return}
  if(b.dataset.play!==undefined){e.preventDefault();play(+b.dataset.play);return}
  if(b.dataset.pl!==undefined){e.preventDefault();playlistPage(+b.dataset.pl);return}
