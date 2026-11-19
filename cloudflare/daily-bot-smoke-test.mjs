@@ -63,6 +63,12 @@ assert.ok(daily.includes("multipart: {"));
 assert.ok(daily.includes('form.append("steps", "20")'));
 assert.ok(daily.includes('form.append("guidance", "4")'));
 assert.ok(daily.includes("generateVerifiedHolidayIllustration"));
+assert.ok(daily.includes('base64.startsWith("iVBORw0KGgo")'));
+assert.ok(daily.includes('base64.startsWith("/9j/")'));
+assert.ok(daily.includes('base64.startsWith("UklGR")'));
+assert.ok(daily.includes('let imageMime = ""'));
+assert.ok(daily.includes('"data:" + imageMime + ";base64," + base64'));
+
 assert.ok(daily.includes("const illustrationSubject = holidayIllustrationSubjectForTitle("));
 const redoBlock = daily.slice(daily.indexOf('if (action === "redoimage")'), daily.indexOf('if (action === "skip")'));
 assert.ok(redoBlock.includes('holidayIllustrationSubjectForTitle('));
