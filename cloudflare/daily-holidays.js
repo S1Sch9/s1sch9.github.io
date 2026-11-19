@@ -453,8 +453,10 @@ async function reviewHolidayIllustration(env, dataUrl, title, subject) {
   }), AI_TIMEOUT_MS, "Проверка качества иллюстрации");
   let verdict;
   try { verdict = parseObject(modelText(review)); } catch { verdict = null; }
+  // A false-negative on background cleanliness should not discard an otherwise
+  // relevant, text-free, simple image. The prompt still requests a clean background.
   return verdict && verdict.relevant === true && verdict.text_free === true &&
-    verdict.background_clean === true && verdict.within_object_limit === true
+    verdict.within_object_limit === true
     ? { approved: true, reason: "" }
     : { approved: false, reason: verdict && verdict.reason ? String(verdict.reason).slice(0, 180) : "проверка не подтвердила соответствие сюжета, отсутствие текста и чистый фон" };
 }
@@ -975,7 +977,15 @@ async function callback(env, item, adminId) {
       const form = new FormData();
       form.append("chat_id", adminId);
       form.append("message_id", String(row.message_id));
-      form.append("media", JSON.stringify({ type: "photo", media: "attach://photo", caption: String(q.message.caption || ""), parse_mode: "HTML" }));
+      // editMessageMedia receives caption text without entities from callback_query.
+      // Rebuild clickable HTML footer links so they remain tappable after image regeneration.
+      const captionPlain = String(q.message.caption || "");
+      const footerPlain = "👉 С1Шк9.Сайт | TGK | MAX";
+      const footerHtml = '👉 <a href="https://s1sch9.github.io/">С1Шк9.Сайт</a> | <a href="https://t.me/dvizhenieschool9">TGK</a> | <a href="https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI">MAX</a>';
+      const captionHtml = captionPlain.endsWith(footerPlain)
+        ? escapeHtml(captionPlain.slice(0, -footerPlain.length)) + footerHtml
+        : escapeHtml(captionPlain);
+      form.append("media", JSON.stringify({ type: "photo", media: "attach://photo", caption: captionHtml, parse_mode: "HTML" }));
       form.append("photo", new Blob([bytes], { type: "image/png" }), "holiday-" + date + "-new.png");
       form.append("reply_markup", JSON.stringify({ inline_keyboard: [
         [{ text: "✅ Опубликовать сейчас", callback_data: "publish:" + date }],
