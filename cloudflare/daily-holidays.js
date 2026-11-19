@@ -522,10 +522,17 @@ async function generateVerifiedHolidayIllustration(env, title, description, subj
       throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
     }
     const base64 = generated.image.replace(/\s/g, "");
-    if (!base64.startsWith("iVBORw0KGgo")) {
-      throw new Error("Модель изображений вернула файл не в PNG-формате. Черновик не отправлен.");
+    // Flux output can be PNG, JPEG or WebP. Detect the actual encoded file
+    // signature and pass its real MIME through review/rendering, rather than
+    // rejecting valid non-PNG model outputs.
+    let imageMime = "";
+    if (base64.startsWith("iVBORw0KGgo")) imageMime = "image/png";
+    else if (base64.startsWith("/9j/")) imageMime = "image/jpeg";
+    else if (base64.startsWith("UklGR")) imageMime = "image/webp";
+    if (!imageMime) {
+      throw new Error("Модель изображений вернула неизвестный формат файла. Черновик не отправлен.");
     }
-    const dataUrl = "data:image/png;base64," + base64;
+    const dataUrl = "data:" + imageMime + ";base64," + base64;
     const review = await reviewHolidayIllustration(env, dataUrl, title, subject);
     if (review.approved) return dataUrl;
     lastReason = review.reason || lastReason;
