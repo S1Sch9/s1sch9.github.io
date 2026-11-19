@@ -76,6 +76,13 @@ assert.ok(!redoBlock.includes('env.AI.run(TEXT_MODEL'));
 assert.ok(!redoBlock.includes('Не удалось определить сюжет иллюстрации'));
 
 assert.ok(daily.includes("background_clean"));
+assert.ok(daily.includes("verdict.within_object_limit === true"));
+assert.ok(daily.includes("const footerPlain = \"👉 С1Шк9.Сайт | TGK | MAX\""));
+assert.ok(daily.includes('captionHtml = captionPlain.endsWith(footerPlain)'));
+assert.ok(daily.includes('<a href="https://s1sch9.github.io/">С1Шк9.Сайт</a>'));
+assert.ok(daily.includes('<a href="https://t.me/dvizhenieschool9">TGK</a>'));
+assert.ok(daily.includes('<a href="https://max.ru/join/R9RTsj6Z4VcAem7B3TH7kAKDHbU3Wkm5WuoYiXOxteI">MAX</a>'));
+
 assert.ok(daily.includes("findCommonsHolidayIllustration(env, title, description, subject)"));
 assert.ok(daily.includes("Wikimedia Commons"));
 assert.ok(daily.includes("public domain|cc0|creative commons zero"));
