@@ -499,6 +499,29 @@ async function findCommonsHolidayIllustration(env, title, description, subject) 
   return null;
 }
 
+export function holidayQuotaFallbackSvg(title, description = "", subject = "") {
+  const text = [title, description, subject].join(" ").toLocaleLowerCase("ru");
+  let artwork = "";
+  if (/наук|космос|физик|математ|технолог|робот|изобрет|астроном|хим/.test(text)) {
+    artwork = '<g fill="none" stroke="#21145f" stroke-width="13" stroke-linecap="round"><ellipse cx="250" cy="250" rx="175" ry="75" transform="rotate(-32 250 250)"/><ellipse cx="250" cy="250" rx="175" ry="75" transform="rotate(32 250 250)"/><ellipse cx="250" cy="250" rx="175" ry="75" transform="rotate(90 250 250)"/></g><circle cx="250" cy="250" r="43" fill="#e8b33d" stroke="#21145f" stroke-width="10"/><circle cx="425" cy="250" r="23" fill="#8a72d5"/><circle cx="125" cy="140" r="20" fill="#e76c83"/><circle cx="250" cy="75" r="21" fill="#63b9a7"/>';
+  } else if (/книг|чтен|литератур|писател|библиотек/.test(text)) {
+    artwork = '<path d="M78 160 Q168 112 250 164 Q332 112 422 160 L422 375 Q330 332 250 380 Q170 332 78 375Z" fill="#fffdf5" stroke="#21145f" stroke-width="13"/><path d="M250 164 V380" stroke="#21145f" stroke-width="12"/><path d="M104 193 Q174 158 221 191 M104 228 Q174 193 221 226 M104 263 Q174 228 221 261 M279 191 Q326 158 396 193 M279 226 Q326 193 396 228 M279 261 Q326 228 396 263" stroke="#d5a74a" stroke-width="10" stroke-linecap="round" fill="none"/>';
+  } else if (/музык|песн|мелод|танц/.test(text)) {
+    artwork = '<path d="M302 110 V318 Q302 360 254 374 Q208 386 188 353 Q170 321 209 298 Q244 278 276 296 V165 L390 138 V280 Q390 320 344 335 Q299 348 279 317 Q261 286 300 260Z" fill="#8a72d5" stroke="#21145f" stroke-width="13" stroke-linejoin="round"/><circle cx="150" cy="150" r="45" fill="#e8b33d"/><circle cx="370" cy="390" r="36" fill="#e76c83"/>';
+  } else if (/семь|любов|сердц|добр|друж|волонт|забот|матер|отц|родител/.test(text)) {
+    artwork = '<path d="M250 390 C215 350 95 270 95 190 C95 115 185 92 250 175 C315 92 405 115 405 190 C405 270 285 350 250 390Z" fill="#e76c83" stroke="#21145f" stroke-width="13" stroke-linejoin="round"/><path d="M165 210 Q205 178 235 220 M265 220 Q295 178 335 210" fill="none" stroke="#fff2f4" stroke-width="12" stroke-linecap="round"/>';
+  } else if (/природ|эколог|лес|дерев|растен|цвет|земл|сад/.test(text)) {
+    artwork = '<path d="M250 80 C145 110 100 215 145 300 C190 360 310 360 355 300 C400 215 355 110 250 80Z" fill="#65b78b" stroke="#21145f" stroke-width="13"/><path d="M250 115 V330 M250 220 Q180 180 165 150 M250 270 Q320 225 340 190" stroke="#fff9e8" stroke-width="13" fill="none" stroke-linecap="round"/><path d="M180 390 Q250 345 320 390" stroke="#d5a74a" stroke-width="20" stroke-linecap="round"/>';
+  } else if (/спорт|футбол|олимп|здоров|игр/.test(text)) {
+    artwork = '<circle cx="250" cy="250" r="165" fill="#f6f7fb" stroke="#21145f" stroke-width="13"/><path d="M250 190 L305 230 L285 295 L215 295 L195 230Z" fill="#21145f"/><path d="M250 190 L160 145 M305 230 L385 210 M285 295 L330 370 M215 295 L160 365 M195 230 L120 210" stroke="#21145f" stroke-width="12" fill="none"/><path d="M160 145 L120 210 L160 365 L330 370 L385 210 L250 190Z" stroke="#21145f" stroke-width="10" fill="none"/>';
+  } else if (/мир|планет|международ|глобал|страна|народ/.test(text)) {
+    artwork = '<circle cx="250" cy="250" r="170" fill="#70b9e4" stroke="#21145f" stroke-width="13"/><path d="M145 135 Q190 115 210 170 L185 220 L225 260 L200 320 L155 300 L125 220Z M295 120 L350 155 L330 205 L370 235 L340 290 L285 270 L260 215 L280 170Z M220 335 L275 320 L290 365 L250 400 L215 375Z" fill="#65b78b" stroke="#21145f" stroke-width="7"/>';
+  } else {
+    artwork = '<path d="M250 80 C190 115 105 190 110 290 C120 365 195 410 250 420 C305 410 380 365 390 290 C395 190 310 115 250 80Z" fill="#e8b33d" stroke="#21145f" stroke-width="13"/><path d="M250 125 C210 180 175 230 180 290 C190 330 225 355 250 370 C275 355 310 330 320 290 C325 230 290 180 250 125Z" fill="#fff0a6" stroke="#21145f" stroke-width="8"/>';
+  }
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><g stroke-linecap="round" stroke-linejoin="round">' + artwork + '</g></svg>';
+}
+
 async function generateVerifiedHolidayIllustration(env, title, description, subject) {
   const commonsImage = await findCommonsHolidayIllustration(env, title, description, subject);
   if (commonsImage) return commonsImage;
@@ -532,7 +555,12 @@ async function generateVerifiedHolidayIllustration(env, title, description, subj
       if (review.approved) return dataUrl;
       reasons.push("попытка " + (attempt + 1) + ": " + review.reason);
     } catch (error) {
-      reasons.push("попытка " + (attempt + 1) + ": " + String(error && error.message || "ошибка генерации").slice(0, 140));
+      const errorText = String(error && error.message || "ошибка генерации");
+      reasons.push("попытка " + (attempt + 1) + ": " + errorText.slice(0, 140));
+      if (/daily free allocation|used up.*allocation|10,000 neurons|quota.*exhaust|neurons.*upgrade/i.test(errorText)) {
+        console.warn("Workers AI image quota exhausted; using locally generated thematic SVG artwork.");
+        return holidaySvgDataUrl(holidayQuotaFallbackSvg(title, description, subject));
+      }
     }
   }
   throw new Error("Иллюстрация не прошла контроль качества после 3 попыток: " + reasons.join("; ").slice(0, 260) + ". Черновик не отправлен.");
