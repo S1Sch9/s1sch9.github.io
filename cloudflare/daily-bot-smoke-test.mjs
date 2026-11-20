@@ -128,7 +128,7 @@ assert.ok(daily.includes("official-logo.svg"));
 assert.ok(daily.includes("gerb.png"));
 assert.ok(daily.includes("border:2.5px solid #21145f;border-radius:31px"));
 assert.ok(daily.includes("mix-blend-mode:multiply"));
-assert.ok(daily.includes("FINAL STRICT RETRY"));
+assert.ok(daily.includes("STRICT CORRECTION RETRY"));
 assert.ok(daily.includes("within_object_limit"));
 assert.ok(daily.includes("left:70px;top:52px;width:650px;height:82px;align-items:center"));
 assert.ok(daily.includes("color:#21145f;font-family:Georgia,Times New Roman,serif;font-size:47px"));
