@@ -132,7 +132,7 @@ assert.ok(!daily.includes("#d9d9e2"));
 assert.ok(!daily.includes("#777394"));
 assert.ok(!daily.includes("left:488px;top:23px;width:334px;height:3px"));
 assert.ok(!daily.includes("background:#f7f7fa"));
-assert.ok(!daily.includes("ВАЖЕН</div>"));
+assert.ok(daily.includes("ВАЖЕН</div><div style=\"display:flex\">КАЖДЫЙ!"));
 assert.ok(!daily.includes("СОВЕТ ПЕРВЫХ · ШКОЛЫ №9"));
 assert.ok(daily.includes("font-family:Georgia,Times New Roman,serif"));
 assert.ok(daily.includes("const TEXT_MODEL = \"@cf/google/gemma-4-26b-a4b-it\""));
