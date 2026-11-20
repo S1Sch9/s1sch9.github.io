@@ -188,9 +188,10 @@ async function candidatesFor(date) {
   const re = /<div class="caption">\s*<span class="title">\s*<a href="([^"]+)">([\s\S]*?)<\/a>[\s\S]*?<p class="descr descrFixed">\s*<a href="[^"]+">([\s\S]*?)<\/a>/g;
   const list = [];
   for (const m of html.matchAll(re)) {
-    const title = plain(m[2]);
-    if (!title) continue;
-    list.push({ title, description: plain(m[3]).slice(0, 450), url: new URL(m[1], "https://www.calend.ru").toString() });
+    const title = normalizeHolidayTitle(plain(m[2]));
+    const description = cleanHolidaySourceText(plain(m[3])).slice(0, 450);
+    if (!title || title.length < 5 || /именины|налоговых органов|лунного цикла/i.test(title)) continue;
+    list.push({ title, description, url: new URL(m[1], "https://www.calend.ru").toString() });
     if (list.length === 10) break;
   }
   return list;
@@ -250,9 +251,23 @@ export function cleanHolidaySourceText(value) {
     .replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&quot;/gi, '"')
     .replace(/&#39;|&apos;/gi, "'").replace(/&mdash;/gi, "—").replace(/&ndash;/gi, "–")
     .replace(/\s+/g, " ").trim();
-  const junk = /лунн(?:ый|ого)\s+день|день\s+лунного\s+цикла|лунного\s+цикла|данные\s+приведены\s+для\s+временн|не\s+забудьте\s+сделать\s+поправку|установите\s+на\s+вашем\s+сайте|информер|на\s+вашу\s+почту|письмо\s+со\s+ссылкой\s+подтверждения|папку\s+спам|свяжитесь\s+с\s+нами|адрес\s+страницы|подписк|войти\s+на\s+сайт|регистрац|cookie|javascript/i;
+  const junk = /лунн(?:ый|ого)\s+день|день\s+лунного\s+цикла|лунного\s+цикла|данные\s+приведены\s+для\s+временн|не\s+забудьте\s+сделать\s+поправку|установите\s+на\s+вашем\s+сайте|информер|на\s+вашу\s+почту|письмо\s+со\s+ссылкой\s+подтверждения|папку\s+спам|свяжитесь\s+с\s+нами|адрес\s+страницы|подписк|войти\s+на\s+сайт|регистрац|cookie|javascript|именины|holidays?\/\d+|день\s+работника\s+налоговых\s+органов|налоговых\s+органов\s+российской\s+федерации/i;
   return (raw.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [raw]).map(part => part.trim())
-    .filter(part => part.length >= 28 && !junk.test(part)).join(" ").replace(/\s+/g, " ").trim();
+    .filter(part => part.length >= 28 && !junk.test(part))
+    .join(" ").replace(/\s+/g, " ").trim();
+}
+
+export function normalizeHolidayTitle(value) {
+  return String(value || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ").trim()
+    .replace(/(?:https?:\/\/)?(?:www\.)?calend\.ru\S*/gi, " ")
+    .replace(/\/?holidays?\/\d+(?:\/\d+){0,5}\/?/gi, " ")
+    .split(/\b(?:именины|день работника налоговых органов)\b/i)[0]
+    .replace(/[|•,;\s]+$/g, "").replace(/\s+/g, " ").trim();
+}
+
+export function childDayBody() {
+  return "Всемирный день ребёнка посвящён защите прав детей, их безопасности и благополучию. Он напоминает, что каждый ребёнок имеет право на заботу, образование, медицинскую помощь, защиту и возможность расти в доброжелательной среде.\n\nЭтот день — повод обратить внимание на то, чтобы дети могли учиться, дружить, развиваться, быть услышанными и чувствовать поддержку взрослых. Главное в празднике — уважение к каждому ребёнку и забота о его будущем.";
 }
 
 export function fitTelegramCaptionBody(value, maxLength) {
@@ -388,6 +403,9 @@ export function fallbackHolidayIllustrationSubject(title, description, body = ""
 export function holidayIllustrationSubjectForTitle(title, description = "", body = "", aiSubject = "") {
   const clean = value => String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   const name = clean(title).toLocaleLowerCase("ru");
+  if (/день\s+реб[её]нка|прав\w*\s+реб[её]нка|детств/.test(name)) {
+    return "Three real children of different ages standing together, smiling naturally and holding hands, joyful everyday childhood, unmistakably children and no globe or planet.";
+  }
   if (/гиннесс|рекорд/.test(name)) {
     return "Exactly two objects and nothing else: one elegant golden trophy standing beside one open, deep-navy record book. The book cover and all pages are completely blank, with absolutely no writing, lettering, symbols or numbers. No people.";
   }
@@ -523,7 +541,9 @@ async function findCommonsHolidayIllustration(env, title, description, subject) 
 export function holidayQuotaFallbackSvg(title, description = "", subject = "") {
   const text = [title, description, subject].join(" ").toLocaleLowerCase("ru");
   let artwork = "";
-  if (/наук|космос|физик|математ|технолог|робот|изобрет|астроном|хим/.test(text)) {
+  if (/день\s+реб[её]нка|прав\w*\s+реб[её]нка|детств/.test(text)) {
+    artwork = '<g stroke="#21145f" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><circle cx="145" cy="125" r="43" fill="#f2c39a"/><circle cx="250" cy="95" r="48" fill="#d99b72"/><circle cx="355" cy="125" r="43" fill="#f0c69e"/><path d="M82 345 Q78 230 145 205 Q212 230 208 345Z" fill="#e76c83"/><path d="M175 365 Q168 215 250 190 Q332 215 325 365Z" fill="#70b9e4"/><path d="M292 345 Q288 230 355 205 Q422 230 418 345Z" fill="#65b78b"/><path d="M190 270 Q220 300 250 270 Q280 300 310 270" fill="none" stroke="#21145f" stroke-width="13"/></g>';
+  } else if (/наук|космос|физик|математ|технолог|робот|изобрет|астроном|хим/.test(text)) {
     artwork = '<g fill="none" stroke="#21145f" stroke-width="13" stroke-linecap="round"><ellipse cx="250" cy="250" rx="175" ry="75" transform="rotate(-32 250 250)"/><ellipse cx="250" cy="250" rx="175" ry="75" transform="rotate(32 250 250)"/><ellipse cx="250" cy="250" rx="175" ry="75" transform="rotate(90 250 250)"/></g><circle cx="250" cy="250" r="43" fill="#e8b33d" stroke="#21145f" stroke-width="10"/><circle cx="425" cy="250" r="23" fill="#8a72d5"/><circle cx="125" cy="140" r="20" fill="#e76c83"/><circle cx="250" cy="75" r="21" fill="#63b9a7"/>';
   } else if (/книг|чтен|литератур|писател|библиотек/.test(text)) {
     artwork = '<path d="M78 160 Q168 112 250 164 Q332 112 422 160 L422 375 Q330 332 250 380 Q170 332 78 375Z" fill="#fffdf5" stroke="#21145f" stroke-width="13"/><path d="M250 164 V380" stroke="#21145f" stroke-width="12"/><path d="M104 193 Q174 158 221 191 M104 228 Q174 193 221 226 M104 263 Q174 228 221 261 M279 191 Q326 158 396 193 M279 226 Q326 193 396 228 M279 261 Q326 228 396 263" stroke="#d5a74a" stroke-width="10" stroke-linecap="round" fill="none"/>';
@@ -535,7 +555,7 @@ export function holidayQuotaFallbackSvg(title, description = "", subject = "") {
     artwork = '<path d="M250 80 C145 110 100 215 145 300 C190 360 310 360 355 300 C400 215 355 110 250 80Z" fill="#65b78b" stroke="#21145f" stroke-width="13"/><path d="M250 115 V330 M250 220 Q180 180 165 150 M250 270 Q320 225 340 190" stroke="#fff9e8" stroke-width="13" fill="none" stroke-linecap="round"/><path d="M180 390 Q250 345 320 390" stroke="#d5a74a" stroke-width="20" stroke-linecap="round"/>';
   } else if (/спорт|футбол|олимп|здоров|игр/.test(text)) {
     artwork = '<circle cx="250" cy="250" r="165" fill="#f6f7fb" stroke="#21145f" stroke-width="13"/><path d="M250 190 L305 230 L285 295 L215 295 L195 230Z" fill="#21145f"/><path d="M250 190 L160 145 M305 230 L385 210 M285 295 L330 370 M215 295 L160 365 M195 230 L120 210" stroke="#21145f" stroke-width="12" fill="none"/><path d="M160 145 L120 210 L160 365 L330 370 L385 210 L250 190Z" stroke="#21145f" stroke-width="10" fill="none"/>';
-  } else if (/мир|планет|международ|глобал|страна|народ/.test(text)) {
+  } else if (/\bмир\b|планет|международ|глобал|страна|народ/.test(text)) {
     artwork = '<circle cx="250" cy="250" r="170" fill="#70b9e4" stroke="#21145f" stroke-width="13"/><path d="M145 135 Q190 115 210 170 L185 220 L225 260 L200 320 L155 300 L125 220Z M295 120 L350 155 L330 205 L370 235 L340 290 L285 270 L260 215 L280 170Z M220 335 L275 320 L290 365 L250 400 L215 375Z" fill="#65b78b" stroke="#21145f" stroke-width="7"/>';
   } else {
     artwork = '<path d="M250 80 C190 115 105 190 110 290 C120 365 195 410 250 420 C305 410 380 365 390 290 C395 190 310 115 250 80Z" fill="#e8b33d" stroke="#21145f" stroke-width="13"/><path d="M250 125 C210 180 175 230 180 290 C190 330 225 355 250 370 C275 355 310 330 320 290 C325 230 290 180 250 125Z" fill="#fff0a6" stroke="#21145f" stroke-width="8"/>';
@@ -544,6 +564,9 @@ export function holidayQuotaFallbackSvg(title, description = "", subject = "") {
 }
 
 async function generateVerifiedHolidayIllustration(env, title, description, subject) {
+  if (/день\s+реб[её]нка|прав\w*\s+реб[её]нка|детств/i.test(String(title || ""))) {
+    return holidaySvgDataUrl(holidayQuotaFallbackSvg(title, description, subject));
+  }
   const commonsImage = await findCommonsHolidayIllustration(env, title, description, subject);
   if (commonsImage) return commonsImage;
   const basePrompt = buildHolidayIllustrationPrompt(title, description, subject);
@@ -761,10 +784,11 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       }
     }
     body = bestAiBody;
+    if (/день\s+реб[её]нка|прав\w*\s+реб[её]нка|детств/i.test(chosen.title)) body = childDayBody();
     // AI may occasionally return a short/truncated answer. In that case use
     // the calendar's own description (and, if needed, the holiday detail page)
     // rather than discarding an otherwise valid draft or inventing facts.
-    if (body.length < 180) {
+    if (body.length < 180 && !/день\s+реб[её]нка|прав\w*\s+реб[её]нка|детств/i.test(chosen.title)) {
       let sourceParts = [chosen.description];
       try {
         const detailResponse = await fetchWithTimeout(chosen.url, {
