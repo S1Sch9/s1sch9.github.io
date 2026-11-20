@@ -4,9 +4,7 @@ import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, hol
 
 const sample = {
   selected_index: 1,
-  body: "Первый абзац о празднике.
-
-Второй абзац с интересным фактом.",
+  body: "Первый абзац о празднике.\\n\\nВторой абзац с интересным фактом.",
   image_prompt: "A cheerful school child holding a small paper star"
 };
 
