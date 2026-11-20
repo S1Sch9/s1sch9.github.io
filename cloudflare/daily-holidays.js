@@ -456,7 +456,7 @@ async function reviewHolidayIllustration(env, dataUrl, title, subject) {
   // A false-negative on background cleanliness should not discard an otherwise
   // relevant, text-free, simple image. The prompt still requests a clean background.
   return verdict && verdict.relevant === true && verdict.text_free === true &&
-    verdict.within_object_limit === true
+    verdict.background_clean === true && verdict.within_object_limit === true
     ? { approved: true, reason: "" }
     : { approved: false, reason: verdict && verdict.reason ? String(verdict.reason).slice(0, 180) : "проверка не подтвердила соответствие сюжета, отсутствие текста и чистый фон" };
 }
@@ -502,47 +502,41 @@ async function findCommonsHolidayIllustration(env, title, description, subject) 
 async function generateVerifiedHolidayIllustration(env, title, description, subject) {
   const commonsImage = await findCommonsHolidayIllustration(env, title, description, subject);
   if (commonsImage) return commonsImage;
-
   const basePrompt = buildHolidayIllustrationPrompt(title, description, subject);
-  let lastReason = "не удалось подтвердить соответствие иллюстрации";
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const prompt = attempt === 0 ? basePrompt : basePrompt +
-      " FINAL STRICT RETRY: use a refined semi-realistic hand-painted editorial style, not a flat icon. Remove every trace of lettering and all background colour. Draw only the exact named subject on transparent or pure white. Do not add any human figure or extra object.";
-    const form = new FormData();
-    form.append("prompt", prompt);
-    form.append("width", "1024");
-    form.append("height", "1024");
-    form.append("steps", "20");
-    form.append("guidance", "4");
-    const formRequest = new Request("http://dummy", { method: "POST", body: form });
-    const generated = await withTimeout(env.AI.run(IMAGE_MODEL, {
-      multipart: {
-        body: formRequest.body,
-        contentType: formRequest.headers.get("content-type") || "multipart/form-data"
+  let reasons = [];
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const prompt = attempt === 0 ? basePrompt : basePrompt +
+        " STRICT CORRECTION RETRY " + attempt + ": simplify the image, use one unmistakable central subject, remove every secondary item, lettering, text-like marks, shadows and background. Pure white background only.";
+      const form = new FormData();
+      form.append("prompt", prompt);
+      form.append("width", "1024");
+      form.append("height", "1024");
+      form.append("steps", "20");
+      form.append("guidance", "4");
+      const formRequest = new Request("http://dummy", { method: "POST", body: form });
+      const generated = await withTimeout(env.AI.run(IMAGE_MODEL, {
+        multipart: { body: formRequest.body, contentType: formRequest.headers.get("content-type") || "multipart/form-data" }
+      }), AI_TIMEOUT_MS, "Генерация тематической иллюстрации");
+      if (!generated || typeof generated.image !== "string" || generated.image.length < 4000) {
+        reasons.push("модель не вернула изображение"); continue;
       }
-    }), AI_TIMEOUT_MS, "Генерация тематической иллюстрации");
-    if (!generated || typeof generated.image !== "string" || generated.image.length < 4000) {
-      throw new Error("Модель изображений не вернула готовую иллюстрацию. Черновик не отправлен.");
+      const base64 = generated.image.replace(/\\s/g, "");
+      let imageMime = "";
+      if (base64.startsWith("iVBORw0KGgo")) imageMime = "image/png";
+      else if (base64.startsWith("/9j/")) imageMime = "image/jpeg";
+      else if (base64.startsWith("UklGR")) imageMime = "image/webp";
+      if (!imageMime) { reasons.push("неизвестный формат"); continue; }
+      const dataUrl = "data:" + imageMime + ";base64," + base64;
+      const review = await reviewHolidayIllustration(env, dataUrl, title, subject);
+      if (review.approved) return dataUrl;
+      reasons.push("попытка " + (attempt + 1) + ": " + review.reason);
+    } catch (error) {
+      reasons.push("попытка " + (attempt + 1) + ": " + String(error && error.message || "ошибка генерации").slice(0, 140));
     }
-    const base64 = generated.image.replace(/\s/g, "");
-    // Flux output can be PNG, JPEG or WebP. Detect the actual encoded file
-    // signature and pass its real MIME through review/rendering, rather than
-    // rejecting valid non-PNG model outputs.
-    let imageMime = "";
-    if (base64.startsWith("iVBORw0KGgo")) imageMime = "image/png";
-    else if (base64.startsWith("/9j/")) imageMime = "image/jpeg";
-    else if (base64.startsWith("UklGR")) imageMime = "image/webp";
-    if (!imageMime) {
-      throw new Error("Модель изображений вернула неизвестный формат файла. Черновик не отправлен.");
-    }
-    const dataUrl = "data:" + imageMime + ";base64," + base64;
-    const review = await reviewHolidayIllustration(env, dataUrl, title, subject);
-    if (review.approved) return dataUrl;
-    lastReason = review.reason || lastReason;
   }
-  throw new Error("Иллюстрация отклонена автоматической проверкой: " + lastReason + ". Черновик с плохой картинкой не отправлен.");
+  throw new Error("Иллюстрация не прошла контроль качества после 3 попыток: " + reasons.join("; ").slice(0, 260) + ". Черновик не отправлен.");
 }
-
 
 let cachedHolidayAssetsPromise;
 async function holidayBrandAsset(url) {
@@ -581,11 +575,11 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
       '<div style="display:flex;position:absolute;left:620px;top:-215px;width:440px;height:440px;border:2px solid #21145f;border-radius:50%;opacity:.045"></div>' +
       '<div style="display:flex;position:absolute;right:205px;bottom:-170px;width:370px;height:370px;border:2px solid #99002b;border-radius:50%;opacity:.055"></div>' +
       '<div style="display:flex;position:absolute;left:26px;top:22px;width:1228px;height:674px;border:2.5px solid #21145f;border-radius:31px;box-sizing:border-box"></div>' +
-      '<div style="display:flex;position:absolute;left:70px;top:52px;width:650px;height:82px;align-items:center;justify-content:flex-start;gap:20px">' +
+      '<div style="display:flex;position:absolute;left:69px;top:57px;width:660px;height:80px;align-items:center;justify-content:flex-start;gap:20px">' +
         '<img src="' + councilLogo + '" style="display:flex;width:66px;height:66px;object-fit:contain;flex:none"/>' +
-        '<img src="' + schoolCrest + '" style="display:flex;width:66px;height:74px;object-fit:contain;flex:none"/>' +
+        '<img src="' + schoolCrest + '" style="display:flex;width:58px;height:68px;object-fit:contain;flex:none"/>' +
         '<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;color:#21145f;text-align:left;font-family:Georgia,Times New Roman,serif;font-size:27px;line-height:31px;font-weight:700;letter-spacing:-.55px;white-space:nowrap">' +
-          '<div style="display:flex">СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ №9</div>' +
+          '<div style="display:flex">ВАЖЕН</div><div style="display:flex">КАЖДЫЙ!</div>' +
         '</div>' +
       '</div>' +
       '<div style="display:flex;position:absolute;right:72px;top:57px;width:390px;height:78px;align-items:center;justify-content:flex-end;color:#21145f">' +
@@ -599,11 +593,13 @@ async function renderHolidayTemplate(template, dateLabel, holidayTitle, illustra
       '<div style="display:flex;position:absolute;left:820px;top:205px;width:360px;height:360px;align-items:center;justify-content:center;background:#fff;border:2.5px solid #21145f;border-radius:31px;padding:20px;box-sizing:border-box">' +
         '<img src="' + illustrationDataUrl + '" style="display:flex;width:100%;height:100%;object-fit:contain;border-radius:12px;mix-blend-mode:multiply"/>' +
       '</div>' +
+      '<div style="display:flex;position:absolute;left:69px;top:585px;width:430px;height:80px;flex-direction:column;align-items:flex-start;justify-content:center;color:#21145f;font-family:Georgia,Times New Roman,serif;font-size:34px;line-height:40px;font-weight:700;letter-spacing:-.5px">' +
+        '<div style="display:flex">СОВЕТ ПЕРВЫХ</div><div style="display:flex">ШКОЛЫ №9</div>' +
+      '</div>' +
     '</div>';
   const rendered = new ImageResponse(html, { width: 1280, height: 720 });
   return new Uint8Array(await rendered.arrayBuffer());
 }
-
 function escapeHtml(value) {
   return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
