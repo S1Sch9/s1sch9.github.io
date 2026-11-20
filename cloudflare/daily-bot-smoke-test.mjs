@@ -145,7 +145,7 @@ assert.ok(daily.includes("key = 'next_illustration'"));
 assert.ok(daily.includes("colorType !== 6 && colorType !== 4"));
 assert.ok(daily.includes("data:image/png;base64,"));
 assert.ok(daily.includes("Предыдущий предпросмотр отключён"));
-assert.ok(daily.includes("В следующем черновике вместо AI-картинки"));
+assert.ok(daily.includes("в следующем черновике вместо AI-картинки"));
 assert.ok(daily.includes("Прозрачный PNG"));
 
 assert.ok(daily.includes("left:820px;top:205px;width:360px;height:360px"));
