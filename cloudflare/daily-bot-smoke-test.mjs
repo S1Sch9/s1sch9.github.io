@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, holidayIllustrationSubjectForTitle, guinnessIllustrationSvg, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
+import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, holidayIllustrationSubjectForTitle, guinnessIllustrationSvg, holidayQuotaFallbackSvg, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
 
 const sample = {
   selected_index: 1,
@@ -106,6 +106,14 @@ assert.match(recordsSubject, /golden trophy/);
 assert.match(recordsSubject, /open, deep-navy record book/);
 assert.match(recordsSubject, /No people/);
 assert.ok(!recordsSubject.includes("children"));
+const quotaScience = holidayQuotaFallbackSvg("День науки");
+assert.match(quotaScience, /<svg/);
+assert.match(quotaScience, /ellipse/);
+assert.doesNotMatch(quotaScience, /<text\\b|<foreignObject\\b/);
+const quotaBook = holidayQuotaFallbackSvg("День книги");
+assert.match(quotaBook, /M78 160/);
+const quotaMusic = holidayQuotaFallbackSvg("День музыки");
+assert.match(quotaMusic, /M302 110/);
 const guinnessSvg = guinnessIllustrationSvg();
 assert.match(guinnessSvg, /<svg xmlns="http:\/\/www.w3.org\/2000\/svg"/);
 assert.match(guinnessSvg, /linearGradient id="gold"/);
