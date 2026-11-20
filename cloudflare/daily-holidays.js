@@ -262,7 +262,7 @@ export function normalizeHolidayTitle(value) {
     .replace(/\s+/g, " ").trim()
     .replace(/(?:https?:\/\/)?(?:www\.)?calend\.ru\S*/gi, " ")
     .replace(/\/?holidays?\/\d+(?:\/\d+){0,5}\/?/gi, " ")
-    .split(/\b(?:именины|день работника налоговых органов)\b/i)[0]
+    .split(/(?:именины|день работника налоговых органов)/i)[0]
     .replace(/[|•,;\s]+$/g, "").replace(/\s+/g, " ").trim();
 }
 
