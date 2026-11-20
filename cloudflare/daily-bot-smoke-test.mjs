@@ -115,7 +115,7 @@ assert.match(guinnessSvg, /M178 91/);
 assert.match(guinnessSvg, /M91 333/);
 
 assert.ok(daily.includes("renderHolidayTemplate(null, dateForImage, chosen.title, illustrationDataUrl, body)"));
-assert.ok(daily.includes("left:820px;top:205px;width:360px;height:360px"));
+assert.ok(daily.includes("left:820px;top:205px;width:360px;height:360px"));\nassert.ok(daily.includes("ВАЖЕН"));\nassert.ok(daily.includes("КАЖДЫЙ!"));\nassert.ok(daily.includes("left:69px;top:585px"));\nassert.ok(daily.includes("verdict.background_clean === true"));\nassert.ok(daily.includes("attempt < 3"));
 assert.ok(daily.includes("left:72px;top:' + (346 + index * lineHeight)"));
 assert.ok(daily.includes("left:72px;top:205px;width:680px;height:62px"));
 assert.ok(daily.includes("СОВЕТ ПЕРВЫХ</div><div style=\"display:flex\">ШКОЛЫ №9"));
