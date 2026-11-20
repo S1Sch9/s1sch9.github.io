@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, holidayIllustrationSubjectForTitle, guinnessIllustrationSvg, holidayQuotaFallbackSvg, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
+import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, holidayIllustrationSubjectForTitle, guinnessIllustrationSvg, holidayQuotaFallbackSvg, cleanHolidaySourceText, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
 
 const sample = {
   selected_index: 1,
@@ -15,6 +15,12 @@ assert.equal(modelText({ output: [{ content: [{ type: "output_text", text: JSON.
 assert.equal(modelText(JSON.stringify(sample)), JSON.stringify(sample));
 assert.equal(modelText({ response: null, choices: [] }), "");
 assert.equal(fitTelegramCaptionBody("Короткий текст", 100), "Короткий текст");
+const pollutedHolidayText = "Всемирный день ребёнка напоминает о правах детей и необходимости заботиться об их благополучии. Сегодня важно создавать условия для счастливого детства. Сегодня до 14:14 одиннадцатый день лунного цикла, после — двенадцатый. Данные приведены для временного пояса Москвы. Установите на вашем сайте информер «Праздники ООН». На вашу почту было отправлено письмо со ссылкой подтверждения. Адрес страницы: https://www.calend.ru/";
+const cleanHolidayText = cleanHolidaySourceText(pollutedHolidayText);
+assert.match(cleanHolidayText, /правах детей/);
+assert.match(cleanHolidayText, /счастливого детства/);
+assert.doesNotMatch(cleanHolidayText, /лунного цикла|информер|почту|подтверждения|Адрес страницы|calend.ru/i);
+
 
 const fallbackWithCalendar = fallbackHolidayIllustrationSubject(
   "Международный день семьи",
