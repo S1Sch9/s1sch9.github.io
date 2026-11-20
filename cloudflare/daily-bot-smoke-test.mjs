@@ -4,9 +4,7 @@ import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, hol
 
 const sample = {
   selected_index: 1,
-  body: "Первый абзац о празднике.
-
-Второй абзац с интересным фактом.",
+  body: "Первый абзац о празднике.\\n\\nВторой абзац с интересным фактом.",
   image_prompt: "A cheerful school child holding a small paper star"
 };
 
@@ -117,7 +115,7 @@ assert.match(guinnessSvg, /M178 91/);
 assert.match(guinnessSvg, /M91 333/);
 
 assert.ok(daily.includes("renderHolidayTemplate(null, dateForImage, chosen.title, illustrationDataUrl, body)"));
-assert.ok(daily.includes("left:820px;top:205px;width:360px;height:360px"));\nassert.ok(daily.includes("ВАЖЕН"));\nassert.ok(daily.includes("КАЖДЫЙ!"));\nassert.ok(daily.includes("left:69px;top:585px"));\nassert.ok(daily.includes("verdict.background_clean === true"));\nassert.ok(daily.includes("attempt < 3"));
+assert.ok(daily.includes("left:820px;top:205px;width:360px;height:360px"));\nassert.ok(daily.includes("ВАЖЕН</div><div style=\"display:flex\">КАЖДЫЙ!"));\nassert.ok(daily.includes("left:69px;top:585px"));\nassert.ok(daily.includes("verdict.background_clean === true"));\nassert.ok(daily.includes("attempt < 3"));
 assert.ok(daily.includes("left:72px;top:' + (346 + index * lineHeight)"));
 assert.ok(daily.includes("left:72px;top:205px;width:680px;height:62px"));
 assert.ok(daily.includes("СОВЕТ ПЕРВЫХ</div><div style=\"display:flex\">ШКОЛЫ №9"));
@@ -134,7 +132,7 @@ assert.ok(!daily.includes("#d9d9e2"));
 assert.ok(!daily.includes("#777394"));
 assert.ok(!daily.includes("left:488px;top:23px;width:334px;height:3px"));
 assert.ok(!daily.includes("background:#f7f7fa"));
-assert.ok(daily.includes("ВАЖЕН</div><div style=\"display:flex\">КАЖДЫЙ!"));
+assert.ok(!daily.includes("ВАЖЕН</div>"));
 assert.ok(!daily.includes("СОВЕТ ПЕРВЫХ · ШКОЛЫ №9"));
 assert.ok(daily.includes("font-family:Georgia,Times New Roman,serif"));
 assert.ok(daily.includes("const TEXT_MODEL = \"@cf/google/gemma-4-26b-a4b-it\""));
