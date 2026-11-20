@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, holidayIllustrationSubjectForTitle, guinnessIllustrationSvg, holidayQuotaFallbackSvg, cleanHolidaySourceText, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
+import { buildHolidayIllustrationPrompt, fallbackHolidayIllustrationSubject, holidayIllustrationSubjectForTitle, guinnessIllustrationSvg, holidayQuotaFallbackSvg, cleanHolidaySourceText, normalizeHolidayTitle, childDayBody, fitTelegramCaptionBody, modelText } from "./daily-holidays.js";
 
 const sample = {
   selected_index: 1,
@@ -20,6 +20,14 @@ const cleanHolidayText = cleanHolidaySourceText(pollutedHolidayText);
 assert.match(cleanHolidayText, /правах детей/);
 assert.match(cleanHolidayText, /счастливого детства/);
 assert.doesNotMatch(cleanHolidayText, /лунного цикла|информер|почту|подтверждения|Адрес страницы|calend.ru/i);
+
+const pollutedTitle = normalizeHolidayTitle("Всемирный день ребенка /holidays/0/0/106/ Именины Елизавета, Валерий. День работника налоговых органов Российской Федерации");
+assert.equal(pollutedTitle, "Всемирный день ребенка");
+const pollutedDescription = cleanHolidaySourceText("Праздник напоминает о правах детей и заботе об их благополучии. /holidays/0/0/106/ Именины Елизавета, Валерий. День работника налоговых органов Российской Федерации.");
+assert.match(pollutedDescription, /правах детей/);
+assert.doesNotMatch(pollutedDescription, /Именины|налоговых органов|holidays/i);
+assert.match(childDayBody(), /защите прав детей/);
+assert.match(childDayBody(), /учиться, дружить, развиваться/);
 
 
 const fallbackWithCalendar = fallbackHolidayIllustrationSubject(
@@ -112,6 +120,9 @@ assert.match(recordsSubject, /golden trophy/);
 assert.match(recordsSubject, /open, deep-navy record book/);
 assert.match(recordsSubject, /No people/);
 assert.ok(!recordsSubject.includes("children"));
+const quotaChildren = holidayQuotaFallbackSvg("Всемирный день ребёнка");
+assert.match(quotaChildren, /cx="145" cy="125"/);
+assert.doesNotMatch(quotaChildren, /cx="250" cy="250" r="170"/);
 const quotaScience = holidayQuotaFallbackSvg("День науки");
 assert.match(quotaScience, /<svg/);
 assert.match(quotaScience, /ellipse/);
