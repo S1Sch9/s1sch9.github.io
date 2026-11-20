@@ -140,6 +140,14 @@ assert.match(guinnessSvg, /M178 91/);
 assert.match(guinnessSvg, /M91 333/);
 
 assert.ok(daily.includes("renderHolidayTemplate(null, dateForImage, chosen.title, illustrationDataUrl, body)"));
+assert.ok(daily.includes("async function saveCustomIllustrationFromTelegram"));
+assert.ok(daily.includes("key = 'next_illustration'"));
+assert.ok(daily.includes("colorType !== 6 && colorType !== 4"));
+assert.ok(daily.includes("data:image/png;base64,"));
+assert.ok(daily.includes("Предыдущий предпросмотр отключён"));
+assert.ok(daily.includes("В следующем черновике вместо AI-картинки"));
+assert.ok(daily.includes("Прозрачный PNG"));
+
 assert.ok(daily.includes("left:820px;top:205px;width:360px;height:360px"));
 assert.ok(daily.includes("ВАЖЕН</div><div style=\"display:flex\">КАЖДЫЙ!"));
 assert.ok(daily.includes("left:69px;top:585px"));
