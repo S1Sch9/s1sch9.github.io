@@ -880,8 +880,15 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
 
     stage = "image-ai";
     if (onProgress) await onProgress(stage);
-    const illustrationSubject = holidayIllustrationSubjectForTitle(chosen.title, chosen.description, body, imagePrompt);
-    const illustrationDataUrl = await generateVerifiedHolidayIllustration(env, chosen.title, chosen.description, illustrationSubject);
+    const queuedIllustration = await env.DB.prepare("SELECT mime_type, content_base64 FROM daily_holiday_assets WHERE key = 'next_illustration'").first();
+    const illustrationDataUrl = queuedIllustration && queuedIllustration.mime_type === "image/png" && queuedIllustration.content_base64
+      ? "data:image/png;base64," + queuedIllustration.content_base64
+      : await generateVerifiedHolidayIllustration(
+          env,
+          chosen.title,
+          chosen.description,
+          holidayIllustrationSubjectForTitle(chosen.title, chosen.description, body, imagePrompt)
+        );
 
     stage = "template-render";
     if (onProgress) await onProgress(stage);
@@ -914,7 +921,12 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
     }
     await env.DB.prepare("UPDATE daily_holiday_drafts SET message_id = ?, status = 'pending', holiday_title = ?, source_url = ? WHERE date = ?")
       .bind(sent.result.message_id, chosen.title, chosen.url, date).run();
-    return { ok: true, title: chosen.title };
+    await env.DB.prepare("INSERT INTO daily_holiday_state (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
+      .bind("caption:" + date, postHtml).run();
+    if (queuedIllustration) {
+      await env.DB.prepare("DELETE FROM daily_holiday_assets WHERE key = 'next_illustration'").run();
+    }
+    return { ok: true, title: chosen.title, customIllustration: Boolean(queuedIllustration) };
   } catch (error) {
     const detail = String(error && error.message ? error.message : "Неизвестная ошибка").slice(0, 220);
     await env.DB.prepare("UPDATE daily_holiday_drafts SET status = 'failed', last_error = ?, last_stage = ? WHERE date = ?").bind(detail, stage, date).run();
@@ -1112,6 +1124,67 @@ async function saveTemplateFromTelegram(env, msg, adminId) {
   return true;
 }
 
+async function saveCustomIllustrationFromTelegram(env, msg, adminId) {
+  const doc = msg.document;
+  const name = String(doc && doc.file_name || "");
+  if (!doc || !/\.png$/i.test(name) || (doc.mime_type && doc.mime_type !== "image/png")) {
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Для бесплатной обработки пришли именно PNG с прозрачным фоном как ФАЙЛ (скрепка → Файл), не как обычную фотографию. JPG и PNG без прозрачности автоматически вырезать бесплатно бот не сможет." });
+    return true;
+  }
+  if (Number(doc.file_size || 0) > 850000) {
+    await tg(env, "sendMessage", { chat_id: adminId, text: "PNG слишком большой для бесплатного хранения в боте. Уменьши файл до 850 КБ и пришли ещё раз. Ничего не изменено." });
+    return true;
+  }
+  const meta = await tg(env, "getFile", { file_id: doc.file_id });
+  if (!meta || !meta.file_path) throw new Error("Telegram не вернул путь к PNG.");
+  const response = await fetch("https://api.telegram.org/file/bot" + env.SOVETTG_BOT_TOKEN + "/" + meta.file_path);
+  if (!response.ok) throw new Error("Не удалось скачать PNG из Telegram.");
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const signature = [137,80,78,71,13,10,26,10];
+  if (bytes.length < 33 || bytes.length > 850000 || !signature.every((value, index) => bytes[index] === value)) {
+    await tg(env, "sendMessage", { chat_id: adminId, text: "Файл не похож на корректный PNG или превышает 850 КБ. Ничего не изменено." });
+    return true;
+  }
+  const colorType = bytes[25];
+  if (colorType !== 6 && colorType !== 4) {
+    await tg(env, "sendMessage", { chat_id: adminId, text: "В этом PNG нет отдельного альфа-канала прозрачности. Экспортируй изображение как PNG с прозрачным фоном и отправь как файл." });
+    return true;
+  }
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  const base64 = btoa(binary);
+  const pending = await env.DB.prepare("SELECT date, chat_id, message_id, holiday_title FROM daily_holiday_drafts WHERE status = 'pending' AND chat_id = ? AND message_id IS NOT NULL ORDER BY created_at DESC LIMIT 1").bind(adminId).first();
+  if (pending) {
+    const captionRow = await env.DB.prepare("SELECT value FROM daily_holiday_state WHERE key = ?").bind("caption:" + pending.date).first();
+    if (captionRow && captionRow.value) {
+      const dateLabel = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "numeric", month: "long", year: "numeric" }).format(new Date(pending.date + "T12:00:00+03:00"));
+      const rendered = await withTimeout(renderHolidayTemplate(null, dateLabel, pending.holiday_title || "Праздник", "data:image/png;base64," + base64), 45000, "Сборка карточки с твоей иллюстрацией");
+      const form = new FormData();
+      form.append("chat_id", adminId);
+      form.append("photo", new Blob([rendered], { type: "image/png" }), "holiday-" + pending.date + "-custom.png");
+      form.append("caption", captionRow.value);
+      form.append("parse_mode", "HTML");
+      form.append("reply_markup", JSON.stringify({ inline_keyboard: [
+        [{ text: "✅ Опубликовать сейчас", callback_data: "publish:" + pending.date }],
+        [{ text: "🕒 Выложить позже", callback_data: "schedule:" + pending.date }],
+        [{ text: "🔄 Переделать картинку", callback_data: "redoimage:" + pending.date }],
+        [{ text: "✖️ Отклонить", callback_data: "skip:" + pending.date }]
+      ] }));
+      const sentResponse = await fetchWithTimeout(API + env.SOVETTG_BOT_TOKEN + "/sendPhoto", { method: "POST", body: form }, REQUEST_TIMEOUT_MS, "Отправка черновика с твоей картинкой");
+      const sent = await sentResponse.json();
+      if (!sentResponse.ok || !sent.ok || !sent.result || !sent.result.message_id) throw new Error("Не удалось отправить обновлённый предпросмотр: " + String(sent.description || sentResponse.status).slice(0, 140));
+      await env.DB.prepare("UPDATE daily_holiday_drafts SET message_id = ? WHERE date = ? AND status = 'pending'").bind(sent.result.message_id, pending.date).run();
+      try { await tg(env, "editMessageReplyMarkup", { chat_id: adminId, message_id: pending.message_id, reply_markup: { inline_keyboard: [] } }); } catch {}
+      await tg(env, "sendMessage", { chat_id: adminId, text: "✅ Готово! Твоя иллюстрация вставлена в шаблон. Предыдущий предпросмотр отключён, проверь новое сообщение. В канал ничего не отправлял." , reply_markup: dailyMenuMarkup() });
+      return true;
+    }
+  }
+  await env.DB.prepare("INSERT INTO daily_holiday_assets (key, mime_type, file_name, content_base64, updated_at) VALUES ('next_illustration', 'image/png', ?, ?, ?) ON CONFLICT(key) DO UPDATE SET mime_type='image/png', file_name=excluded.file_name, content_base64=excluded.content_base64, updated_at=excluded.updated_at")
+    .bind(name || "custom-illustration.png", base64, Math.floor(Date.now() / 1000)).run();
+  await tg(env, "sendMessage", { chat_id: adminId, text: "✅ Прозрачный PNG сохранён! Использую его в следующем черновике вместо AI-картинки. Если захочешь заменить его, просто пришли другой PNG. В текущем черновике пока ничего не менял.", reply_markup: dailyMenuMarkup() });
+  return true;
+}
+
 async function processUpdate(env, item, adminId) {
   if (await handleSocialUpdate(env, item, adminId)) return;
   if (item.callback_query) return callback(env, item, adminId);
@@ -1119,11 +1192,18 @@ async function processUpdate(env, item, adminId) {
   if (!msg || !msg.chat || msg.chat.type !== "private" || String(msg.chat.id) !== adminId || String(msg.from && msg.from.id) !== adminId) return;
   // Photos belong to the social publisher. Never treat an ordinary incoming
   // photo as a replacement daily-holiday template.
-  if (msg.document) { await saveTemplateFromTelegram(env, msg, adminId); return; }
+  if (msg.document) {
+    if (/\.png$/i.test(String(msg.document.file_name || "")) || msg.document.mime_type === "image/png") {
+      await saveCustomIllustrationFromTelegram(env, msg, adminId);
+      return;
+    }
+    await saveTemplateFromTelegram(env, msg, adminId);
+    return;
+  }
   if (msg.photo) {
     await tg(env, "sendMessage", {
       chat_id: adminId,
-      text: "📷 Фото получил, но сейчас не выбран режим фотопубликации. Нажми «✍️ Публикация», выбери «🖼 Фото» и отправь фотографию ещё раз — тогда я поставлю её в обработку и пришлю предпросмотр."
+      text: "📷 Фото получил! Чтобы бесплатно вставить его в карточку с белым фоном, пришли изображение как ФАЙЛ в формате PNG с прозрачностью (скрепка → Файл). Обычное фото с фоном автоматически вырезать без платного сервиса не получится."
     });
     return;
   }
