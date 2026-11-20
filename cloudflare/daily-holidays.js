@@ -245,6 +245,16 @@ async function showHolidayChoices(env, adminId, date) {
   }
 }
 
+export function cleanHolidaySourceText(value) {
+  const raw = String(value || "").replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'").replace(/&mdash;/gi, "—").replace(/&ndash;/gi, "–")
+    .replace(/\s+/g, " ").trim();
+  const junk = /лунн(?:ый|ого)\s+день|данные\s+приведены\s+для\s+временн|не\s+забудьте\s+сделать\s+поправку|установите\s+на\s+вашем\s+сайте|информер|на\s+вашу\s+почту|письмо\s+со\s+ссылкой\s+подтверждения|папку\s+спам|свяжитесь\s+с\s+нами|адрес\s+страницы|подписк|войти\s+на\s+сайт|регистрац|cookie|javascript/i;
+  return (raw.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [raw]).map(part => part.trim())
+    .filter(part => part.length >= 28 && !junk.test(part)).join(" ").replace(/\s+/g, " ").trim();
+}
+
 export function fitTelegramCaptionBody(value, maxLength) {
   const input = String(value || "").trim();
   const limit = Math.max(0, Number(maxLength) || 0);
@@ -462,9 +472,12 @@ async function reviewHolidayIllustration(env, dataUrl, title, subject) {
 }
 
 async function findCommonsHolidayIllustration(env, title, description, subject) {
-  const query = /гиннесс|рекорд/i.test(String(title || ""))
+  const holidayName = String(title || "").toLocaleLowerCase("ru");
+  const query = /гиннесс|рекорд/i.test(holidayName)
     ? "Guinness World Records trophy book"
-    : [title, description].filter(Boolean).join(" ").replace(/[^\p{L}\p{N} ]/gu, " ").replace(/\s+/g, " ").slice(0, 110);
+    : /день\s+реб[её]нка|прав\w*\s+реб[её]нка|детств/i.test(holidayName)
+      ? "World Children's Day children playing together friends school"
+      : [title, subject, description].filter(Boolean).join(" ").replace(/[^\p{L}\p{N} ]/gu, " ").replace(/\s+/g, " ").slice(0, 150);
   const api = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=10&gsrsearch=" +
     encodeURIComponent(query) + "&prop=imageinfo&iiprop=url|size|mime|extmetadata&iiurlwidth=1200&format=json";
   try {
@@ -472,7 +485,15 @@ async function findCommonsHolidayIllustration(env, title, description, subject) 
     if (!response.ok) return null;
     const payload = await response.json();
     const pages = Object.values(payload && payload.query && payload.query.pages || {});
-    for (const page of pages.slice(0, 8)) {
+    const rankedPages = pages.map(page => {
+      const label = String(page.title || "").toLocaleLowerCase("en");
+      let score = 0;
+      if (/children|child|childhood|kids|play|school|friend/.test(label)) score += 5;
+      if (/world.?children.?s.?day/.test(label)) score += 8;
+      if (/planet|earth|globe|space/.test(label) && /день\s+реб[её]нка|детств/i.test(holidayName)) score -= 8;
+      return { page, score };
+    }).sort((a, b) => b.score - a.score);
+    for (const { page } of rankedPages.slice(0, 8)) {
       const info = page.imageinfo && page.imageinfo[0];
       if (!info || !info.thumburl || !["image/png", "image/jpeg", "image/webp"].includes(info.thumbmime || info.mime)) continue;
       if (Number(info.thumbwidth || info.width || 0) < 500 || Number(info.thumbheight || info.height || 0) < 500) continue;
@@ -733,8 +754,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
           max_tokens: 700,
           temperature: attempt ? 0.1 : 0.2
         }), AI_TIMEOUT_MS, "Текстовая AI-модель");
-        const candidate = String(modelText(bodyAnswer) || "").replace(/\\r/g, "")
-          .split(/\\n{2,}/).map(part => part.trim()).filter(Boolean).slice(0, 2).join("\\n\\n");
+        const candidate = cleanHolidaySourceText(modelText(bodyAnswer));
         if (candidate.length > bestAiBody.length) bestAiBody = candidate;
       } catch (error) {
         textAiError = String(error && error.message || "ошибка текстовой модели");
@@ -761,7 +781,7 @@ async function makeDraft(env, force = false, requestedDate = null, onProgress = 
       } catch (error) {
         console.warn("Could not expand holiday text from its source page:", error && error.message ? error.message : "unknown error");
       }
-      const sourceText = sourceParts.join(" ").replace(/\s+/g, " ").trim().slice(0, 900);
+      const sourceText = cleanHolidaySourceText(sourceParts.join(" ")).slice(0, 900);
       if (sourceText.length >= 120) {
         const sentences = sourceText.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [sourceText];
         const midpoint = Math.ceil(sentences.length / 2);
